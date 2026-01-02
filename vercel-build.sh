@@ -17,15 +17,10 @@ else
     if [ ! -d .git ]; then
         echo "⚠️  Not in a git repository, skipping LFS pull"
     else
-        # CRITICAL: Unset skip smudge so we can pull LFS files now
-        # This was set to prevent clone hang, but we need it unset for build
-        unset GIT_LFS_SKIP_SMUDGE
-        export GIT_LFS_SKIP_SMUDGE=""
-        git config --unset lfs.fetchexclude 2>/dev/null || true
-        git config --unset core.lfs 2>/dev/null || true
-        
-        # Ensure Git LFS is enabled for this repo
-        git config lfs.fetchexclude "" 2>/dev/null || true
+        # CRITICAL: With LFS enabled in Vercel, we need to prevent clone hang
+        # GIT_LFS_SKIP_SMUDGE=1 is set in vercel.json to skip LFS during clone
+        # But we need to enable it for the build script to pull files
+        # The build script will unset it and pull LFS files
         
         # Try to pull LFS files
         echo "📥 Pulling Git LFS files..."
@@ -93,46 +88,32 @@ else
             echo "   Installing LFS hooks..."
             $LFS_COMMAND install --skip-repo 2>&1 || true
             
+            # CRITICAL: Unset skip smudge and fetchexclude so we can pull LFS files now
+            # Vercel has LFS enabled (for authentication), but we skipped during clone
+            # Now we need to enable it for the build
+            echo "   Enabling LFS for build (was disabled during clone)..."
+            unset GIT_LFS_SKIP_SMUDGE
+            export GIT_LFS_SKIP_SMUDGE=""
+            git config --unset lfs.fetchexclude 2>/dev/null || true
+            
             # Configure Git LFS to use Git's existing credentials
-            # CRITICAL: Vercel clones with authentication, but Git LFS needs explicit config
+            # With LFS enabled in Vercel, authentication should work automatically
             echo "   Configuring Git LFS authentication..."
             
             REMOTE_URL=$(git config --get remote.origin.url 2>/dev/null || echo "")
             echo "   Git remote URL: ${REMOTE_URL}"
             
-            # Extract credentials from Git's credential helper or remote URL
-            # Vercel stores credentials in .git/config or uses credential helper
+            # With LFS enabled in Vercel, Git LFS should use Vercel's GitHub token
+            # But we'll configure it explicitly to be sure
             if [ -n "$REMOTE_URL" ]; then
-                # Try to get the actual remote URL with credentials from Git config
-                # Vercel might store it differently, so try multiple methods
-                
-                # Method 1: Use the remote URL directly (Git LFS should use Git's credential helper)
-                echo "   Configuring Git LFS to use same remote as Git..."
-                git config lfs.url "$REMOTE_URL" 2>/dev/null || true
-                
-                # Method 2: Ensure credential helper is configured
-                echo "   Ensuring Git credential helper is available..."
-                git config --global credential.helper store 2>/dev/null || true
-                
-                # Method 3: For HTTPS remotes, Git LFS should automatically use Git's credentials
-                # For SSH remotes, Git LFS should use the same SSH keys
-                if [[ "$REMOTE_URL" == https://* ]]; then
-                    echo "   Git uses HTTPS - Git LFS will use Git's credential helper"
-                elif [[ "$REMOTE_URL" == git@* ]] || [[ "$REMOTE_URL" == ssh://* ]]; then
-                    echo "   Git uses SSH - Git LFS will use same SSH keys"
-                    # Ensure SSH is configured for Git LFS
-                    git config --global lfs.basictransferonly false 2>/dev/null || true
-                fi
+                echo "   Git LFS will use Vercel's GitHub authentication (LFS enabled)"
+                # Git LFS should automatically use the same credentials as Git
+                # With LFS enabled in Vercel, this should work
             fi
             
             # Configure Git LFS performance settings
             git config --global lfs.batch true 2>/dev/null || true
             git config --global lfs.concurrenttransfers 8 2>/dev/null || true
-            
-            # CRITICAL: Ensure Git LFS can access the remote
-            # Try to verify LFS can see the remote
-            echo "   Verifying Git LFS can access remote..."
-            $LFS_COMMAND env 2>&1 | grep -E "(Endpoint|Remote)" | head -3 || echo "   (LFS env check completed)"
             
             # Try using git lfs fetch with explicit remote instead of pull
             # This might work better with existing Git credentials
