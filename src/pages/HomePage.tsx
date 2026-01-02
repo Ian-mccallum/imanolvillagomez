@@ -96,46 +96,35 @@ export const HomePage = () => {
     const videoEl = videoRef.current;
     if (!videoEl) return;
 
+    // Log video loading states for debugging
+    const logState = (event: string) => {
+      console.log(`Video ${event}:`, {
+        networkState: videoEl.networkState,
+        readyState: videoEl.readyState,
+        error: videoEl.error,
+        src: videoEl.src,
+        currentSrc: videoEl.currentSrc
+      });
+    };
+
+    videoEl.addEventListener('loadstart', () => logState('loadstart'));
+    videoEl.addEventListener('loadedmetadata', () => logState('loadedmetadata'));
+    videoEl.addEventListener('loadeddata', () => logState('loadeddata'));
+    videoEl.addEventListener('canplay', () => {
+      logState('canplay');
+      videoEl.play().catch((err) => {
+        console.warn('Video autoplay prevented:', err);
+      });
+    });
+
     // Load the video
     videoEl.load();
 
-    // Handle video ready to play
-    const handleCanPlay = () => {
-      // Attempt to play the video
-      videoEl.play().catch((err) => {
-        console.warn('Video autoplay prevented:', err);
-        // Autoplay was prevented, but video is loaded
-      });
-    };
-
-    // Handle video errors
-    const handleError = (e: Event) => {
-      console.error('Video background error:', e);
-      const video = e.target as HTMLVideoElement;
-      if (video.error) {
-        console.error('Video error details:', {
-          code: video.error.code,
-          message: video.error.message,
-        });
-      }
-    };
-
-    // Handle video loaded metadata
-    const handleLoadedMetadata = () => {
-      // Video metadata loaded, try to play
-      videoEl.play().catch((err) => {
-        console.warn('Video autoplay prevented after metadata load:', err);
-      });
-    };
-
-    videoEl.addEventListener('canplay', handleCanPlay);
-    videoEl.addEventListener('error', handleError);
-    videoEl.addEventListener('loadedmetadata', handleLoadedMetadata);
-
     return () => {
-      videoEl.removeEventListener('canplay', handleCanPlay);
-      videoEl.removeEventListener('error', handleError);
-      videoEl.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      videoEl.removeEventListener('loadstart', () => logState('loadstart'));
+      videoEl.removeEventListener('loadedmetadata', () => logState('loadedmetadata'));
+      videoEl.removeEventListener('loadeddata', () => logState('loadeddata'));
+      videoEl.removeEventListener('canplay', () => logState('canplay'));
     };
   }, [heroVideoUrl]);
 
@@ -161,11 +150,12 @@ export const HomePage = () => {
       {/* Full-screen video background - osamason video only, fully visible */}
       <video
         ref={videoRef}
+        src={heroVideoUrl}
         autoPlay
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none"
         style={{ 
           width: '100vw', 
@@ -175,37 +165,25 @@ export const HomePage = () => {
           backgroundColor: '#000'
         }}
         onError={(e) => {
-          console.error('Video background error:', e);
           const video = e.currentTarget;
-          if (video.error) {
-            console.error('Video error details:', {
-              code: video.error.code,
-              message: video.error.message,
-            });
-          }
+          const errorCodes: Record<number, string> = {
+            1: 'MEDIA_ERR_ABORTED - Video loading aborted',
+            2: 'MEDIA_ERR_NETWORK - Network error',
+            3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
+            4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
+          };
+          console.error('Video background error:', {
+            code: video.error?.code,
+            codeName: video.error ? errorCodes[video.error.code] || 'Unknown error' : 'No error code',
+            message: video.error?.message,
+            src: video.src,
+            currentSrc: video.currentSrc,
+            networkState: video.networkState,
+            readyState: video.readyState,
+            error: video.error
+          });
         }}
-        onLoadedData={() => {
-          // Video data loaded, ensure it plays
-          const videoEl = videoRef.current;
-          if (videoEl) {
-            videoEl.play().catch((err) => {
-              console.warn('Video autoplay prevented:', err);
-            });
-          }
-        }}
-        onCanPlay={() => {
-          // Video can start playing
-          const videoEl = videoRef.current;
-          if (videoEl) {
-            videoEl.play().catch((err) => {
-              console.warn('Video autoplay prevented on canplay:', err);
-            });
-          }
-        }}
-      >
-        <source src={heroVideoUrl} type="video/quicktime" />
-        <source src={heroVideoUrl} />
-      </video>
+      />
 
       {/* Black grainy overlay - reduces video visibility with heavy grain */}
       {/* Mobile: Reduced opacity for performance, but maintain grain aesthetic */}
