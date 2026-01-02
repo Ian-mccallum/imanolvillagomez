@@ -210,13 +210,21 @@ export const PaperCutoutCard = ({
                 const video = e.currentTarget;
                 // Seek to 1 second for better thumbnail
                 if (video.readyState >= 2) {
-                  video.currentTime = 1;
+                  if (isFinite(video.duration) && video.duration > 0) {
+                    video.currentTime = Math.min(1, video.duration / 2);
+                  } else {
+                    video.currentTime = 1;
+                  }
                   video.play().catch(() => {
                     // Autoplay prevented, that's okay
                   });
                 } else {
                   video.addEventListener('loadedmetadata', () => {
-                    video.currentTime = Math.min(1, video.duration / 2);
+                    if (isFinite(video.duration) && video.duration > 0) {
+                      video.currentTime = Math.min(1, video.duration / 2);
+                    } else {
+                      video.currentTime = 1;
+                    }
                     video.play().catch(() => {});
                   }, { once: true });
                 }
@@ -224,7 +232,11 @@ export const PaperCutoutCard = ({
               onMouseLeave={(e) => {
                 const video = e.currentTarget;
                 video.pause();
-                video.currentTime = Math.min(1, video.duration / 2);
+                if (isFinite(video.duration) && video.duration > 0) {
+                  video.currentTime = Math.min(1, video.duration / 2);
+                } else {
+                  video.currentTime = 1;
+                }
               }}
               onError={(e) => {
                 console.error('Video thumbnail error:', e);

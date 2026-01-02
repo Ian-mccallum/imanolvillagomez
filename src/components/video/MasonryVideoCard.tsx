@@ -99,12 +99,21 @@ export const MasonryVideoCard = ({
               }}
               onMouseEnter={(e) => {
                 const video = e.currentTarget;
-                video.currentTime = 1;
+                if (isFinite(video.duration) && video.duration > 0) {
+                  video.currentTime = Math.min(1, video.duration / 2);
+                } else {
+                  video.currentTime = 1;
+                }
                 video.play().catch(() => {});
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.pause();
-                e.currentTarget.currentTime = 1;
+                const video = e.currentTarget;
+                video.pause();
+                if (isFinite(video.duration) && video.duration > 0) {
+                  video.currentTime = Math.min(1, video.duration / 2);
+                } else {
+                  video.currentTime = 1;
+                }
               }}
             />
         

@@ -18,7 +18,11 @@ export const generateVideoThumbnail = (
     video.preload = 'metadata';
     
     video.onloadedmetadata = () => {
-      video.currentTime = time;
+      if (isFinite(video.duration) && video.duration > 0) {
+        video.currentTime = Math.min(time, video.duration);
+      } else {
+        video.currentTime = time;
+      }
     };
     
     video.onseeked = () => {

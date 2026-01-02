@@ -112,13 +112,21 @@ export const VideoCard = ({
             const videoEl = e.currentTarget;
             // Seek to 1 second for better thumbnail
             if (videoEl.readyState >= 2) {
-              videoEl.currentTime = 1;
+              if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+                videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+              } else {
+                videoEl.currentTime = 1;
+              }
               videoEl.play().catch(() => {
                 // Autoplay prevented, that's okay
               });
             } else {
               videoEl.addEventListener('loadedmetadata', () => {
-                videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+                if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+                  videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+                } else {
+                  videoEl.currentTime = 1;
+                }
                 videoEl.play().catch(() => {});
               }, { once: true });
             }
@@ -126,7 +134,11 @@ export const VideoCard = ({
           onMouseLeave={(e) => {
             const videoEl = e.currentTarget;
             videoEl.pause();
-            videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+            if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+              videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+            } else {
+              videoEl.currentTime = 1;
+            }
           }}
           onError={(e) => {
             console.error('Video thumbnail error:', e);
