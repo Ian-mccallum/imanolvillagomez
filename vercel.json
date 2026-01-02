@@ -15,7 +15,7 @@
   },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!videos|images|assets|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
