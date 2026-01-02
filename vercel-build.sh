@@ -5,15 +5,17 @@ set -e
 
 echo "🔧 Setting up Git LFS for Vercel..."
 
-# Configure Git to skip LFS checkout during clone (we'll pull manually)
-# This prevents Vercel from timing out during clone
-export GIT_LFS_SKIP_SMUDGE=1
+# Note: We can't prevent Vercel from downloading LFS during clone
+# because clone happens before this script runs.
+# If clone times out, Git LFS must be disabled in Vercel settings.
+# Then this script will install Git LFS and pull files manually.
 
 # Check if we're in a git repo
 if [ ! -d .git ]; then
     echo "⚠️  Not in a git repository, skipping LFS pull"
 else
-    # Unset skip smudge so we can pull LFS files now
+    # Re-enable LFS fetch and unset skip smudge so we can pull LFS files now
+    git config --unset lfs.fetchexclude 2>/dev/null || true
     unset GIT_LFS_SKIP_SMUDGE
     
     # Try to pull LFS files
