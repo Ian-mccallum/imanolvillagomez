@@ -141,7 +141,7 @@ export const VideoCard = ({
             }
           }}
           onError={(e) => {
-            const video = e.currentTarget;
+            const videoEl = e.currentTarget;
             const errorCodes: Record<number, string> = {
               1: 'MEDIA_ERR_ABORTED - Video loading aborted',
               2: 'MEDIA_ERR_NETWORK - Network error',
@@ -149,12 +149,12 @@ export const VideoCard = ({
               4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
             };
             console.error('Video thumbnail error:', {
-              code: video.error?.code,
-              codeName: video.error ? errorCodes[video.error.code] || 'Unknown error' : 'No error code',
-              message: video.error?.message,
-              src: video.src,
-              networkState: video.networkState,
-              readyState: video.readyState,
+              code: videoEl.error?.code,
+              codeName: videoEl.error ? errorCodes[videoEl.error.code] || 'Unknown error' : 'No error code',
+              message: videoEl.error?.message,
+              src: videoEl.src,
+              networkState: videoEl.networkState,
+              readyState: videoEl.readyState,
               videoUrl: video.thumbnail || video.videoUrl
             });
             // Could show a placeholder here if needed
