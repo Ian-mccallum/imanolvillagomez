@@ -47,15 +47,37 @@ export const VideoPlayer = ({
     videoEl.load();
     
     const handleCanPlay = () => {
+      console.log('Video canplay:', item.videoUrl, {
+        duration: videoEl.duration,
+        videoWidth: videoEl.videoWidth,
+        videoHeight: videoEl.videoHeight,
+        readyState: videoEl.readyState,
+        networkState: videoEl.networkState
+      });
       onLoad();
       videoEl.play().catch((err) => {
-        console.warn('Autoplay prevented:', err);
+        console.warn('Autoplay prevented:', err, item.videoUrl);
         setAutoplayBlocked(true);
         onLoad();
       });
     };
     
-    const handleError = () => {
+    const handleError = (e?: Event) => {
+      const video = e?.target as HTMLVideoElement || videoEl;
+      const errorCodes: Record<number, string> = {
+        1: 'MEDIA_ERR_ABORTED',
+        2: 'MEDIA_ERR_NETWORK',
+        3: 'MEDIA_ERR_DECODE',
+        4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+      };
+      console.error('Video error:', {
+        videoUrl: item.videoUrl,
+        code: video.error?.code,
+        codeName: video.error ? errorCodes[video.error.code] || 'Unknown' : 'No error',
+        message: video.error?.message,
+        networkState: video.networkState,
+        readyState: video.readyState
+      });
       onError();
     };
     
@@ -82,7 +104,12 @@ export const VideoPlayer = ({
     };
     
     videoEl.addEventListener('canplay', handleCanPlay, { once: true });
-    videoEl.addEventListener('error', handleError, { once: true });
+    videoEl.addEventListener('error', (e) => handleError(e), { once: true });
+    videoEl.addEventListener('loadstart', () => console.log('Video loadstart:', item.videoUrl));
+    videoEl.addEventListener('loadedmetadata', () => console.log('Video loadedmetadata:', item.videoUrl, { duration: videoEl.duration }));
+    videoEl.addEventListener('loadeddata', () => console.log('Video loadeddata:', item.videoUrl));
+    videoEl.addEventListener('stalled', () => console.warn('Video stalled:', item.videoUrl));
+    videoEl.addEventListener('waiting', () => console.warn('Video waiting:', item.videoUrl));
     videoEl.addEventListener('play', handlePlay);
     videoEl.addEventListener('pause', handlePause);
     videoEl.addEventListener('timeupdate', handleTimeUpdate);
@@ -91,7 +118,7 @@ export const VideoPlayer = ({
     
     return () => {
       videoEl.removeEventListener('canplay', handleCanPlay);
-      videoEl.removeEventListener('error', handleError);
+      videoEl.removeEventListener('error', (e) => handleError(e));
       videoEl.removeEventListener('play', handlePlay);
       videoEl.removeEventListener('pause', handlePause);
       videoEl.removeEventListener('timeupdate', handleTimeUpdate);
@@ -220,8 +247,29 @@ export const VideoPlayer = ({
           transform: needsRotation ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill screen after rotation, reduced zoom
           transformOrigin: 'center center',
         }}
-        onError={onError}
+        onError={(e) => {
+          const video = e.currentTarget;
+          const errorCodes: Record<number, string> = {
+            1: 'MEDIA_ERR_ABORTED - Video loading aborted',
+            2: 'MEDIA_ERR_NETWORK - Network error',
+            3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
+            4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
+          };
+          console.error('Video error:', {
+            code: video.error?.code,
+            codeName: video.error ? errorCodes[video.error.code] || 'Unknown error' : 'No error code',
+            message: video.error?.message,
+            src: video.src,
+            networkState: video.networkState,
+            readyState: video.readyState,
+            videoUrl: item.videoUrl
+          });
+          onError();
+        }}
         onLoadedData={onLoad}
+        onLoadStart={() => console.log('Video loadstart:', item.videoUrl)}
+        onLoadedMetadata={() => console.log('Video loadedmetadata:', item.videoUrl)}
+        onCanPlay={() => console.log('Video canplay:', item.videoUrl)}
         aria-label={item.title || 'Video'}
       />
       
