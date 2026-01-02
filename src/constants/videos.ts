@@ -20,8 +20,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/osamason3.mov',
-    thumbnail: '/videos/osamason3.mov', // Use video as thumbnail
+    videoUrl: '/videos/osamason3.mp4',
+    thumbnail: '/videos/osamason3.mp4', // Use video as thumbnail
     featured: true,
   },
   {
@@ -35,8 +35,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/cartiLIKEWEEZY.mov',
-    thumbnail: '/videos/cartiLIKEWEEZY.mov',
+    videoUrl: '/videos/cartiLIKEWEEZY.mp4',
+    thumbnail: '/videos/cartiLIKEWEEZY.mp4',
     featured: true,
     rotation: 270, // Rotate 270 degrees (upright orientation)
   },
@@ -51,8 +51,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/OsamasonPsykotic2.mov',
-    thumbnail: '/videos/OsamasonPsykotic2.mov',
+    videoUrl: '/videos/OsamasonPsykotic2.mp4',
+    thumbnail: '/videos/OsamasonPsykotic2.mp4',
   },
   {
     id: 'osamason-psykotic',
@@ -65,8 +65,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/osamasonPSYKOTIC.mov',
-    thumbnail: '/videos/osamasonPSYKOTIC.mov',
+    videoUrl: '/videos/osamasonPSYKOTIC.mp4',
+    thumbnail: '/videos/osamasonPSYKOTIC.mp4',
     featured: true,
   },
   {
@@ -80,8 +80,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/hellp1.mov',
-    thumbnail: '/videos/hellp1.mov',
+    videoUrl: '/videos/hellp1.mp4',
+    thumbnail: '/videos/hellp1.mp4',
   },
   {
     id: '2hollis-lolla',
@@ -94,8 +94,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/2hollisLOLLA.mov',
-    thumbnail: '/videos/2hollisLOLLA.mov',
+    videoUrl: '/videos/2hollisLOLLA.mp4',
+    thumbnail: '/videos/2hollisLOLLA.mp4',
     featured: true,
     rotation: 270, // Rotate 270 degrees (upright orientation)
   },
@@ -110,8 +110,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/carti1.mov',
-    thumbnail: '/videos/carti1.mov',
+    videoUrl: '/videos/carti1.mp4',
+    thumbnail: '/videos/carti1.mp4',
   },
   {
     id: 'charlixcx-sweat',
@@ -124,8 +124,8 @@ export const videos: Video[] = [
     year: 2024,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/charlixcxSWEAT.mov',
-    thumbnail: '/videos/charlixcxSWEAT.mov',
+    videoUrl: '/videos/charlixcxSWEAT.mp4',
+    thumbnail: '/videos/charlixcxSWEAT.mp4',
     featured: true,
   },
   {
@@ -139,8 +139,8 @@ export const videos: Video[] = [
     year: 2024,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/charlixcxGUESS.mov',
-    thumbnail: '/videos/charlixcxGUESS.mov',
+    videoUrl: '/videos/charlixcxGUESS.mp4',
+    thumbnail: '/videos/charlixcxGUESS.mp4',
     featured: true,
   },
 ];
@@ -156,8 +156,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Che',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/che.mov',
-    thumbnail: '/videos/che.mov',
+    videoUrl: '/videos/che.mp4',
+    thumbnail: '/videos/che.mp4',
   },
   {
     id: 'hellp-full',
@@ -165,8 +165,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Hellp',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/hellpFULL.mov',
-    thumbnail: '/videos/hellpFULL.mov',
+    videoUrl: '/videos/hellpFULL.mp4',
+    thumbnail: '/videos/hellpFULL.mp4',
   },
   {
     id: 'hellp2',
@@ -174,8 +174,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Hellp',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/hellp2.mov',
-    thumbnail: '/videos/hellp2.mov',
+    videoUrl: '/videos/hellp2.mp4',
+    thumbnail: '/videos/hellp2.mp4',
   },
   {
     id: 'osamason-preview',
@@ -183,8 +183,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Osamason',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/osamasonpreview.mov',
-    thumbnail: '/videos/osamasonpreview.mov',
+    videoUrl: '/videos/osamasonpreview.mp4',
+    thumbnail: '/videos/osamasonpreview.mp4',
   },
   {
     id: 'osamason-outro',
@@ -192,8 +192,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Osamason',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/osamasonoutro.mov',
-    thumbnail: '/videos/osamasonoutro.mov',
+    videoUrl: '/videos/osamasonoutro.mp4',
+    thumbnail: '/videos/osamasonoutro.mp4',
   },
   {
     id: '2hollis-full',
@@ -201,8 +201,8 @@ export const lostFilesVideos: Video[] = [
     client: '2hollis',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/2hollisfull.mov',
-    thumbnail: '/videos/2hollisfull.mov',
+    videoUrl: '/videos/2hollisfull.mp4',
+    thumbnail: '/videos/2hollisfull.mp4',
   },
   {
     id: 'osamason-full',
@@ -210,8 +210,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Osamason',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/osamasonfull.mov',
-    thumbnail: '/videos/osamasonfull.mov',
+    videoUrl: '/videos/osamasonfull.mp4',
+    thumbnail: '/videos/osamasonfull.mp4',
   },
 ];
 
