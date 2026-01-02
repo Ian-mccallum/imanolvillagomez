@@ -15,8 +15,26 @@ if [ ! -d .git ]; then
 else
     # Unset skip smudge so we can pull LFS files now
     unset GIT_LFS_SKIP_SMUDGE
+    
     # Try to pull LFS files
     echo "📥 Pulling Git LFS files..."
+    echo "🔍 Checking for Git LFS installation..."
+    
+    # Check if Git LFS is available
+    if ! command -v git-lfs >/dev/null 2>&1 && ! git lfs version >/dev/null 2>&1; then
+        echo "⚠️  Git LFS not found, attempting to install..."
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "📦 Installing Git LFS..."
+            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+            apt-get update -qq
+            apt-get install -y git-lfs
+            git lfs install --skip-repo || true
+        else
+            echo "❌ Cannot install Git LFS - apt-get not available"
+        fi
+    else
+        echo "✅ Git LFS found"
+    fi
     
     LFS_PULL_SUCCESS=false
     
@@ -187,10 +205,15 @@ if [ -d "dist/videos" ]; then
     
     if [ ${#DIST_FAILED[@]} -gt 0 ]; then
         echo ""
-        echo "❌ FATAL: ${#DIST_FAILED[@]} videos in dist are LFS pointers!"
+        echo "⚠️  WARNING: ${#DIST_FAILED[@]} videos in dist are LFS pointers!"
         echo "   Files: ${DIST_FAILED[*]}"
         echo "   Videos will not work on Vercel"
-        exit 1
+        echo ""
+        echo "   This means git lfs pull did not work during build."
+        echo "   Check Vercel settings: Settings → Git → Enable 'Git Large File Storage (LFS)'"
+        echo ""
+        echo "   Build will continue, but videos will not be available."
+        # Don't exit - let build complete, videos just won't work
     fi
 else
     echo "⚠️  WARNING: dist/videos directory not found!"

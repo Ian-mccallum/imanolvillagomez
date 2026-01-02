@@ -7,8 +7,10 @@
   "git": {
     "deploymentEnabled": {
       "main": true
-    },
-    "lfs": false
+    }
+  },
+  "env": {
+    "GIT_LFS_SKIP_SMUDGE": "1"
   },
   "rewrites": [
     {
