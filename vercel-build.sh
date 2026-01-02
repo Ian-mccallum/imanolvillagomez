@@ -49,10 +49,25 @@ fi
 echo "🔨 Building application..."
 tsc && vite build
 
-# Verify videos are in dist
+# Verify videos are in dist and are actual files (not LFS pointers)
 if [ -d "dist/videos" ]; then
     VIDEO_COUNT=$(find dist/videos -name "*.mov" -o -name "*.mp4" 2>/dev/null | wc -l | tr -d ' ')
     echo "✅ Found $VIDEO_COUNT video files in dist/videos/"
+    
+    # Check a sample video file size to ensure it's not a pointer
+    SAMPLE_VIDEO=$(find dist/videos -name "*.mov" 2>/dev/null | head -1)
+    if [ -n "$SAMPLE_VIDEO" ]; then
+        FILE_SIZE=$(stat -f%z "$SAMPLE_VIDEO" 2>/dev/null || stat -c%s "$SAMPLE_VIDEO" 2>/dev/null || echo "0")
+        FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
+        if [ "$FILE_SIZE" -lt 1000 ]; then
+            echo "❌ ERROR: Video file appears to be LFS pointer (${FILE_SIZE} bytes), not actual file!"
+            echo "   File: $SAMPLE_VIDEO"
+            echo "   This means git lfs pull didn't work properly"
+        else
+            echo "✅ Sample video file size: ${FILE_SIZE_MB}MB (actual file, not pointer)"
+            echo "   File: $SAMPLE_VIDEO"
+        fi
+    fi
 else
     echo "⚠️  WARNING: dist/videos directory not found!"
 fi
