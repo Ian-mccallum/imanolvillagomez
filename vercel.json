@@ -9,9 +9,6 @@
       "main": true
     }
   },
-  "env": {
-    "GIT_LFS_SKIP_SMUDGE": "1"
-  },
   "rewrites": [
     {
       "source": "/(.*)",

@@ -24,11 +24,20 @@ else
     if ! command -v git-lfs >/dev/null 2>&1 && ! git lfs version >/dev/null 2>&1; then
         echo "⚠️  Git LFS not found, attempting to install..."
         if command -v apt-get >/dev/null 2>&1; then
-            echo "📦 Installing Git LFS..."
+            echo "📦 Installing Git LFS (this may take a minute)..."
+            # Install without sudo (Vercel builds don't have sudo)
             curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
             apt-get update -qq
-            apt-get install -y git-lfs
+            apt-get install -y git-lfs 2>&1 || {
+                echo "⚠️  apt-get install failed, trying alternative method..."
+                # Alternative: download and install manually
+                curl -L https://github.com/git-lfs/git-lfs/releases/download/v3.5.1/git-lfs-linux-amd64-v3.5.1.tar.gz -o /tmp/git-lfs.tar.gz
+                tar -xzf /tmp/git-lfs.tar.gz -C /tmp
+                /tmp/git-lfs install --skip-repo || true
+                export PATH="/tmp:$PATH"
+            }
             git lfs install --skip-repo || true
+            echo "✅ Git LFS installation complete"
         else
             echo "❌ Cannot install Git LFS - apt-get not available"
         fi
