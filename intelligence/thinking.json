@@ -1,0 +1,533 @@
+{
+  "metadata": {
+    "title": "First Principles Thinking & Mental Models",
+    "description": "Systematic operators for breaking down problems to fundamental truths and avoiding inherited assumptions",
+    "version": "1.0.0",
+    "philosophy": "Most problems are solved at the wrong level of abstraction. First principles thinking strips away layers of assumption to reveal the irreducible core."
+  },
+  "first_principles_operators": [
+    {
+      "name": "Feynman Technique",
+      "emoji": "🎓",
+      "prompt": "Can you explain this simply enough to teach a child? If you can't, you don't understand it.",
+      "when_to_apply": [
+        "Complexity check",
+        "When explanations feel convoluted",
+        "Before communicating to others",
+        "When stuck in jargon"
+      ],
+      "method": [
+        "1. Write the concept in simple language",
+        "2. Identify gaps in your understanding",
+        "3. Use analogies from everyday life",
+        "4. Test by explaining to someone else"
+      ],
+      "philosophical_basis": "True understanding is irreducible. If you need complexity to explain it, you haven't found the core truth yet.",
+      "examples": [
+        "Einstein explaining relativity with trains and clocks",
+        "Feynman explaining quantum mechanics with everyday analogies"
+      ]
+    },
+    {
+      "name": "Beginner's Mind (Shoshin)",
+      "emoji": "👶",
+      "prompt": "What would you try if you knew nothing about this domain? What assumptions would you never make?",
+      "when_to_apply": [
+        "Breaking assumptions",
+        "When stuck in industry conventions",
+        "Before accepting 'best practices'",
+        "When experts say 'it can't be done'"
+      ],
+      "method": [
+        "1. List all domain knowledge you're bringing",
+        "2. Question each piece: 'Is this actually necessary?'",
+        "3. Imagine you're from another planet—what would you build?",
+        "4. What would a child try? (Children are unburdened by 'impossibility')"
+      ],
+      "philosophical_basis": "Expertise creates blind spots. The beginner sees possibilities the expert has learned to ignore.",
+      "examples": [
+        "SpaceX ignoring aerospace industry 'impossibilities'",
+        "Tesla building cars without legacy auto assumptions"
+      ]
+    },
+    {
+      "name": "Occam's Razor",
+      "emoji": "🪒",
+      "prompt": "What's the simplest explanation that works? What are we adding that isn't necessary?",
+      "when_to_apply": [
+        "Elegance check",
+        "When solutions feel overcomplicated",
+        "Before adding features",
+        "When multiple explanations exist"
+      ],
+      "method": [
+        "1. List all components of your solution",
+        "2. For each: 'What breaks if I remove this?'",
+        "3. If nothing breaks, remove it",
+        "4. Repeat until you can't remove anything"
+      ],
+      "philosophical_basis": "Nature prefers simplicity. The simplest solution that works is usually correct—not because it's simple, but because unnecessary complexity is a sign of misunderstanding.",
+      "examples": [
+        "Newton's laws vs. epicycles",
+        "Darwin's natural selection vs. complex creation stories"
+      ]
+    },
+    {
+      "name": "Reductionism",
+      "emoji": "🔬",
+      "prompt": "What are the irreducible components? What can't be broken down further?",
+      "when_to_apply": [
+        "Problem decomposition",
+        "When overwhelmed by complexity",
+        "Before building anything",
+        "When understanding system behavior"
+      ],
+      "method": [
+        "1. Break the problem into parts",
+        "2. For each part, ask: 'Can this be broken down further?'",
+        "3. Stop when you reach irreducible elements",
+        "4. Understand each element in isolation",
+        "5. Rebuild understanding from the bottom up"
+      ],
+      "philosophical_basis": "Complex systems emerge from simple rules. Understanding the atoms reveals the molecule.",
+      "examples": [
+        "Physics: atoms → molecules → materials",
+        "Biology: genes → proteins → cells → organisms"
+      ]
+    },
+    {
+      "name": "Socratic Questioning",
+      "emoji": "❓",
+      "prompt": "What question, if answered, would make everything else obvious?",
+      "when_to_apply": [
+        "When assumptions feel unexamined",
+        "Before accepting premises",
+        "When logic feels circular",
+        "To expose hidden assumptions"
+      ],
+      "method": [
+        "1. State your belief/assumption",
+        "2. Ask: 'Why do I believe this?'",
+        "3. Ask: 'What evidence supports this?'",
+        "4. Ask: 'What would disprove this?'",
+        "5. Ask: 'What if the opposite were true?'",
+        "6. Continue until you reach axioms or evidence"
+      ],
+      "philosophical_basis": "Unquestioned assumptions are the root of all error. The Socratic method exposes them systematically.",
+      "examples": [
+        "Socrates questioning Athenian beliefs about virtue",
+        "Einstein questioning absolute time and space"
+      ]
+    },
+    {
+      "name": "Inversion",
+      "emoji": "🔄",
+      "prompt": "What would make this problem worse? What would guarantee failure?",
+      "when_to_apply": [
+        "When stuck on positive solutions",
+        "To identify critical failure modes",
+        "To find what NOT to do",
+        "When prevention > optimization"
+      ],
+      "method": [
+        "1. Instead of 'How do we succeed?', ask 'How do we fail?'",
+        "2. List all ways to guarantee failure",
+        "3. Invert each: 'What's the opposite?'",
+        "4. The inversions are your success criteria"
+      ],
+      "philosophical_basis": "Sometimes the path forward is clearest when viewed from the opposite direction. Inversion reveals hidden constraints.",
+      "examples": [
+        "Munger: 'Invert, always invert'",
+        "Medical diagnosis: 'What would cause these symptoms?'"
+      ]
+    },
+    {
+      "name": "Causal Chain Analysis",
+      "emoji": "⛓️",
+      "prompt": "What caused this? What caused that? Trace back to the root.",
+      "when_to_apply": [
+        "Understanding why problems exist",
+        "Before treating symptoms",
+        "When effects are clear but causes aren't",
+        "To find leverage points"
+      ],
+      "method": [
+        "1. State the observed effect/problem",
+        "2. Ask: 'What caused this?'",
+        "3. For that cause, ask: 'What caused that?'",
+        "4. Continue until you reach a root cause (can't be caused by something else)",
+        "5. Address the root, not the symptoms"
+      ],
+      "philosophical_basis": "Effects have causes. Symptoms have diseases. Treating symptoms is temporary; treating causes is permanent.",
+      "examples": [
+        "5 Whys technique in root cause analysis",
+        "Systems thinking: finding leverage points"
+      ]
+    },
+    {
+      "name": "Constraint Elimination",
+      "emoji": "🔓",
+      "prompt": "Which constraints are real vs. assumed? What if this constraint didn't exist?",
+      "when_to_apply": [
+        "When solutions feel limited",
+        "Before accepting 'can't be done'",
+        "When budget/time feels constraining",
+        "To find creative workarounds"
+      ],
+      "method": [
+        "1. List all constraints (time, money, technology, etc.)",
+        "2. For each: 'Is this a physical law or a belief?'",
+        "3. For assumed constraints: 'What if this were false?'",
+        "4. Design solutions assuming constraints don't exist",
+        "5. Then reintroduce constraints and find workarounds"
+      ],
+      "philosophical_basis": "Most constraints are inherited beliefs, not physical laws. Questioning them opens solution space.",
+      "examples": [
+        "SpaceX: 'Why can't rockets be reusable?' (industry constraint, not physics)",
+        "Airbnb: 'Why do you need to own hotels?' (business model constraint)"
+      ]
+    },
+    {
+      "name": "Analogical Reasoning",
+      "emoji": "🔗",
+      "prompt": "What else works like this? What solved an analogous problem?",
+      "when_to_apply": [
+        "When stuck in domain-specific thinking",
+        "To find proven patterns",
+        "To transfer solutions across domains",
+        "When direct solutions aren't obvious"
+      ],
+      "method": [
+        "1. Identify the core mechanism of your problem",
+        "2. Ask: 'What else has this same mechanism?'",
+        "3. Find how that analogous problem was solved",
+        "4. Extract the abstract pattern",
+        "5. Apply the pattern to your domain"
+      ],
+      "philosophical_basis": "Deep patterns repeat across domains. Analogies reveal these patterns when surface details differ.",
+      "examples": [
+        "Darwin: Malthus's population theory → natural selection",
+        "Wright brothers: bicycle balance → airplane control"
+      ]
+    },
+    {
+      "name": "Fundamental Axioms",
+      "emoji": "🧱",
+      "prompt": "What are the unprovable assumptions I'm making? What must be true for this to work?",
+      "when_to_apply": [
+        "Before building complex systems",
+        "When logic feels circular",
+        "To identify foundational beliefs",
+        "To find what could invalidate everything"
+      ],
+      "method": [
+        "1. List all assumptions your solution depends on",
+        "2. For each: 'Can this be proven, or is it an axiom?'",
+        "3. Identify which axioms are testable vs. untestable",
+        "4. Design tests for testable axioms",
+        "5. Acknowledge untestable axioms explicitly"
+      ],
+      "philosophical_basis": "Every system rests on unprovable foundations. Making them explicit prevents building on sand.",
+      "examples": [
+        "Euclidean geometry: parallel lines never meet (axiom)",
+        "Economics: humans are rational (testable, often false)"
+      ]
+    },
+    {
+      "name": "Temporal Decomposition",
+      "emoji": "⏰",
+      "prompt": "What was this like at t=0? What will it be like at t=∞? What's the trajectory?",
+      "when_to_apply": [
+        "Understanding system evolution",
+        "Predicting long-term effects",
+        "Finding what changes vs. what's constant",
+        "When current state is confusing"
+      ],
+      "method": [
+        "1. Go back to the origin: 'What was this at the beginning?'",
+        "2. Project forward: 'What will this become?'",
+        "3. Identify what's constant vs. what changes",
+        "4. Understand the forces driving change",
+        "5. Design for the trajectory, not just current state"
+      ],
+      "philosophical_basis": "Understanding a system requires seeing it across time. The present is just one frame in a movie.",
+      "examples": [
+        "Understanding companies by their founding vs. current state",
+        "Evolution: understanding species by their origins"
+      ]
+    },
+    {
+      "name": "Scale Invariance",
+      "emoji": "📏",
+      "prompt": "What's true at 1x, 10x, 100x? What principles hold across scales?",
+      "when_to_apply": [
+        "When scaling solutions",
+        "To find universal principles",
+        "When local vs. global behavior differs",
+        "To identify what's fundamental vs. scale-dependent"
+      ],
+      "method": [
+        "1. Test your solution at 1x scale",
+        "2. Ask: 'What breaks at 10x?'",
+        "3. Ask: 'What breaks at 100x?'",
+        "4. Identify principles that hold across scales",
+        "5. Design for scale-invariant principles"
+      ],
+      "philosophical_basis": "Fundamental truths are scale-invariant. What's true for one is true for many, if you find the right abstraction.",
+      "examples": [
+        "Physics: laws work at quantum and cosmic scales",
+        "Networks: small-world properties at all sizes"
+      ]
+    }
+  ],
+  "mental_models": [
+    {
+      "name": "Second-Order Thinking",
+      "category": "Systems Thinking",
+      "description": "Think about the effects of effects. What happens after what happens?",
+      "prompt": "If we do X, what happens? And then what happens after that?",
+      "when_to_use": [
+        "Before making major decisions",
+        "When first-order effects are obvious",
+        "To find unintended consequences",
+        "To identify cascading effects"
+      ],
+      "example": "Banning plastic bags → people buy more trash bags → net increase in plastic"
+    },
+    {
+      "name": "Map vs. Territory",
+      "category": "Epistemology",
+      "description": "The map is not the territory. Models are simplifications, not reality.",
+      "prompt": "What am I confusing the model for? Where does my map diverge from reality?",
+      "when_to_use": [
+        "When models feel too certain",
+        "When reality contradicts predictions",
+        "To remember all models are wrong (some useful)",
+        "To avoid overfitting to models"
+      ],
+      "example": "Economic models predict, but markets are the territory—always more complex"
+    },
+    {
+      "name": "Circle of Competence",
+      "category": "Decision Making",
+      "description": "Know what you know, know what you don't know, know the difference.",
+      "prompt": "Am I operating inside or outside my circle of competence?",
+      "when_to_use": [
+        "Before making decisions",
+        "When confidence feels high",
+        "To identify knowledge gaps",
+        "To know when to defer to experts"
+      ],
+      "example": "Warren Buffett: 'I don't invest in tech because it's outside my circle'"
+    },
+    {
+      "name": "Pareto Principle (80/20)",
+      "category": "Optimization",
+      "description": "80% of effects come from 20% of causes. Focus on the vital few.",
+      "prompt": "What 20% of inputs create 80% of outputs?",
+      "when_to_use": [
+        "When resources are limited",
+        "To find leverage points",
+        "To prioritize efforts",
+        "When overwhelmed by options"
+      ],
+      "example": "20% of customers generate 80% of revenue"
+    },
+    {
+      "name": "Opportunity Cost",
+      "category": "Economics",
+      "description": "The cost of something is what you give up to get it.",
+      "prompt": "What's the best alternative I'm giving up?",
+      "when_to_use": [
+        "When choosing between options",
+        "To evaluate tradeoffs",
+        "When time/money feels 'free'",
+        "To make explicit what's implicit"
+      ],
+      "example": "Spending time on X means not spending it on Y (your best alternative)"
+    },
+    {
+      "name": "Margin of Safety",
+      "category": "Risk Management",
+      "description": "Build buffers. Things go wrong. Plan for it.",
+      "prompt": "What could go wrong? How much buffer do I need?",
+      "when_to_use": [
+        "When failure is costly",
+        "When estimates are uncertain",
+        "In engineering and finance",
+        "To build robust systems"
+      ],
+      "example": "Bridges built to handle 3x expected load"
+    },
+    {
+      "name": "Compounding",
+      "category": "Growth",
+      "description": "Small changes compound over time. Exponential growth is counterintuitive.",
+      "prompt": "What small change, repeated, creates massive long-term effects?",
+      "when_to_use": [
+        "Long-term planning",
+        "When progress feels slow",
+        "To find leverage in repetition",
+        "To understand exponential systems"
+      ],
+      "example": "1% daily improvement = 37x better in a year"
+    },
+    {
+      "name": "Bayesian Thinking",
+      "category": "Probability",
+      "description": "Update beliefs with evidence. Start with priors, update with data.",
+      "prompt": "Given new evidence, how should I update my beliefs?",
+      "when_to_use": [
+        "When new information arrives",
+        "To avoid confirmation bias",
+        "When probabilities matter",
+        "To make rational updates"
+      ],
+      "example": "Medical diagnosis: update probability of disease given test results"
+    },
+    {
+      "name": "Activation Energy",
+      "category": "Physics",
+      "description": "Systems need energy to change state. Lower the barrier.",
+      "prompt": "What's preventing change? How do I lower the activation energy?",
+      "when_to_use": [
+        "When change is hard",
+        "To make desired behaviors easier",
+        "To understand why things don't change",
+        "To find catalysts"
+      ],
+      "example": "Making healthy food easier to access than junk food"
+    },
+    {
+      "name": "Red Queen Effect",
+      "category": "Evolution",
+      "description": "You must run faster just to stay in place. Competition drives constant improvement.",
+      "prompt": "What's the minimum I need to do just to maintain?",
+      "when_to_use": [
+        "In competitive environments",
+        "To understand why effort feels constant",
+        "To identify what's maintenance vs. growth",
+        "In evolutionary/competitive systems"
+      ],
+      "example": "Technology: constant updates just to maintain market position"
+    },
+    {
+      "name": "Via Negativa",
+      "category": "Optimization",
+      "description": "Improvement by removal. What can we take away?",
+      "prompt": "What should I remove? What's making this worse?",
+      "when_to_use": [
+        "When adding feels wrong",
+        "To simplify",
+        "When complexity is the problem",
+        "To find what to eliminate"
+      ],
+      "example": "Medicine: first, do no harm. Remove what's harmful."
+    },
+    {
+      "name": "Preferential Attachment",
+      "category": "Networks",
+      "description": "The rich get richer. Success breeds success.",
+      "prompt": "What creates positive feedback loops? How do I get on the right side?",
+      "when_to_use": [
+        "In network effects",
+        "To understand winner-take-all dynamics",
+        "To find leverage in feedback loops",
+        "In platform/marketplace design"
+      ],
+      "example": "Social networks: more users → more value → more users"
+    },
+    {
+      "name": "Local vs. Global Optima",
+      "category": "Optimization",
+      "description": "The best nearby solution isn't the best overall. Sometimes you need to go backward.",
+      "prompt": "Am I optimizing locally? What would require going backward to improve?",
+      "when_to_use": [
+        "When stuck in incremental improvements",
+        "To find when to restart",
+        "When local improvements plateau",
+        "To understand when to pivot"
+      ],
+      "example": "Climbing a hill: sometimes descend to reach a higher peak"
+    },
+    {
+      "name": "Leverage Points",
+      "category": "Systems Thinking",
+      "description": "Small changes at leverage points create large system-wide effects.",
+      "prompt": "Where can a small change create maximum impact?",
+      "when_to_use": [
+        "To find where to intervene",
+        "When resources are limited",
+        "To understand system dynamics",
+        "To find multipliers"
+      ],
+      "example": "Changing a system's rules > changing its parameters > changing its numbers"
+    },
+    {
+      "name": "Elegant Solution",
+      "category": "Design",
+      "description": "The simplest solution that works. Beauty in simplicity.",
+      "prompt": "What's the simplest way to solve this? What can I remove?",
+      "when_to_use": [
+        "When solutions feel overcomplicated",
+        "To find beauty in design",
+        "Before adding complexity",
+        "To achieve clarity"
+      ],
+      "example": "Einstein: 'Everything should be as simple as possible, but not simpler'"
+    }
+  ],
+  "cognitive_biases_to_avoid": [
+    {
+      "name": "Confirmation Bias",
+      "description": "Seeking evidence that confirms existing beliefs",
+      "antidote": "Actively seek disconfirming evidence. Steelman opposing views."
+    },
+    {
+      "name": "Anchoring",
+      "description": "Over-relying on first information encountered",
+      "antidote": "Consider multiple starting points. Question initial numbers."
+    },
+    {
+      "name": "Sunk Cost Fallacy",
+      "description": "Continuing because of past investment, not future value",
+      "antidote": "Ignore past costs. Make decisions based on future value only."
+    },
+    {
+      "name": "Availability Heuristic",
+      "description": "Overweighting recent or memorable examples",
+      "antidote": "Seek base rates. Don't let vivid examples override statistics."
+    },
+    {
+      "name": "Optimism Bias",
+      "description": "Underestimating difficulty and overestimating success probability",
+      "antidote": "Use outside view. Look at similar past projects. Pre-mortem."
+    },
+    {
+      "name": "Expertise Bias",
+      "description": "Experts miss obvious solutions because of overthinking",
+      "antidote": "Use beginner's mind. Question domain assumptions."
+    }
+  ],
+  "usage_guidelines": {
+    "when_stuck": [
+      "Apply Feynman Technique to simplify",
+      "Use Beginner's Mind to question assumptions",
+      "Try Inversion to see the problem differently",
+      "Use Causal Chain Analysis to find root causes"
+    ],
+    "before_building": [
+      "Apply Reductionism to decompose",
+      "Use Constraint Elimination to expand possibilities",
+      "Apply Fundamental Axioms to identify assumptions",
+      "Use Scale Invariance to ensure principles hold"
+    ],
+    "when_complex": [
+      "Apply Occam's Razor to simplify",
+      "Use Socratic Questioning to expose assumptions",
+      "Apply Temporal Decomposition to understand evolution",
+      "Use Analogical Reasoning to find patterns"
+    ]
+  }
+}
+

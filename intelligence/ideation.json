@@ -1,0 +1,735 @@
+{
+  "metadata": {
+    "title": "Creative & Strategic Ideation Operators",
+    "description": "Systematic techniques for generating non-obvious ideas and finding breakthrough solutions",
+    "version": "1.0.0",
+    "philosophy": "Creativity is not random inspiration—it's the systematic exploration of solution space using proven operators that force non-obvious connections."
+  },
+  "creativity_operators": [
+    {
+      "name": "Concept Splicing",
+      "emoji": "🧬",
+      "description": "Combine two unrelated concepts like genes—mix structure, mechanism, purpose, form, users, or delivery",
+      "prompt": "What if we combined [Concept A] with [Concept B]? What emerges when we splice A's [element] with B's [element]?",
+      "when_to_apply": [
+        "Cross-pollination needed",
+        "When stuck in domain thinking",
+        "To create novel combinations",
+        "When solutions feel conventional"
+      ],
+      "method": [
+        "1. Identify Concept A (from your domain)",
+        "2. Identify Concept B (from completely different domain)",
+        "3. Splice variations:",
+        "   - A's structure + B's mechanism",
+        "   - A's purpose + B's form",
+        "   - A's users + B's delivery",
+        "   - A's constraints + B's advantages",
+        "4. Explore what emerges from each splice"
+      ],
+      "examples": [
+        "Uber: Taxi structure + App mechanism = Ride-sharing platform",
+        "Airbnb: Hotel purpose + Peer-to-peer form = Home-sharing",
+        "Tesla: Car users + Software delivery = OTA updates"
+      ],
+      "philosophical_basis": "Innovation happens at the intersection of domains. Splicing forces connections that wouldn't occur naturally."
+    },
+    {
+      "name": "Orthogonal Jump",
+      "emoji": "↗️",
+      "description": "Leap to dimensions completely unrelated to the original framing",
+      "prompt": "What if we approached this from [unrelated dimension]? What if we shifted from [dimension A] to [dimension B]?",
+      "when_to_apply": [
+        "Stuck in local optimum",
+        "When all ideas feel similar",
+        "To escape domain constraints",
+        "When current dimension is exhausted"
+      ],
+      "orthogonal_dimensions": [
+        "Features → Emotions",
+        "Technology → Ritual",
+        "Efficiency → Beauty",
+        "Individual → Collective",
+        "Digital → Physical",
+        "Product → Experience",
+        "Function → Meaning",
+        "Speed → Depth",
+        "Control → Emergence",
+        "Optimization → Exploration"
+      ],
+      "method": [
+        "1. Identify current dimension you're thinking in",
+        "2. List orthogonal (perpendicular) dimensions",
+        "3. Force yourself to think in each orthogonal dimension",
+        "4. Ask: 'What would this look like if [orthogonal dimension] were primary?'",
+        "5. Synthesize insights back to original problem"
+      ],
+      "examples": [
+        "Apple: Technology → Beauty (orthogonal jump)",
+        "Nike: Shoes → Identity (orthogonal jump)",
+        "Disney: Entertainment → Experience (orthogonal jump)"
+      ],
+      "philosophical_basis": "Most problems are framed in one dimension. Orthogonal jumps reveal solution spaces that don't exist in the original frame."
+    },
+    {
+      "name": "Latent Space Exploration",
+      "emoji": "🌌",
+      "description": "Explore the vast conceptual space of all possible solutions",
+      "prompt": "What if we perturbed our best idea slightly? What's in the sparse areas between obvious solutions?",
+      "when_to_apply": [
+        "Exploring nearby variations",
+        "When you have one good idea",
+        "To find unexplored regions",
+        "To discover edge cases"
+      ],
+      "method": [
+        "1. Map solution space:",
+        "   - Where is everyone clustering? (obvious region)",
+        "   - What's the opposite corner? (contrarian region)",
+        "   - What's in sparse areas? (unexplored)",
+        "   - What outliers exist at edges? (weird-but-brilliant)",
+        "2. Take your best idea",
+        "3. Perturb it along random dimensions:",
+        "   - Scale: 10x larger? 10x smaller?",
+        "   - Time: Instant? Delayed?",
+        "   - Users: Different segment?",
+        "   - Medium: Physical? Digital?",
+        "4. Explore what emerges from each perturbation"
+      ],
+      "examples": [
+        "Google: Search → Maps → Street View (latent space exploration)",
+        "Amazon: Books → Everything (scale perturbation)",
+        "Netflix: DVDs → Streaming (medium perturbation)"
+      ],
+      "philosophical_basis": "Solution space is vast. Most exploration happens in obvious clusters. Systematic perturbation reveals hidden regions."
+    },
+    {
+      "name": "Conceptual Wormhole",
+      "emoji": "🕳️",
+      "description": "Find instant connections between distant conceptual regions",
+      "prompt": "What distant field has already solved an analogous problem, even though it looks nothing like ours on the surface?",
+      "when_to_apply": [
+        "Pattern transfer needed",
+        "When stuck in domain-specific solutions",
+        "To find proven approaches",
+        "When direct solutions don't exist"
+      ],
+      "method": [
+        "1. Identify the core mechanism of your problem",
+        "2. Ask: 'What other fields have this same mechanism?'",
+        "3. Research how that field solved it",
+        "4. Extract the abstract pattern",
+        "5. Apply the pattern to your domain"
+      ],
+      "cross_domain_examples": [
+        {
+          "distant_field": "Ecology",
+          "their_problem": "Resource distribution in ecosystems",
+          "their_solution": "Keystone species create niches",
+          "our_analog": "Platforms: key users create value for others"
+        },
+        {
+          "distant_field": "Military Strategy",
+          "their_problem": "Asymmetric warfare",
+          "their_solution": "Leverage opponent's strength as weakness",
+          "our_analog": "Startups: use big company's size against them"
+        },
+        {
+          "distant_field": "Theater",
+          "their_problem": "Audience engagement",
+          "their_solution": "Dramatic irony (audience knows more)",
+          "our_analog": "Products: let users feel smart/informed"
+        },
+        {
+          "distant_field": "Chemistry",
+          "their_problem": "Reaction activation energy",
+          "their_solution": "Catalysts lower barrier",
+          "our_analog": "UX: reduce friction to desired behavior"
+        }
+      ],
+      "philosophical_basis": "Deep patterns repeat across domains. Wormholes connect distant fields through shared mechanisms."
+    },
+    {
+      "name": "Novelty Ridge Walking",
+      "emoji": "🏔️",
+      "description": "Find peaks of novelty that remain connected to usefulness",
+      "prompt": "What's the weirdest version of this that would still work? What's maximum novelty that maintains practical value?",
+      "when_to_use": [
+        "Pushing boundaries",
+        "When safe ideas feel boring",
+        "To find edge of feasibility",
+        "When differentiation matters"
+      ],
+      "method": [
+        "1. Start with a useful but conventional idea",
+        "2. Increase novelty along one dimension",
+        "3. Check: 'Does it still work?'",
+        "4. If yes, increase further. If no, back off slightly.",
+        "5. Repeat across multiple dimensions",
+        "6. Find the ridge: maximum novelty with maintained utility"
+      ],
+      "visualization": "Novelty (Y-axis) vs. Utility (X-axis). Walk the ridge where both are high.",
+      "examples": [
+        "Tesla: Electric cars (novel) + Practical range (useful) = Ridge",
+        "Airbnb: Stay in stranger's home (novel) + Safe/reliable (useful) = Ridge"
+      ],
+      "philosophical_basis": "The best ideas are at the edge of feasibility—weird enough to be novel, practical enough to work."
+    },
+    {
+      "name": "Divergence Injection",
+      "emoji": "💥",
+      "description": "Deliberately inject chaos when ideas converge too early",
+      "prompt": "Introduce random element: how does it connect? What if we reversed roles? What if we started from the end?",
+      "when_to_apply": [
+        "Breaking convergence",
+        "When all ideas feel similar",
+        "To escape groupthink",
+        "When stuck in local patterns"
+      ],
+      "injection_methods": [
+        {
+          "method": "Random Word Injection",
+          "prompt": "Pick a random noun. How does it relate to the problem?",
+          "example": "Random word: 'butterfly' → 'What if our solution transformed like a butterfly?'"
+        },
+        {
+          "method": "Role Reversal",
+          "prompt": "What if users were providers? Providers were users?",
+          "example": "Uber: Drivers become users of the platform too"
+        },
+        {
+          "method": "Time Reversal",
+          "prompt": "What if we started from the end? Worked backward?",
+          "example": "Amazon: Started with 'what does customer want?' then built backward"
+        },
+        {
+          "method": "Scale Shift",
+          "prompt": "What if this served 1 person? 1 billion people?",
+          "example": "Google: Scale from personal to planetary"
+        },
+        {
+          "method": "Medium Shift",
+          "prompt": "What if this were physical? A game? A ritual?",
+          "example": "Duolingo: Language learning as a game"
+        },
+        {
+          "method": "Constraint Flip",
+          "prompt": "What if our biggest constraint became our advantage?",
+          "example": "GitHub: Open source (constraint) → Network effects (advantage)"
+        }
+      ],
+      "philosophical_basis": "Convergence is the enemy of creativity. Deliberate divergence forces exploration of neglected regions."
+    },
+    {
+      "name": "Constraint Alchemy",
+      "emoji": "⚗️",
+      "description": "Transform every constraint into a potential advantage",
+      "prompt": "How could this limitation become our advantage? What if this constraint were our moat?",
+      "when_to_apply": [
+        "Reframing constraints",
+        "When constraints feel limiting",
+        "To find competitive advantages",
+        "When resources are scarce"
+      ],
+      "method": [
+        "1. List all constraints (budget, time, technology, etc.)",
+        "2. For each constraint, ask:",
+        "   - Standard view: 'This limits us because...'",
+        "   - Alchemized view: 'This could be our advantage because...'",
+        "3. Find how the constraint forces focus, creativity, or differentiation",
+        "4. Design to leverage the constraint"
+      ],
+      "examples": [
+        {
+          "constraint": "Limited budget",
+          "standard_view": "Can't compete with big players",
+          "alchemized_view": "Forces focus on what matters, eliminates waste",
+          "result": "Lean startups outcompete bloated incumbents"
+        },
+        {
+          "constraint": "Small team",
+          "standard_view": "Can't build everything",
+          "alchemized_view": "Forces clarity, eliminates politics, moves fast",
+          "result": "Small teams ship faster than large organizations"
+        },
+        {
+          "constraint": "No brand recognition",
+          "standard_view": "Hard to acquire customers",
+          "alchemized_view": "No legacy baggage, can be authentic",
+          "result": "New brands feel fresh vs. established brands"
+        }
+      ],
+      "philosophical_basis": "Constraints are not limitations—they're design parameters. The best solutions emerge from constraint, not despite it."
+    },
+    {
+      "name": "Negative Space Exploration",
+      "emoji": "🚫",
+      "description": "Explore what we're deliberately NOT doing and why",
+      "prompt": "What are we deliberately NOT doing? Why? What if we did it?",
+      "when_to_apply": [
+        "When options feel limited",
+        "To find blind spots",
+        "When 'obvious' solutions feel wrong",
+        "To discover contrarian opportunities"
+      ],
+      "method": [
+        "1. List what everyone in your space IS doing",
+        "2. Identify what they're NOT doing (negative space)",
+        "3. Ask: 'Why aren't they doing this?'",
+        "4. Challenge each reason:",
+        "   - Is it a real constraint or assumed?",
+        "   - Is it a market gap or a bad idea?",
+        "5. Explore what's possible in the negative space"
+      ],
+      "examples": [
+        "Netflix: NOT owning content (negative space) → Streaming platform",
+        "Uber: NOT owning cars (negative space) → Transportation network",
+        "Airbnb: NOT owning properties (negative space) → Marketplace"
+      ],
+      "philosophical_basis": "The most valuable opportunities are often in what everyone assumes can't or shouldn't be done."
+    },
+    {
+      "name": "Temporal Lens",
+      "emoji": "⏱️",
+      "description": "View the problem across different time scales",
+      "prompt": "What's the 10-minute version? The 10-year version? What if we compressed time? Expanded it?",
+      "when_to_apply": [
+        "When time feels like a constraint",
+        "To find different solution scales",
+        "To understand what's time-dependent vs. timeless",
+        "When speed vs. depth tradeoff exists"
+      ],
+      "time_scales": [
+        {
+          "scale": "Instant",
+          "prompt": "What if this happened immediately?",
+          "use_case": "Find minimum viable version"
+        },
+        {
+          "scale": "Compressed (1/10th time)",
+          "prompt": "What if we had 1/10th the time?",
+          "use_case": "Force prioritization, find essentials"
+        },
+        {
+          "scale": "Normal",
+          "prompt": "Standard timeline",
+          "use_case": "Current planning"
+        },
+        {
+          "scale": "Expanded (10x time)",
+          "prompt": "What if we had 10x the time?",
+          "use_case": "Find what we'd do with unlimited time"
+        },
+        {
+          "scale": "Infinite",
+          "prompt": "What if time were unlimited?",
+          "use_case": "Find timeless principles, remove time constraints"
+        }
+      ],
+      "philosophical_basis": "Time is a dimension of solution space. Different time scales reveal different optimal solutions."
+    },
+    {
+      "name": "Perspective Rotation",
+      "emoji": "🔄",
+      "description": "Systematically view from different stakeholder perspectives",
+      "prompt": "What does [stakeholder] see? What do they need? What would delight them?",
+      "when_to_apply": [
+        "To find blind spots",
+        "When solutions feel one-sided",
+        "To discover unmet needs",
+        "To find win-win solutions"
+      ],
+      "perspectives": [
+        {
+          "perspective": "End User",
+          "questions": [
+            "What do they actually need?",
+            "What would delight them?",
+            "What's their biggest frustration?",
+            "What would they pay for?"
+          ]
+        },
+        {
+          "perspective": "Developer",
+          "questions": [
+            "What makes this easy to build?",
+            "What makes this maintainable?",
+            "What's the developer experience?",
+            "What would they want to work on?"
+          ]
+        },
+        {
+          "perspective": "Business",
+          "questions": [
+            "How does this create value?",
+            "What's the business model?",
+            "How does this scale?",
+            "What's the competitive advantage?"
+          ]
+        },
+        {
+          "perspective": "Society",
+          "questions": [
+            "What's the broader impact?",
+            "Who benefits? Who's harmed?",
+            "What are second-order effects?",
+            "How does this change the world?"
+          ]
+        },
+        {
+          "perspective": "Adversary",
+          "questions": [
+            "How could this be exploited?",
+            "What are the attack vectors?",
+            "What would a competitor do?",
+            "How could this fail?"
+          ]
+        },
+        {
+          "perspective": "Future Self (5 years)",
+          "questions": [
+            "What will we wish we'd done?",
+            "What will seem obvious in hindsight?",
+            "What trends are we missing?",
+            "What will be different?"
+          ]
+        },
+        {
+          "perspective": "Naive Observer",
+          "questions": [
+            "What would someone with zero domain knowledge try?",
+            "What assumptions wouldn't they make?",
+            "What would seem obvious to them?",
+            "What would they question that we accept?"
+          ]
+        }
+      ],
+      "philosophical_basis": "Every perspective reveals different aspects of the problem. Rotation prevents single-perspective blindness."
+    }
+  ],
+  "strategic_operators": [
+    {
+      "name": "Constraint-to-Superpower Flip",
+      "emoji": "🦸",
+      "description": "Transform your biggest constraint into an unassailable advantage",
+      "prompt": "What if this constraint were our moat? How could this limitation become impossible for competitors to copy?",
+      "when_to_apply": [
+        "Painful constraint exists",
+        "When constraints feel like disadvantages",
+        "To find defensible positions",
+        "When competing against better-resourced players"
+      ],
+      "method": [
+        "1. Identify your biggest constraint",
+        "2. Ask: 'What does this constraint force us to do differently?'",
+        "3. Ask: 'Could competitors easily copy this?'",
+        "4. If no, you've found a potential superpower",
+        "5. Design to maximize this constraint-based advantage"
+      ],
+      "examples": [
+        {
+          "constraint": "No brand (startup)",
+          "superpower": "Authenticity, no legacy baggage, can be bold",
+          "result": "New brands often feel more authentic than established ones"
+        },
+        {
+          "constraint": "Small team",
+          "superpower": "Speed, clarity, no bureaucracy",
+          "result": "Startups move faster than large companies"
+        },
+        {
+          "constraint": "Limited resources",
+          "superpower": "Focus, creativity, efficiency",
+          "result": "Resource constraints force innovation"
+        }
+      ],
+      "philosophical_basis": "Constraints that are hard to copy become moats. What seems like a weakness can be a structural advantage."
+    },
+    {
+      "name": "Cascading Insight Effect",
+      "emoji": "🌊",
+      "description": "Find the insight that, once understood, forces everything else to update",
+      "prompt": "What insight would force everything else to update? What realization changes the entire problem?",
+      "when_to_apply": [
+        "Seeking leverage",
+        "When solutions feel incremental",
+        "To find paradigm shifts",
+        "When one insight could unlock many solutions"
+      ],
+      "method": [
+        "1. List all current assumptions about the problem",
+        "2. For each assumption, ask: 'What if this were false?'",
+        "3. Identify which false assumption would cascade to change everything",
+        "4. Explore the world where that assumption is false",
+        "5. Design solutions in that new world"
+      ],
+      "examples": [
+        {
+          "cascading_insight": "Users don't want to own software, they want outcomes",
+          "cascade": "SaaS model, subscription, outcomes-based pricing",
+          "result": "Entire software industry transformed"
+        },
+        {
+          "cascading_insight": "Cars spend 95% of time parked",
+          "cascade": "Ownership unnecessary, sharing makes sense",
+          "result": "Ride-sharing, car-sharing industries"
+        }
+      ],
+      "philosophical_basis": "Some insights are leverage points. Once you see them, everything else must update. Find these."
+    },
+    {
+      "name": "Contrarian Correction",
+      "emoji": "🎭",
+      "description": "Identify what everyone gets wrong and build the opposite",
+      "prompt": "What does everyone get wrong? What's the consensus that's actually false?",
+      "when_to_apply": [
+        "Consensus feels too comfortable",
+        "When 'obvious' solutions don't work",
+        "To find contrarian opportunities",
+        "When industry wisdom feels wrong"
+      ],
+      "method": [
+        "1. Identify the consensus view",
+        "2. List all reasons people believe it",
+        "3. Challenge each reason:",
+        "   - Is the evidence actually strong?",
+        "   - Could the opposite be true?",
+        "   - What if everyone is wrong?",
+        "4. Build the contrarian solution",
+        "5. Test if contrarian view is actually correct"
+      ],
+      "examples": [
+        {
+          "consensus": "People won't stay in stranger's homes",
+          "contrarian": "People will if it's safe and cheaper",
+          "result": "Airbnb"
+        },
+        {
+          "consensus": "Electric cars are impractical",
+          "contrarian": "Electric is actually better if done right",
+          "result": "Tesla"
+        },
+        {
+          "consensus": "You need offices to work",
+          "contrarian": "Remote can be better with right tools",
+          "result": "Remote work tools, distributed companies"
+        }
+      ],
+      "philosophical_basis": "Consensus is often wrong. The crowd optimizes for social safety, not truth. Contrarian views reveal opportunities."
+    },
+    {
+      "name": "Illegible Advantage",
+      "emoji": "👁️",
+      "description": "Build advantages competitors can't see or copy",
+      "prompt": "What could we do that competitors can't copy? What's illegible to them?",
+      "when_to_apply": [
+        "Competitive positioning",
+        "When advantages feel copyable",
+        "To build defensible moats",
+        "When competing with better resources"
+      ],
+      "illegibility_sources": [
+        {
+          "source": "Cultural/Organizational",
+          "description": "Advantages embedded in culture that can't be copied",
+          "example": "Amazon's customer obsession culture"
+        },
+        {
+          "source": "Complex Systems",
+          "description": "Advantages from complex interactions competitors can't see",
+          "example": "Google's search algorithm complexity"
+        },
+        {
+          "source": "Time-Based",
+          "description": "Advantages that take time to build, can't be rushed",
+          "example": "Network effects, brand, data moats"
+        },
+        {
+          "source": "Counter-Intuitive",
+          "description": "Advantages that look like disadvantages",
+          "example": "Constraints that become moats"
+        }
+      ],
+      "method": [
+        "1. List your advantages",
+        "2. For each: 'Could a competitor copy this?'",
+        "3. Identify advantages that are:",
+        "   - Hard to see (illegible)",
+        "   - Hard to copy (even if seen)",
+        "   - Time-dependent (can't be rushed)",
+        "4. Invest in building illegible advantages"
+      ],
+      "philosophical_basis": "Visible advantages get copied. Illegible advantages are moats. Build what competitors can't see or understand."
+    },
+    {
+      "name": "Strategic Attractor Search",
+      "emoji": "🧲",
+      "description": "Find where the system naturally wants to evolve",
+      "prompt": "Where does this system naturally want to evolve? What's the attractor state?",
+      "when_to_apply": [
+        "Long-term design",
+        "When current state feels unstable",
+        "To find natural evolution paths",
+        "To align with system dynamics"
+      ],
+      "method": [
+        "1. Identify the system (market, technology, user behavior)",
+        "2. Ask: 'What forces are driving change?'",
+        "3. Ask: 'Where would this naturally evolve if unimpeded?'",
+        "4. Identify the attractor state (stable end state)",
+        "5. Design to align with or accelerate toward attractor",
+        "6. Avoid fighting against natural evolution"
+      ],
+      "examples": [
+        {
+          "system": "Software distribution",
+          "attractor": "Cloud-based, on-demand, subscription",
+          "alignment": "SaaS companies aligned with attractor"
+        },
+        {
+          "system": "Transportation",
+          "attractor": "On-demand, shared, electric, autonomous",
+          "alignment": "Uber, Tesla aligned with attractor"
+        },
+        {
+          "system": "Information access",
+          "attractor": "Instant, free, comprehensive",
+          "alignment": "Google, Wikipedia aligned with attractor"
+        }
+      ],
+      "philosophical_basis": "Systems have natural attractors. Fighting them is futile. Aligning with them is powerful. Find the attractor."
+    },
+    {
+      "name": "Asymmetric Payoff Design",
+      "emoji": "⚖️",
+      "description": "Design for limited downside and massive upside",
+      "prompt": "What would give us massive upside with limited downside? What's the asymmetric bet?",
+      "when_to_apply": [
+        "High uncertainty",
+        "When resources are limited",
+        "To find high-leverage bets",
+        "When failure is costly"
+      ],
+      "method": [
+        "1. List potential actions",
+        "2. For each, estimate:",
+        "   - Upside (best case outcome)",
+        "   - Downside (worst case outcome)",
+        "   - Probability of each",
+        "3. Calculate expected value",
+        "4. Prioritize asymmetric payoffs:",
+        "   - High upside, low downside",
+        "   - Low probability of success, but huge if it works",
+        "   - Reversible experiments"
+      ],
+      "examples": [
+        {
+          "action": "Try new marketing channel",
+          "upside": "10x growth",
+          "downside": "Small cost, reversible",
+          "asymmetric": "Yes—high upside, low downside"
+        },
+        {
+          "action": "Pivot entire product",
+          "upside": "Product-market fit",
+          "downside": "Lose everything, irreversible",
+          "asymmetric": "No—high downside"
+        }
+      ],
+      "philosophical_basis": "In uncertain environments, seek asymmetric payoffs. Limited downside protects you. Massive upside rewards you."
+    },
+    {
+      "name": "Reversibility Test",
+      "emoji": "↩️",
+      "description": "Distinguish reversible experiments from one-way doors",
+      "prompt": "Is this reversible? If it fails, can we undo it?",
+      "when_to_apply": [
+        "Before major decisions",
+        "To enable experimentation",
+        "When uncertainty is high",
+        "To reduce risk"
+      ],
+      "reversibility_levels": [
+        {
+          "level": "Fully Reversible",
+          "description": "Can be undone easily, no lasting effects",
+          "action": "Experiment freely, iterate quickly",
+          "example": "UI changes, feature flags, A/B tests"
+        },
+        {
+          "level": "Partially Reversible",
+          "description": "Can be undone but with cost/effort",
+          "action": "Proceed with caution, have rollback plan",
+          "example": "Technology choices, team structure"
+        },
+        {
+          "level": "One-Way Door",
+          "description": "Cannot be undone, permanent consequences",
+          "action": "Think deeply, get consensus, move slowly",
+          "example": "Company sale, major pivots, firing key people"
+        }
+      ],
+      "philosophical_basis": "Reversible decisions enable experimentation and learning. One-way doors require deep thought. Know the difference."
+    },
+    {
+      "name": "Second-Order Effect Mapping",
+      "emoji": "🌐",
+      "description": "Map cascading effects of actions",
+      "prompt": "If we do X, what happens? And then what happens after that?",
+      "when_to_apply": [
+        "Before major changes",
+        "To find unintended consequences",
+        "To identify leverage points",
+        "When system is complex"
+      ],
+      "method": [
+        "1. Identify the action",
+        "2. Map first-order effects (direct consequences)",
+        "3. For each first-order effect, map second-order effects",
+        "4. Continue to third-order if significant",
+        "5. Identify:",
+        "   - Positive cascades (amplifying effects)",
+        "   - Negative cascades (dampening effects)",
+        "   - Unintended consequences",
+        "   - Leverage points (small changes, big effects)"
+      ],
+      "examples": [
+        {
+          "action": "Lower prices",
+          "first_order": "More sales",
+          "second_order": "Competitors respond, price war, margins compress",
+          "third_order": "Industry consolidation, winners take all"
+        }
+      ],
+      "philosophical_basis": "Actions have effects, effects have effects. Second-order thinking reveals the true impact of decisions."
+    }
+  ],
+  "usage_guidelines": {
+    "when_stuck": [
+      "Try Concept Splicing to combine domains",
+      "Use Orthogonal Jump to escape current dimension",
+      "Apply Divergence Injection to break convergence",
+      "Use Negative Space Exploration to find blind spots"
+    ],
+    "for_breakthrough": [
+      "Apply Conceptual Wormhole to find distant solutions",
+      "Use Cascading Insight Effect to find paradigm shifts",
+      "Try Contrarian Correction to challenge consensus",
+      "Use Novelty Ridge Walking to push boundaries"
+    ],
+    "for_strategy": [
+      "Apply Constraint-to-Superpower Flip for moats",
+      "Use Strategic Attractor Search for long-term alignment",
+      "Apply Asymmetric Payoff Design for high-leverage bets",
+      "Use Reversibility Test to enable experimentation"
+    ],
+    "systematic_exploration": [
+      "Start with one operator",
+      "If it generates ideas, explore them",
+      "If it doesn't, try another operator",
+      "Combine operators for compound effects",
+      "Use multiple operators on same problem for breadth"
+    ]
+  }
+}
+
