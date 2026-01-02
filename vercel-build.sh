@@ -5,10 +5,16 @@ set -e
 
 echo "🔧 Setting up Git LFS for Vercel..."
 
+# Configure Git to skip LFS checkout during clone (we'll pull manually)
+# This prevents Vercel from timing out during clone
+export GIT_LFS_SKIP_SMUDGE=1
+
 # Check if we're in a git repo
 if [ ! -d .git ]; then
     echo "⚠️  Not in a git repository, skipping LFS pull"
 else
+    # Unset skip smudge so we can pull LFS files now
+    unset GIT_LFS_SKIP_SMUDGE
     # Try to pull LFS files
     echo "📥 Pulling Git LFS files..."
     
@@ -20,7 +26,13 @@ else
         git-lfs install --skip-repo || true
         echo "📥 Starting git-lfs pull (~835MB, may take 2-5 minutes)..."
         echo "   Downloading LFS files - progress will appear below..."
-        if timeout 600 git-lfs pull --verbose 2>&1; then
+        # Use timeout with progress output - fail fast if stuck
+        if timeout 900 git-lfs pull --verbose 2>&1 | while IFS= read -r line; do
+            echo "$line"
+            # Show we're making progress
+        done; then
+            # Check exit code
+            if [ ${PIPESTATUS[0]} -eq 0 ]; then
             LFS_PULL_SUCCESS=true
             echo "✅ git-lfs pull succeeded"
         else
