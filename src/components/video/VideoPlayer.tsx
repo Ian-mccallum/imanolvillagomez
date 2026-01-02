@@ -65,19 +65,18 @@ export const VideoPlayer = ({
     const handleError = (e?: Event) => {
       const video = e?.target as HTMLVideoElement || videoEl;
       const errorCodes: Record<number, string> = {
-        1: 'MEDIA_ERR_ABORTED',
-        2: 'MEDIA_ERR_NETWORK',
-        3: 'MEDIA_ERR_DECODE',
-        4: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
+        1: 'MEDIA_ERR_ABORTED - Video loading aborted',
+        2: 'MEDIA_ERR_NETWORK - Network error',
+        3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
+        4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
       };
-      console.error('Video error:', {
-        videoUrl: item.videoUrl,
-        code: video.error?.code,
-        codeName: video.error ? errorCodes[video.error.code] || 'Unknown' : 'No error',
-        message: video.error?.message,
-        networkState: video.networkState,
-        readyState: video.readyState
-      });
+      console.error('❌ VIDEO ERROR:', item.videoUrl);
+      console.error('   Error Code:', video.error?.code, video.error ? `(${errorCodes[video.error.code] || 'Unknown'})` : 'No error code');
+      console.error('   Error Message:', video.error?.message || 'No message');
+      console.error('   Network State:', video.networkState);
+      console.error('   Ready State:', video.readyState);
+      console.error('   Video SRC:', video.src);
+      console.error('   Current SRC:', video.currentSrc);
       onError();
     };
     

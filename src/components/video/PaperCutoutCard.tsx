@@ -239,7 +239,22 @@ export const PaperCutoutCard = ({
                 }
               }}
               onError={(e) => {
-                console.error('Video thumbnail error:', e);
+                const video = e.currentTarget;
+                const errorCodes: Record<number, string> = {
+                  1: 'MEDIA_ERR_ABORTED - Video loading aborted',
+                  2: 'MEDIA_ERR_NETWORK - Network error',
+                  3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
+                  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
+                };
+                console.error('Video thumbnail error:', {
+                  code: video.error?.code,
+                  codeName: video.error ? errorCodes[video.error.code] || 'Unknown error' : 'No error code',
+                  message: video.error?.message,
+                  src: video.src,
+                  networkState: video.networkState,
+                  readyState: video.readyState,
+                  videoUrl: imageUrl
+                });
                 // Could show a placeholder here if needed
               }}
             />
