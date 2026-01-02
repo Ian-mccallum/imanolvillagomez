@@ -17,13 +17,15 @@ else
     if [ ! -d .git ]; then
         echo "⚠️  Not in a git repository, skipping LFS pull"
     else
-        # Re-enable LFS fetch and unset skip smudge so we can pull LFS files now
-        git config --unset lfs.fetchexclude 2>/dev/null || true
+        # CRITICAL: Unset skip smudge so we can pull LFS files now
+        # This was set to prevent clone hang, but we need it unset for build
         unset GIT_LFS_SKIP_SMUDGE
-        unset GIT_LFS_SKIP_PUSH
-        # Configure Git to skip LFS during fetch/clone but allow manual pull
-        git config lfs.fetchexclude '*' 2>/dev/null || true
+        export GIT_LFS_SKIP_SMUDGE=""
         git config --unset lfs.fetchexclude 2>/dev/null || true
+        git config --unset core.lfs 2>/dev/null || true
+        
+        # Ensure Git LFS is enabled for this repo
+        git config lfs.fetchexclude "" 2>/dev/null || true
         
         # Try to pull LFS files
         echo "📥 Pulling Git LFS files..."
@@ -87,59 +89,122 @@ else
             git config --unset lfs.fetchexclude 2>/dev/null || true
             echo "   GIT_LFS_SKIP_SMUDGE unset, ready to pull LFS files"
             
-            # Use a background process with timeout to prevent hangs
-            # This ensures the script never hangs, even if git lfs pull hangs
-            (
-                $LFS_COMMAND install --skip-repo 2>&1 || true
-                echo "   Installing LFS hooks..."
-                # Try to pull with explicit remote URL in case auth is needed
-                echo "   Attempting to pull LFS files from GitHub..."
-                $LFS_COMMAND pull origin main --verbose 2>&1 | tee /tmp/lfs-pull.log || {
-                    echo "   Pull from origin/main failed, trying without remote..."
-                    $LFS_COMMAND pull --verbose 2>&1 | tee -a /tmp/lfs-pull.log
-                }
-            ) &
-            LFS_PID=$!
+            # Install LFS hooks first
+            echo "   Installing LFS hooks..."
+            $LFS_COMMAND install --skip-repo 2>&1 || true
             
-            # Wait with timeout (10 minutes = 600 seconds - increased for large files)
-            TIMEOUT=600
-            ELAPSED=0
-            INTERVAL=5
+            # Configure Git LFS to use Git's existing credentials
+            # CRITICAL: Vercel clones with authentication, but Git LFS needs explicit config
+            echo "   Configuring Git LFS authentication..."
             
-            while kill -0 $LFS_PID 2>/dev/null; do
-                if [ $ELAPSED -ge $TIMEOUT ]; then
-                    echo "⏱️  LFS pull timed out after ${TIMEOUT} seconds - killing process"
-                    kill -9 $LFS_PID 2>/dev/null || true
-                    wait $LFS_PID 2>/dev/null || true
-                    LFS_PULL_SUCCESS=false
-                    echo "   Check /tmp/lfs-pull.log for details"
-                    break
+            REMOTE_URL=$(git config --get remote.origin.url 2>/dev/null || echo "")
+            echo "   Git remote URL: ${REMOTE_URL}"
+            
+            # Extract credentials from Git's credential helper or remote URL
+            # Vercel stores credentials in .git/config or uses credential helper
+            if [ -n "$REMOTE_URL" ]; then
+                # Try to get the actual remote URL with credentials from Git config
+                # Vercel might store it differently, so try multiple methods
+                
+                # Method 1: Use the remote URL directly (Git LFS should use Git's credential helper)
+                echo "   Configuring Git LFS to use same remote as Git..."
+                git config lfs.url "$REMOTE_URL" 2>/dev/null || true
+                
+                # Method 2: Ensure credential helper is configured
+                echo "   Ensuring Git credential helper is available..."
+                git config --global credential.helper store 2>/dev/null || true
+                
+                # Method 3: For HTTPS remotes, Git LFS should automatically use Git's credentials
+                # For SSH remotes, Git LFS should use the same SSH keys
+                if [[ "$REMOTE_URL" == https://* ]]; then
+                    echo "   Git uses HTTPS - Git LFS will use Git's credential helper"
+                elif [[ "$REMOTE_URL" == git@* ]] || [[ "$REMOTE_URL" == ssh://* ]]; then
+                    echo "   Git uses SSH - Git LFS will use same SSH keys"
+                    # Ensure SSH is configured for Git LFS
+                    git config --global lfs.basictransferonly false 2>/dev/null || true
                 fi
-                sleep $INTERVAL
-                ELAPSED=$((ELAPSED + INTERVAL))
-                # Show progress every 30 seconds
-                if [ $((ELAPSED % 30)) -eq 0 ]; then
-                    echo "   Still downloading... (${ELAPSED}s elapsed)"
-                fi
-            done
+            fi
             
-            # Check if it succeeded (only if we didn't timeout)
-            if [ $ELAPSED -lt $TIMEOUT ]; then
-                wait $LFS_PID
-                LFS_EXIT_CODE=$?
-                if [ $LFS_EXIT_CODE -eq 0 ]; then
+            # Configure Git LFS performance settings
+            git config --global lfs.batch true 2>/dev/null || true
+            git config --global lfs.concurrenttransfers 8 2>/dev/null || true
+            
+            # CRITICAL: Ensure Git LFS can access the remote
+            # Try to verify LFS can see the remote
+            echo "   Verifying Git LFS can access remote..."
+            $LFS_COMMAND env 2>&1 | grep -E "(Endpoint|Remote)" | head -3 || echo "   (LFS env check completed)"
+            
+            # Try using git lfs fetch with explicit remote instead of pull
+            # This might work better with existing Git credentials
+            echo "   Using 'git lfs fetch' + 'git lfs checkout' instead of 'git lfs pull'"
+            
+            # Try to fetch and checkout LFS files
+            # Use fetch + checkout instead of pull for better control
+            echo "   Attempting to fetch LFS files from GitHub..."
+            
+            # Check one file before fetch to see if it's a pointer
+            SAMPLE_FILE="public/videos/2hollisfull.mp4"
+            if [ -f "$SAMPLE_FILE" ]; then
+                BEFORE_SIZE=$(stat -f%z "$SAMPLE_FILE" 2>/dev/null || stat -c%s "$SAMPLE_FILE" 2>/dev/null || echo "0")
+                echo "   Before fetch: $SAMPLE_FILE is ${BEFORE_SIZE} bytes"
+            fi
+            
+            # Step 1: Fetch LFS objects (downloads but doesn't checkout)
+            echo "   Step 1: Fetching LFS objects..."
+            LFS_FETCH_OUTPUT=$($LFS_COMMAND fetch 2>&1)
+            LFS_FETCH_EXIT=$?
+            
+            if [ $LFS_FETCH_EXIT -eq 0 ]; then
+                echo "   ✅ LFS fetch succeeded"
+                echo "$LFS_FETCH_OUTPUT" | grep -E "(Downloading|Uploading|batch)" | head -5 || echo "   (fetch output suppressed)"
+            else
+                echo "   ⚠️  LFS fetch failed with exit code $LFS_FETCH_EXIT"
+                echo "$LFS_FETCH_OUTPUT" | head -10
+            fi
+            
+            # Step 2: Checkout LFS files (replaces pointers with actual files)
+            echo "   Step 2: Checking out LFS files..."
+            LFS_CHECKOUT_OUTPUT=$($LFS_COMMAND checkout 2>&1)
+            LFS_CHECKOUT_EXIT=$?
+            
+            if [ $LFS_CHECKOUT_EXIT -eq 0 ]; then
+                echo "   ✅ LFS checkout succeeded"
+            else
+                echo "   ⚠️  LFS checkout failed with exit code $LFS_CHECKOUT_EXIT"
+                echo "$LFS_CHECKOUT_OUTPUT" | head -10
+            fi
+            
+            # Check if files were actually downloaded
+            if [ -f "$SAMPLE_FILE" ]; then
+                AFTER_SIZE=$(stat -f%z "$SAMPLE_FILE" 2>/dev/null || stat -c%s "$SAMPLE_FILE" 2>/dev/null || echo "0")
+                echo "   After checkout: $SAMPLE_FILE is ${AFTER_SIZE} bytes"
+                if [ "$AFTER_SIZE" -gt 1000 ] && [ "$AFTER_SIZE" -gt "$BEFORE_SIZE" ]; then
                     LFS_PULL_SUCCESS=true
-                    echo "✅ git lfs pull succeeded"
-                else
-                    echo "⚠️  git lfs pull failed with exit code $LFS_EXIT_CODE"
-                    echo "   Check /tmp/lfs-pull.log for error details"
-                    # Try to show last few lines of log
-                    if [ -f /tmp/lfs-pull.log ]; then
-                        echo "   Last 10 lines of LFS pull log:"
-                        tail -10 /tmp/lfs-pull.log | sed 's/^/   /'
+                    echo "✅ LFS files were downloaded (file size increased from ${BEFORE_SIZE} to ${AFTER_SIZE} bytes)"
+                elif [ "$AFTER_SIZE" -lt 1000 ]; then
+                    LFS_PULL_SUCCESS=false
+                    echo "⚠️  LFS checkout completed but files are still pointers (${AFTER_SIZE} bytes)"
+                    if [ $LFS_FETCH_EXIT -ne 0 ]; then
+                        echo "   Fetch failed - likely authentication issue"
+                    elif [ $LFS_CHECKOUT_EXIT -ne 0 ]; then
+                        echo "   Checkout failed - files may not have been fetched"
+                    else
+                        echo "   Unknown issue - fetch and checkout succeeded but files are still pointers"
                     fi
                 fi
             fi
+            
+            # Set success based on exit codes if we couldn't check file size
+            if [ -z "$LFS_PULL_SUCCESS" ]; then
+                if [ $LFS_FETCH_EXIT -eq 0 ] && [ $LFS_CHECKOUT_EXIT -eq 0 ]; then
+                    LFS_PULL_SUCCESS=true
+                    echo "✅ git lfs fetch + checkout completed successfully"
+                else
+                    LFS_PULL_SUCCESS=false
+                    echo "⚠️  git lfs fetch/checkout failed"
+                fi
+            fi
+            
         else
             echo "⚠️  Git LFS not available, skipping LFS pull"
             echo "   DEBUG: LFS_COMMAND is empty, Git LFS installation failed"
@@ -154,7 +219,7 @@ else
         
         # Check if videos directory exists
         if [ -d "public/videos" ]; then
-            for video_file in public/videos/*.mp4 public/videos/*.mov; do
+            for video_file in public/videos/*.mp4; do
                 # Skip if glob didn't match (no files)
                 [ ! -f "$video_file" ] && continue
                 if [ -f "$video_file" ]; then
@@ -220,7 +285,7 @@ echo "✅ Build steps completed successfully"
 
 # Verify videos are in dist and are actual files (not LFS pointers)
 if [ -d "dist/videos" ]; then
-    VIDEO_COUNT=$(find dist/videos -name "*.mov" -o -name "*.mp4" 2>/dev/null | wc -l | tr -d ' ')
+    VIDEO_COUNT=$(find dist/videos -name "*.mp4" 2>/dev/null | wc -l | tr -d ' ')
     echo "✅ Found $VIDEO_COUNT video files in dist/videos/"
     
     # Check ALL video files to ensure they're actual files, not pointers
@@ -228,7 +293,7 @@ if [ -d "dist/videos" ]; then
     echo "🔍 Verifying videos in dist/videos/ are actual files..."
     DIST_FAILED=()
     
-    for video_file in dist/videos/*.mp4 dist/videos/*.mov; do
+    for video_file in dist/videos/*.mp4; do
         if [ -f "$video_file" ]; then
             FILE_SIZE=$(stat -f%z "$video_file" 2>/dev/null || stat -c%s "$video_file" 2>/dev/null || echo "0")
             FILE_NAME=$(basename "$video_file")
