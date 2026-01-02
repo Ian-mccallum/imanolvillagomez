@@ -18,6 +18,10 @@ else
         # Re-enable LFS fetch and unset skip smudge so we can pull LFS files now
         git config --unset lfs.fetchexclude 2>/dev/null || true
         unset GIT_LFS_SKIP_SMUDGE
+        unset GIT_LFS_SKIP_PUSH
+        # Configure Git to skip LFS during fetch/clone but allow manual pull
+        git config lfs.fetchexclude '*' 2>/dev/null || true
+        git config --unset lfs.fetchexclude 2>/dev/null || true
         
         # Try to pull LFS files
         echo "📥 Pulling Git LFS files..."
@@ -63,19 +67,24 @@ else
         
         # Try to pull LFS files with proper timeout and hang detection
         if [ -n "$LFS_COMMAND" ]; then
-            echo "📥 Starting LFS pull (~835MB, max 5 minutes)..."
-            echo "   This will timeout after 5 minutes to prevent hangs"
+            echo "📥 Starting LFS pull (~835MB, max 10 minutes)..."
+            echo "   This will timeout after 10 minutes to prevent hangs"
+            
+            # Make sure skip smudge is unset for LFS pull
+            unset GIT_LFS_SKIP_SMUDGE
+            git config --unset lfs.fetchexclude 2>/dev/null || true
             
             # Use a background process with timeout to prevent hangs
             # This ensures the script never hangs, even if git lfs pull hangs
             (
                 $LFS_COMMAND install --skip-repo 2>&1 || true
-                $LFS_COMMAND pull --verbose 2>&1
+                echo "   Installing LFS hooks..."
+                $LFS_COMMAND pull --verbose 2>&1 | tee /tmp/lfs-pull.log
             ) &
             LFS_PID=$!
             
-            # Wait with timeout (5 minutes = 300 seconds)
-            TIMEOUT=300
+            # Wait with timeout (10 minutes = 600 seconds - increased for large files)
+            TIMEOUT=600
             ELAPSED=0
             INTERVAL=5
             
@@ -85,6 +94,7 @@ else
                     kill -9 $LFS_PID 2>/dev/null || true
                     wait $LFS_PID 2>/dev/null || true
                     LFS_PULL_SUCCESS=false
+                    echo "   Check /tmp/lfs-pull.log for details"
                     break
                 fi
                 sleep $INTERVAL
@@ -104,6 +114,12 @@ else
                     echo "✅ git lfs pull succeeded"
                 else
                     echo "⚠️  git lfs pull failed with exit code $LFS_EXIT_CODE"
+                    echo "   Check /tmp/lfs-pull.log for error details"
+                    # Try to show last few lines of log
+                    if [ -f /tmp/lfs-pull.log ]; then
+                        echo "   Last 10 lines of LFS pull log:"
+                        tail -10 /tmp/lfs-pull.log | sed 's/^/   /'
+                    fi
                 fi
             fi
         else
