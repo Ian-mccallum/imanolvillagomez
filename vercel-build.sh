@@ -33,8 +33,9 @@ else
         done; then
             # Check exit code
             if [ ${PIPESTATUS[0]} -eq 0 ]; then
-            LFS_PULL_SUCCESS=true
-            echo "✅ git-lfs pull succeeded"
+                LFS_PULL_SUCCESS=true
+                echo "✅ git-lfs pull succeeded"
+            fi
         else
             echo "⚠️  git-lfs pull failed or timed out, trying alternative..."
         fi
