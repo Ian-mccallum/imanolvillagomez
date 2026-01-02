@@ -6,6 +6,8 @@
 # Only exit on critical build failures (TypeScript/Vite), not LFS issues
 
 echo "🔧 Setting up Git LFS for Vercel..."
+echo "   DEBUG: SKIP_LFS=${SKIP_LFS:-not set}"
+echo "   DEBUG: GIT_LFS_SKIP_SMUDGE=${GIT_LFS_SKIP_SMUDGE:-not set}"
 
 # Allow skipping LFS entirely via environment variable
 if [ "$SKIP_LFS" = "true" ]; then
@@ -34,11 +36,14 @@ else
         if command -v git-lfs >/dev/null 2>&1; then
             LFS_COMMAND="git-lfs"
             echo "✅ Found git-lfs command"
+            git-lfs version || true
         elif git lfs version >/dev/null 2>&1 2>&1; then
             LFS_COMMAND="git lfs"
             echo "✅ Found git lfs via git"
+            git lfs version || true
         else
             echo "⚠️  Git LFS not found, attempting to install..."
+            echo "   Checking for apt-get..."
             if command -v apt-get >/dev/null 2>&1; then
                 echo "📦 Installing Git LFS (this may take a minute)..."
                 # Install without sudo (Vercel builds don't have sudo)
@@ -62,24 +67,37 @@ else
                 echo "✅ Git LFS installation complete"
             else
                 echo "❌ Cannot install Git LFS - apt-get not available"
+                echo "   DEBUG: Checking what package manager is available..."
+                command -v yum >/dev/null 2>&1 && echo "   Found: yum" || true
+                command -v apk >/dev/null 2>&1 && echo "   Found: apk" || true
+                echo "   This means Git LFS cannot be installed automatically"
             fi
         fi
+        
+        echo "   DEBUG: After installation check, LFS_COMMAND='$LFS_COMMAND'"
         
         # Try to pull LFS files with proper timeout and hang detection
         if [ -n "$LFS_COMMAND" ]; then
             echo "📥 Starting LFS pull (~835MB, max 10 minutes)..."
+            echo "   Using command: $LFS_COMMAND"
             echo "   This will timeout after 10 minutes to prevent hangs"
             
             # Make sure skip smudge is unset for LFS pull
             unset GIT_LFS_SKIP_SMUDGE
             git config --unset lfs.fetchexclude 2>/dev/null || true
+            echo "   GIT_LFS_SKIP_SMUDGE unset, ready to pull LFS files"
             
             # Use a background process with timeout to prevent hangs
             # This ensures the script never hangs, even if git lfs pull hangs
             (
                 $LFS_COMMAND install --skip-repo 2>&1 || true
                 echo "   Installing LFS hooks..."
-                $LFS_COMMAND pull --verbose 2>&1 | tee /tmp/lfs-pull.log
+                # Try to pull with explicit remote URL in case auth is needed
+                echo "   Attempting to pull LFS files from GitHub..."
+                $LFS_COMMAND pull origin main --verbose 2>&1 | tee /tmp/lfs-pull.log || {
+                    echo "   Pull from origin/main failed, trying without remote..."
+                    $LFS_COMMAND pull --verbose 2>&1 | tee -a /tmp/lfs-pull.log
+                }
             ) &
             LFS_PID=$!
             
@@ -124,6 +142,8 @@ else
             fi
         else
             echo "⚠️  Git LFS not available, skipping LFS pull"
+            echo "   DEBUG: LFS_COMMAND is empty, Git LFS installation failed"
+            echo "   This means videos will be LFS pointers, not actual files"
         fi
         
         # CRITICAL: Verify videos were pulled (check if they're actual files, not pointers)
