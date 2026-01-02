@@ -88,8 +88,8 @@ export const HomePage = () => {
   // Video ref for background video
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Background video - osamasonpreview.mov from public/videos
-  const heroVideoUrl = '/videos/osamasonpreview.mov';
+  // Background video - osamasonpreview.mp4 from public/videos (converted from .mov for web compatibility)
+  const heroVideoUrl = '/videos/osamasonpreview.mp4';
 
   // Ensure video loads and plays
   useEffect(() => {
@@ -172,16 +172,30 @@ export const HomePage = () => {
             3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
             4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
           };
-          console.error('Video background error:', {
-            code: video.error?.code,
-            codeName: video.error ? errorCodes[video.error.code] || 'Unknown error' : 'No error code',
-            message: video.error?.message,
-            src: video.src,
-            currentSrc: video.currentSrc,
-            networkState: video.networkState,
-            readyState: video.readyState,
-            error: video.error
-          });
+          
+          if (video.error) {
+            const errorInfo = {
+              code: video.error.code,
+              codeName: errorCodes[video.error.code] || 'Unknown error',
+              message: video.error.message,
+              src: video.src,
+              currentSrc: video.currentSrc,
+              networkState: video.networkState,
+              readyState: video.readyState
+            };
+            
+            // Log each property separately so they're visible without expanding
+            console.error('❌ Video background error:');
+            console.error('   Error Code:', video.error.code, '-', errorCodes[video.error.code] || 'Unknown');
+            console.error('   Error Message:', video.error.message);
+            console.error('   Video SRC:', video.src);
+            console.error('   Current SRC:', video.currentSrc);
+            console.error('   Network State:', video.networkState);
+            console.error('   Ready State:', video.readyState);
+            console.error('   Full error object:', errorInfo);
+          } else {
+            console.error('❌ Video background error (no error object):', e);
+          }
         }}
       />
 
