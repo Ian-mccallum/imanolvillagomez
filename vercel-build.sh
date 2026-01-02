@@ -18,11 +18,13 @@ else
     if command -v git-lfs >/dev/null 2>&1; then
         echo "✅ Found git-lfs command"
         git-lfs install --skip-repo || true
-        if git-lfs pull; then
+        echo "📥 Starting git-lfs pull (~835MB, may take 2-5 minutes)..."
+        echo "   Downloading LFS files - progress will appear below..."
+        if timeout 600 git-lfs pull --verbose 2>&1; then
             LFS_PULL_SUCCESS=true
             echo "✅ git-lfs pull succeeded"
         else
-            echo "⚠️  git-lfs pull failed, trying alternative..."
+            echo "⚠️  git-lfs pull failed or timed out, trying alternative..."
         fi
     fi
     
@@ -30,11 +32,13 @@ else
     if [ "$LFS_PULL_SUCCESS" = false ] && git lfs version >/dev/null 2>&1; then
         echo "✅ Found git lfs via git"
         git lfs install --skip-repo || true
-        if git lfs pull; then
+        echo "📥 Starting git lfs pull (~835MB, may take 2-5 minutes)..."
+        echo "   Downloading LFS files - progress will appear below..."
+        if timeout 600 git lfs pull --verbose 2>&1; then
             LFS_PULL_SUCCESS=true
             echo "✅ git lfs pull succeeded"
         else
-            echo "⚠️  git lfs pull failed"
+            echo "⚠️  git lfs pull failed or timed out"
         fi
     fi
     
@@ -56,21 +60,28 @@ else
     echo ""
     echo "🔍 Verifying LFS files were pulled..."
     FAILED_FILES=()
+    CHECKED_COUNT=0
     
     for video_file in public/videos/*.mp4; do
         if [ -f "$video_file" ]; then
+            CHECKED_COUNT=$((CHECKED_COUNT + 1))
             FILE_SIZE=$(stat -f%z "$video_file" 2>/dev/null || stat -c%s "$video_file" 2>/dev/null || echo "0")
             FILE_NAME=$(basename "$video_file")
             
             if [ "$FILE_SIZE" -lt 1000 ]; then
                 echo "❌ ERROR: $FILE_NAME is LFS pointer (${FILE_SIZE} bytes), not actual file!"
                 FAILED_FILES+=("$FILE_NAME")
-            else
+            elif [ $CHECKED_COUNT -le 3 ]; then
+                # Only show first 3 files to avoid spam
                 FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
                 echo "✅ $FILE_NAME: ${FILE_SIZE_MB}MB (actual file)"
             fi
         fi
     done
+    
+    if [ $CHECKED_COUNT -gt 3 ]; then
+        echo "✅ ... and $((CHECKED_COUNT - 3)) more files verified"
+    fi
     
     if [ ${#FAILED_FILES[@]} -gt 0 ]; then
         echo ""
@@ -79,15 +90,19 @@ else
         echo "   This means git lfs pull did not work properly"
         echo ""
         echo "   Attempting to manually pull LFS files..."
-        # Try one more time with explicit paths
-        git lfs pull --include="*.mp4" || {
+        # Try one more time with explicit paths and timeout
+        echo "📥 Retrying git lfs pull with explicit paths..."
+        if timeout 300 git lfs pull --include="*.mp4" 2>&1; then
+            echo "✅ Manual pull succeeded"
+        else
             echo ""
             echo "❌ FATAL: Cannot pull LFS files. Build will fail."
             echo "   Make sure Git LFS is enabled in Vercel project settings:"
             echo "   Settings → Git → Enable 'Git Large File Storage (LFS)'"
+            echo "   Also check Vercel build logs for LFS errors"
             echo ""
             exit 1
-        }
+        fi
         
         # Verify again after manual pull
         FAILED_FILES=()
