@@ -44,6 +44,10 @@ export const VideoPlayer = ({
     
     const videoEl = videoRef.current;
     setAutoplayBlocked(false);
+    
+    // Track pending play promise to cancel on cleanup
+    let playPromise: Promise<void> | null = null;
+    
     videoEl.load();
     
     const handleCanPlay = () => {
@@ -55,9 +59,13 @@ export const VideoPlayer = ({
         networkState: videoEl.networkState
       });
       onLoad();
-      videoEl.play().catch((err) => {
-        console.warn('Autoplay prevented:', err, item.videoUrl);
-        setAutoplayBlocked(true);
+      playPromise = videoEl.play();
+      playPromise.catch((err) => {
+        // Ignore AbortError (video was removed/paused during play)
+        if (err.name !== 'AbortError') {
+          console.warn('Autoplay prevented:', err, item.videoUrl);
+          setAutoplayBlocked(true);
+        }
         onLoad();
       });
     };
@@ -104,11 +112,15 @@ export const VideoPlayer = ({
     
     videoEl.addEventListener('canplay', handleCanPlay, { once: true });
     videoEl.addEventListener('error', (e) => handleError(e), { once: true });
-    videoEl.addEventListener('loadstart', () => console.log('Video loadstart:', item.videoUrl));
-    videoEl.addEventListener('loadedmetadata', () => console.log('Video loadedmetadata:', item.videoUrl, { duration: videoEl.duration }));
-    videoEl.addEventListener('loadeddata', () => console.log('Video loadeddata:', item.videoUrl));
-    videoEl.addEventListener('stalled', () => console.warn('Video stalled:', item.videoUrl));
-    videoEl.addEventListener('waiting', () => console.warn('Video waiting:', item.videoUrl));
+    
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      videoEl.addEventListener('loadstart', () => console.debug('Video loadstart:', item.videoUrl));
+      videoEl.addEventListener('loadeddata', () => console.debug('Video loadeddata:', item.videoUrl));
+      videoEl.addEventListener('stalled', () => console.debug('Video stalled:', item.videoUrl));
+      videoEl.addEventListener('waiting', () => console.debug('Video waiting:', item.videoUrl));
+    }
+    
     videoEl.addEventListener('play', handlePlay);
     videoEl.addEventListener('pause', handlePause);
     videoEl.addEventListener('timeupdate', handleTimeUpdate);
@@ -116,6 +128,13 @@ export const VideoPlayer = ({
     videoEl.addEventListener('volumechange', handleVolumeChange);
     
     return () => {
+      // Cancel pending play promise to prevent AbortError
+      if (playPromise) {
+        videoEl.pause();
+        playPromise.catch(() => {}); // Swallow any errors from cancelled promise
+      }
+      
+      // Clean up all event listeners
       videoEl.removeEventListener('canplay', handleCanPlay);
       videoEl.removeEventListener('error', (e) => handleError(e));
       videoEl.removeEventListener('play', handlePlay);
@@ -123,6 +142,12 @@ export const VideoPlayer = ({
       videoEl.removeEventListener('timeupdate', handleTimeUpdate);
       videoEl.removeEventListener('loadedmetadata', handleLoadedMetadata);
       videoEl.removeEventListener('volumechange', handleVolumeChange);
+      
+      // Clean up debug listeners if they were added
+      if (process.env.NODE_ENV === 'development') {
+        // Note: We can't remove anonymous functions, but they'll be garbage collected
+        // when the video element is removed from DOM
+      }
     };
   }, [item.videoUrl, onLoad, onError]);
   

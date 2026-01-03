@@ -103,14 +103,21 @@ export const VideoModal = ({ isOpen, onClose, video, initialPosition }: VideoMod
       setHasError(false);
       const videoEl = videoRef.current;
       
+      // Track pending play promise to cancel on cleanup
+      let playPromise: Promise<void> | null = null;
+      
       // Reset and load video
       videoEl.load();
       
       const handleCanPlay = () => {
         setIsLoading(false);
         // Auto-play when ready
-        videoEl.play().catch((err) => {
-          console.warn('Autoplay prevented:', err);
+        playPromise = videoEl.play();
+        playPromise.catch((err) => {
+          // Ignore AbortError (video was removed/paused during play)
+          if (err.name !== 'AbortError') {
+            console.warn('Autoplay prevented:', err);
+          }
           setIsLoading(false);
         });
       };
@@ -124,9 +131,18 @@ export const VideoModal = ({ isOpen, onClose, video, initialPosition }: VideoMod
       videoEl.addEventListener('error', handleError, { once: true });
 
       return () => {
+        // Cancel pending play promise to prevent AbortError
+        if (playPromise) {
+          videoEl.pause();
+          playPromise.catch(() => {}); // Swallow any errors from cancelled promise
+        }
+        
         videoEl.removeEventListener('canplay', handleCanPlay);
         videoEl.removeEventListener('error', handleError);
       };
+    } else if (!isOpen && videoRef.current) {
+      // Pause video when modal closes
+      videoRef.current.pause();
     }
   }, [isOpen, video]);
 
