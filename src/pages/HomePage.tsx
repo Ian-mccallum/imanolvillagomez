@@ -141,10 +141,23 @@ export const HomePage = () => {
     videoEl.addEventListener('canplaythrough', () => logState('canplaythrough'));
     videoEl.addEventListener('error', handleError);
 
-    // Load the video
+    // Force video to load immediately
+    // Set src again to trigger load in browsers that delay loading
+    const currentSrc = videoEl.src;
+    videoEl.src = '';
+    videoEl.src = currentSrc;
     videoEl.load();
+    
+    // Also try setting load() after a small delay for stubborn browsers
+    const loadTimeout = setTimeout(() => {
+      if (videoEl.readyState === 0) {
+        console.log('Video not loading, forcing load again...');
+        videoEl.load();
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(loadTimeout);
       videoEl.removeEventListener('loadstart', () => logState('loadstart'));
       videoEl.removeEventListener('loadedmetadata', () => logState('loadedmetadata'));
       videoEl.removeEventListener('loadeddata', () => logState('loadeddata'));
@@ -182,6 +195,7 @@ export const HomePage = () => {
         muted
         playsInline
         preload="auto"
+        crossOrigin="anonymous"
         className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none opacity-100"
         style={{ 
           width: '100vw', 
