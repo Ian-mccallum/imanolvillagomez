@@ -10,6 +10,7 @@ import { AboutPage } from '@/pages/AboutPage';
 import { ContactPage } from '@/pages/ContactPage';
 import { ThankYouPage } from '@/pages/ThankYouPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
+import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
           <Route path="contact" element={<ContactPage />} />
           <Route path="thank-you" element={<ThankYouPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </ErrorBoundary>

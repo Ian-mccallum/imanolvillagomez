@@ -29,8 +29,6 @@ export const Footer = () => {
             <span className="text-zinc-400">•</span>
             <Link
               to="/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
               className="text-white hover:text-white/80 transition-colors duration-200 underline min-h-[44px] flex items-center"
             >
               Privacy Policy

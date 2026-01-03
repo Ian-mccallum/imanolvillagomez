@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LostFilesHero } from '@/components/ui/LostFilesHero';
 import { FullscreenModal } from '@/components/video';
@@ -9,6 +9,7 @@ import { videosToMediaItems } from '@/types/media';
 import { usePageTitle, useMetaTags } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
+import { useResponsive } from '@/hooks/useResponsive';
 
 /**
  * OtherPage
@@ -30,6 +31,7 @@ import { StructuredData, createBreadcrumbSchema } from '@/components/seo/Structu
 
 export const OtherPage = () => {
   const seoConfig = SEO_CONFIG.other;
+  const { isMobile } = useResponsive();
   usePageTitle('Other');
   useMetaTags({
     title: seoConfig.title,
@@ -204,10 +206,10 @@ export const OtherPage = () => {
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: 'url("/images/ninevicious-2.jpeg")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center bottom',
+            backgroundSize: isMobile ? 'contain' : 'cover',
+            backgroundPosition: isMobile ? 'center center' : 'center bottom',
             backgroundRepeat: 'no-repeat',
-            backgroundAttachment: 'fixed',
+            backgroundAttachment: isMobile ? 'scroll' : 'fixed',
           }}
         />
         

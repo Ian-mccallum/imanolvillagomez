@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { MediaItem } from '@/types/media';
 import { PlatformInfo } from '@/utils/platform';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface ImageViewerProps {
   item: MediaItem;
@@ -29,6 +30,7 @@ export const ImageViewer = ({
 }: ImageViewerProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useResponsive();
   const [zoomState, setZoomState] = useState<ZoomState>({
     scale: 1,
     translateX: 0,
@@ -206,7 +208,7 @@ export const ImageViewer = ({
         ref={imageRef}
         src={item.imageUrl}
         alt={item.title || 'Image'}
-        className={`w-full h-full object-cover ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 select-none`}
+        className={`w-full h-full ${isMobile ? 'object-contain' : 'object-cover'} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 select-none`}
         style={{
           transform: `scale(${zoomState.scale}) translate(${zoomState.translateX / zoomState.scale}px, ${zoomState.translateY / zoomState.scale}px)`,
           transformOrigin: 'center center',

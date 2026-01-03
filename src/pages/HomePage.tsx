@@ -327,8 +327,6 @@ export const HomePage = () => {
           <span className="text-white/50">•</span>
           <Link
             to={ROUTES.PRIVACY}
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-white/70 hover:text-white/90 transition-colors duration-200 underline"
           >
             Privacy Policy

@@ -112,7 +112,7 @@ export const ContactPage = () => {
         <div className="max-w-3xl mx-auto">
           {/* Header - Carson: Experimental typography, West: Bold minimalism */}
           <motion.div
-            className="mb-12 md:mb-16"
+            className="mb-12 md:mb-16 text-center md:text-left"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}

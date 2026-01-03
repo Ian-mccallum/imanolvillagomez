@@ -7,6 +7,7 @@ import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 import { preloadVideo, preloadImage } from '@/utils/preload';
 import { VideoPlayer } from './VideoPlayer';
 import { ImageViewer } from './ImageViewer';
+import { useResponsive } from '@/hooks/useResponsive';
 
 /**
  * FullscreenModal
@@ -54,6 +55,7 @@ export const FullscreenModal = ({
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const platform = useMemo(() => detectPlatform(), []);
+  const { isMobile } = useResponsive();
   
   // Get current item
   const currentItem = useMemo(() => {
@@ -251,6 +253,10 @@ export const FullscreenModal = ({
   
   if (!currentItem) return null;
   
+  // Check if video is vertical (portrait orientation) for mobile arrow positioning
+  const isVerticalVideo = currentItem.type === 'video' && currentItem.rotation === 270;
+  const shouldPositionArrowsBelow = isMobile && isVerticalVideo;
+  
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
@@ -357,13 +363,17 @@ export const FullscreenModal = ({
               {/* Gallery Navigation - Always visible arrows if multiple items */}
               {enableGalleryNavigation && items.length > 1 && (
                 <>
-                      {/* Previous Button - Always visible, larger and more prominent */}
+                      {/* Previous Button - Positioned below video on mobile for vertical videos, otherwise on left */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handlePrevious();
                         }}
-                        className="absolute left-6 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+                        className={`absolute w-16 h-16 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10 ${
+                          shouldPositionArrowsBelow 
+                            ? 'bottom-20 left-[calc(50%-4.5rem)]' 
+                            : 'left-6 top-1/2 -translate-y-1/2'
+                        }`}
                         aria-label="Previous item"
                       >
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,13 +381,17 @@ export const FullscreenModal = ({
                         </svg>
                       </button>
                       
-                      {/* Next Button - Always visible, larger and more prominent */}
+                      {/* Next Button - Positioned below video on mobile for vertical videos, otherwise on right */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleNext();
                         }}
-                        className="absolute right-6 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+                        className={`absolute w-16 h-16 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10 ${
+                          shouldPositionArrowsBelow 
+                            ? 'bottom-20 left-[calc(50%+1.5rem)]' 
+                            : 'right-6 top-1/2 -translate-y-1/2'
+                        }`}
                         aria-label="Next item"
                       >
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,8 +399,12 @@ export const FullscreenModal = ({
                         </svg>
                       </button>
                       
-                      {/* Gallery Counter - Bottom Center (Simple, no bar) */}
-                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium pointer-events-auto z-50 shadow-lg">
+                      {/* Gallery Counter - Bottom Center (Simple, no bar) - Adjust position for mobile vertical videos */}
+                      <div className={`absolute bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium pointer-events-auto z-50 shadow-lg ${
+                        shouldPositionArrowsBelow 
+                          ? 'bottom-6 left-1/2 -translate-x-1/2' 
+                          : 'bottom-6 left-1/2 -translate-x-1/2'
+                      }`}>
                         {currentIndex + 1} / {items.length}
                       </div>
                 </>
