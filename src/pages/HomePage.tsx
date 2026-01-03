@@ -87,6 +87,7 @@ export const HomePage = () => {
 
   // Video ref for background video
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoCanPlay, setVideoCanPlay] = useState(false);
 
   // Background video - osamasonpreview.mp4 from public/videos (converted from .mov for web compatibility)
   const heroVideoUrl = '/videos/osamasonpreview.mp4';
@@ -107,14 +108,21 @@ export const HomePage = () => {
       });
     };
 
-    videoEl.addEventListener('loadstart', () => logState('loadstart'));
-    videoEl.addEventListener('loadedmetadata', () => logState('loadedmetadata'));
-    videoEl.addEventListener('loadeddata', () => logState('loadeddata'));
-    videoEl.addEventListener('canplay', () => {
+    const handleCanPlay = () => {
       logState('canplay');
+      setVideoCanPlay(true);
       videoEl.play().catch((err) => {
         console.warn('Video autoplay prevented:', err);
       });
+    };
+
+    videoEl.addEventListener('loadstart', () => logState('loadstart'));
+    videoEl.addEventListener('loadedmetadata', () => logState('loadedmetadata'));
+    videoEl.addEventListener('loadeddata', () => logState('loadeddata'));
+    videoEl.addEventListener('canplay', handleCanPlay);
+    videoEl.addEventListener('canplaythrough', () => {
+      logState('canplaythrough');
+      setVideoCanPlay(true);
     });
 
     // Load the video
@@ -124,7 +132,8 @@ export const HomePage = () => {
       videoEl.removeEventListener('loadstart', () => logState('loadstart'));
       videoEl.removeEventListener('loadedmetadata', () => logState('loadedmetadata'));
       videoEl.removeEventListener('loadeddata', () => logState('loadeddata'));
-      videoEl.removeEventListener('canplay', () => logState('canplay'));
+      videoEl.removeEventListener('canplay', handleCanPlay);
+      videoEl.removeEventListener('canplaythrough', () => logState('canplaythrough'));
     };
   }, [heroVideoUrl]);
 
@@ -156,13 +165,15 @@ export const HomePage = () => {
         muted
         playsInline
         preload="auto"
-        className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none"
+        className={`fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none transition-opacity duration-500 ${
+          videoCanPlay ? 'opacity-100' : 'opacity-0'
+        }`}
         style={{ 
           width: '100vw', 
           height: '100vh', 
           objectFit: 'cover',
           zIndex: 0,
-          backgroundColor: '#000'
+          backgroundColor: videoCanPlay ? 'transparent' : '#000'
         }}
         onError={(e) => {
           const video = e.currentTarget;
