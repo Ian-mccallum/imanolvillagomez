@@ -178,19 +178,39 @@ This will:
 2. Click **Settings** tab
 3. Scroll to **CORS Policy**
 4. Click **Edit CORS Policy**
-5. Add this CORS configuration:
+5. Add this CORS configuration (IMPORTANT: Replace with your actual domain):
    ```json
    [
      {
-       "AllowedOrigins": ["*"],
+       "AllowedOrigins": [
+         "https://www.imanolvillagomez.com",
+         "https://imanolvillagomez.com",
+         "http://localhost:5173",
+         "http://localhost:3000"
+       ],
        "AllowedMethods": ["GET", "HEAD"],
        "AllowedHeaders": ["*"],
-       "ExposeHeaders": ["ETag", "Content-Length", "Content-Type", "Accept-Ranges"],
+       "ExposeHeaders": ["ETag", "Content-Length", "Content-Type", "Accept-Ranges", "Content-Range"],
        "MaxAgeSeconds": 3600
      }
    ]
    ```
+   **CRITICAL Format Rules** (from [Cloudflare docs](https://developers.cloudflare.com/r2/buckets/cors/#common-issues)):
+   - ✅ `AllowedOrigins` must be exact matches: `scheme://host[:port]` (NO trailing slash, NO path)
+   - ✅ Valid: `https://www.imanolvillagomez.com` or `http://localhost:5173`
+   - ❌ Invalid: `https://www.imanolvillagomez.com/` or `https://www.imanolvillagomez.com/videos`
+   - ✅ `AllowedMethods`: Use `["GET", "HEAD"]` for read-only (browsers handle OPTIONS preflight automatically)
+   - ⏱️ CORS rule propagation can take up to 30 seconds
+   
 6. Click **Save**
+7. **VERIFY**: 
+   - Wait 30 seconds for propagation
+   - Test by opening a video URL directly in browser
+   - Check Network tab → Headers → Look for `Access-Control-Allow-Origin` header
+8. **If using custom domain**: After setting CORS, purge Cloudflare cache for `videos.imanolvillagomez.com`:
+   - Go to **Caching** → **Purge Cache**
+   - Enter: `videos.imanolvillagomez.com/*`
+   - Click **Purge Everything**
 
 ### B. Enable Caching with Cache Rules
 

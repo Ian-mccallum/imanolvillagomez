@@ -51,7 +51,7 @@ INFORMATION YOU PROVIDE DIRECTLY:
 Contact Form Information: When you submit our contact form, we collect your name, email address, subject (optional), and message content. This information is processed by FormSubmit, a third-party form submission service, which forwards your submission to our email address (imanolV20@icloud.com).
 
 AUTOMATICALLY COLLECTED INFORMATION:
-Browser Local Storage: We use browser local storage to remember your acknowledgment of our epilepsy warning. This stores a simple boolean value indicating whether you have acknowledged the warning. This information is stored locally on your device and is not transmitted to our servers.
+Browser Local Storage: We may use browser local storage to store simple preference settings. This information is stored locally on your device and is not transmitted to our servers.
 
 Device and Usage Information: When you visit our Website, your browser automatically provides certain information, including your IP address, browser type, operating system, device information, and pages you visit. This information is collected through standard web server logs and may be used for security purposes and to improve our Website functionality.`
     },
@@ -62,7 +62,7 @@ Device and Usage Information: When you visit our Website, your browser automatic
 
 • To respond to your inquiries and communications submitted through our contact form
 • To provide and maintain our Website functionality
-• To remember your preferences (such as epilepsy warning acknowledgment) using local storage
+• To remember your preferences using local storage
 • To improve our Website and user experience
 • To comply with legal obligations and protect our legal rights
 • To prevent fraud, abuse, or other harmful activities
@@ -81,9 +81,7 @@ We do not control FormSubmit's data practices, and we encourage you to review th
     {
       id: 'cookies',
       title: 'COOKIES & LOCAL STORAGE',
-      content: `Our Website uses browser local storage (not cookies) to store a simple preference setting:
-
-LOCAL STORAGE: We use browser local storage to remember your acknowledgment of our epilepsy warning. This stores a boolean value ("epilepsy-warning-acknowledged") on your device. This data is stored locally on your device and is not transmitted to our servers. You can clear this data at any time by clearing your browser's local storage.
+      content: `Our Website may use browser local storage (not cookies) to store simple preference settings. This data is stored locally on your device and is not transmitted to our servers. You can clear this data at any time by clearing your browser's local storage.
 
 Our Website does not currently use cookies, web beacons, or other tracking technologies. We do not use analytics services, advertising networks, or other third-party tracking tools.`
     },

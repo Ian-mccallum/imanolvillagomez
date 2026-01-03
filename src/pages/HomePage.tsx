@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { FullscreenModal } from '@/components/video';
-import { EpilepsyWarning } from '@/components/ui/EpilepsyWarning';
 import { ROUTES, SEO_CONFIG, BASE_URL } from '@/constants';
 import { motion } from 'framer-motion';
 import { videoToMediaItem } from '@/types/media';
@@ -62,17 +61,6 @@ export const HomePage = () => {
     searchUrl: `${BASE_URL}/work/videos?search={search_term_string}`,
   });
 
-  const [hasAcknowledgedWarning, setHasAcknowledgedWarning] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('epilepsy-warning-acknowledged');
-        return stored ? JSON.parse(stored) === true : false;
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
@@ -182,12 +170,8 @@ export const HomePage = () => {
       {/* Structured Data - Invisible to users, only for search engines */}
       <StructuredData data={[personSchema, professionalServiceSchema, webSiteSchema]} />
       
-      {/* Epilepsy Warning - must be acknowledged before site opens */}
-      <EpilepsyWarning onAcknowledge={() => setHasAcknowledgedWarning(true)} />
-
-      {/* Homepage content - only visible after warning is acknowledged */}
-      {hasAcknowledgedWarning && (
-        <div className="relative min-h-screen w-full overflow-hidden homepage-scrollbar">
+      {/* Homepage content */}
+      <div className="relative min-h-screen w-full overflow-hidden homepage-scrollbar">
       {/* Full-screen video background - osamason video only, fully visible */}
       <video
         ref={videoRef}
@@ -342,7 +326,7 @@ export const HomePage = () => {
           <span>© 2026 IMANOL VILLAGOMEZ. All rights reserved.</span>
           <span className="text-white/50">•</span>
           <Link
-            to="/privacy"
+            to={ROUTES.PRIVACY}
             target="_blank"
             rel="noopener noreferrer"
             className="text-white/70 hover:text-white/90 transition-colors duration-200 underline"
@@ -352,7 +336,6 @@ export const HomePage = () => {
         </div>
       </footer>
     </div>
-      )}
     </>
   );
 };
