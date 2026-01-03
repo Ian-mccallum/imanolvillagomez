@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { videoToMediaItem } from '@/types/media';
 import { videos } from '@/constants/videos';
 import { usePageTitle, useMetaTags } from '@/hooks';
+import { useResponsive } from '@/hooks/useResponsive';
 import { StructuredData, createPersonSchema, createProfessionalServiceSchema, createWebSiteSchema } from '@/components/seo/StructuredData';
 
 /**
@@ -27,6 +28,7 @@ import { StructuredData, createPersonSchema, createProfessionalServiceSchema, cr
 
 export const HomePage = () => {
   const seoConfig = SEO_CONFIG.home;
+  const { isMobile } = useResponsive();
   usePageTitle('Official Website');
   useMetaTags({
     title: seoConfig.title,
@@ -194,7 +196,7 @@ export const HomePage = () => {
         loop
         muted
         playsInline
-        preload="auto"
+        preload={isMobile ? "metadata" : "auto"}
         crossOrigin="anonymous"
         className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none opacity-100"
         style={{ 

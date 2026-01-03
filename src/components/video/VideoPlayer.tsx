@@ -241,7 +241,7 @@ export const VideoPlayer = ({
         autoPlay
         playsInline
         muted={isMuted}
-        preload="auto"
+        preload="metadata"
         crossOrigin="anonymous"
         className={`w-full h-full ${needsRotation ? 'object-cover' : 'object-contain'} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         style={{
