@@ -87,7 +87,6 @@ export const HomePage = () => {
 
   // Video ref for background video
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoCanPlay, setVideoCanPlay] = useState(false);
 
   // Background video - osamasonpreview.mp4 from public/videos (converted from .mov for web compatibility)
   const heroVideoUrl = '/videos/osamasonpreview.mp4';
@@ -110,7 +109,6 @@ export const HomePage = () => {
 
     const handleCanPlay = () => {
       logState('canplay');
-      setVideoCanPlay(true);
       // Force play for Chromium browsers
       const playPromise = videoEl.play();
       if (playPromise !== undefined) {
@@ -120,8 +118,6 @@ export const HomePage = () => {
           })
           .catch((err) => {
             console.warn('Video autoplay prevented:', err);
-            // Still show video even if autoplay is blocked
-            setVideoCanPlay(true);
             // Try to play again after user interaction
             const tryPlay = () => {
               videoEl.play().catch(() => {});
@@ -136,35 +132,19 @@ export const HomePage = () => {
 
     const handleError = () => {
       console.error('Video failed to load:', videoEl.error);
-      // Show video anyway (might still work)
-      setVideoCanPlay(true);
     };
 
     videoEl.addEventListener('loadstart', () => logState('loadstart'));
-    videoEl.addEventListener('loadedmetadata', () => {
-      logState('loadedmetadata');
-      // Show video as soon as metadata is loaded
-      setVideoCanPlay(true);
-    });
+    videoEl.addEventListener('loadedmetadata', () => logState('loadedmetadata'));
     videoEl.addEventListener('loadeddata', () => logState('loadeddata'));
     videoEl.addEventListener('canplay', handleCanPlay);
-    videoEl.addEventListener('canplaythrough', () => {
-      logState('canplaythrough');
-      setVideoCanPlay(true);
-    });
+    videoEl.addEventListener('canplaythrough', () => logState('canplaythrough'));
     videoEl.addEventListener('error', handleError);
-
-    // Fallback: Show video after 2 seconds even if events don't fire
-    const fallbackTimer = setTimeout(() => {
-      console.log('Video loading fallback: showing video after timeout');
-      setVideoCanPlay(true);
-    }, 2000);
 
     // Load the video
     videoEl.load();
 
     return () => {
-      clearTimeout(fallbackTimer);
       videoEl.removeEventListener('loadstart', () => logState('loadstart'));
       videoEl.removeEventListener('loadedmetadata', () => logState('loadedmetadata'));
       videoEl.removeEventListener('loadeddata', () => logState('loadeddata'));
@@ -202,9 +182,7 @@ export const HomePage = () => {
         muted
         playsInline
         preload="auto"
-        className={`fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none transition-opacity duration-700 ${
-          videoCanPlay ? 'opacity-100' : 'opacity-30'
-        }`}
+        className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none opacity-100"
         style={{ 
           width: '100vw', 
           height: '100vh', 
