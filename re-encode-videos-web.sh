@@ -89,3 +89,4 @@ echo "   2. If it works, commit: git add public/videos/*.mp4"
 echo "   3. Push: git push"
 echo ""
 
+

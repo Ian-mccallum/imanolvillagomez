@@ -87,3 +87,4 @@ echo "   3. Add MP4 files to Git: git add public/videos/*.mp4"
 echo "   4. Commit and push"
 echo ""
 
+

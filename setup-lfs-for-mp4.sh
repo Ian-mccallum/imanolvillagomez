@@ -40,3 +40,4 @@ echo "   3. Commit: git commit -m 'Add MP4 videos with LFS'"
 echo "   4. Push: git push origin main"
 echo ""
 
+

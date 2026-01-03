@@ -2,12 +2,26 @@ import { Video } from '@/types';
 
 /**
  * Video portfolio data for Imanol Villagomez
- * Videos are located in /public/videos/
+ * Videos are hosted on Cloudflare R2
  * Images are located in /public/images/
  * 
  * To mark a video as an "Edit" (separate from artist work), add: isEdit: true
  * Videos without isEdit will be organized by their client/artist name
  */
+
+// Get R2 base URL from environment variable, fallback to local paths for development
+const R2_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || '';
+
+/**
+ * Helper function to get full video URL
+ * Uses R2 URL if available, otherwise falls back to local path
+ */
+const getVideoUrl = (filename: string): string => {
+  if (R2_BASE_URL) {
+    return `${R2_BASE_URL}/videos/${filename}`;
+  }
+  return `/videos/${filename}`;
+};
 export const videos: Video[] = [
   {
     id: 'osamason3',
@@ -20,8 +34,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/osamason3.mp4',
-    thumbnail: '/videos/osamason3.mp4', // Use video as thumbnail
+    videoUrl: getVideoUrl('osamason3.mp4'),
+    thumbnail: getVideoUrl('osamason3.mp4'), // Use video as thumbnail
     featured: true,
   },
   {
@@ -35,8 +49,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/cartiLIKEWEEZY.mp4',
-    thumbnail: '/videos/cartiLIKEWEEZY.mp4',
+    videoUrl: getVideoUrl('cartiLIKEWEEZY.mp4'),
+    thumbnail: getVideoUrl('cartiLIKEWEEZY.mp4'),
     featured: true,
     rotation: 270, // Rotate 270 degrees (upright orientation)
   },
@@ -51,8 +65,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/OsamasonPsykotic2.mp4',
-    thumbnail: '/videos/OsamasonPsykotic2.mp4',
+    videoUrl: getVideoUrl('OsamasonPsykotic2.mp4'),
+    thumbnail: getVideoUrl('OsamasonPsykotic2.mp4'),
   },
   {
     id: 'osamason-psykotic',
@@ -65,8 +79,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/osamasonPSYKOTIC.mp4',
-    thumbnail: '/videos/osamasonPSYKOTIC.mp4',
+    videoUrl: getVideoUrl('osamasonPSYKOTIC.mp4'),
+    thumbnail: getVideoUrl('osamasonPSYKOTIC.mp4'),
     featured: true,
   },
   {
@@ -80,8 +94,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/hellp1.mp4',
-    thumbnail: '/videos/hellp1.mp4',
+    videoUrl: getVideoUrl('hellp1.mp4'),
+    thumbnail: getVideoUrl('hellp1.mp4'),
   },
   {
     id: '2hollis-lolla',
@@ -94,8 +108,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/2hollisLOLLA.mp4',
-    thumbnail: '/videos/2hollisLOLLA.mp4',
+    videoUrl: getVideoUrl('2hollisLOLLA.mp4'),
+    thumbnail: getVideoUrl('2hollisLOLLA.mp4'),
     featured: true,
     rotation: 270, // Rotate 270 degrees (upright orientation)
   },
@@ -110,8 +124,8 @@ export const videos: Video[] = [
     year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/carti1.mp4',
-    thumbnail: '/videos/carti1.mp4',
+    videoUrl: getVideoUrl('carti1.mp4'),
+    thumbnail: getVideoUrl('carti1.mp4'),
   },
   {
     id: 'charlixcx-sweat',
@@ -124,8 +138,8 @@ export const videos: Video[] = [
     year: 2024,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/charlixcxSWEAT.mp4',
-    thumbnail: '/videos/charlixcxSWEAT.mp4',
+    videoUrl: getVideoUrl('charlixcxSWEAT.mp4'),
+    thumbnail: getVideoUrl('charlixcxSWEAT.mp4'),
     featured: true,
   },
   {
@@ -139,8 +153,8 @@ export const videos: Video[] = [
     year: 2024,
     location: 'CHICAGO',
     category: 'music-video',
-    videoUrl: '/videos/charlixcxGUESS.mp4',
-    thumbnail: '/videos/charlixcxGUESS.mp4',
+    videoUrl: getVideoUrl('charlixcxGUESS.mp4'),
+    thumbnail: getVideoUrl('charlixcxGUESS.mp4'),
     featured: true,
   },
 ];
@@ -156,8 +170,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Che',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/che.mp4',
-    thumbnail: '/videos/che.mp4',
+    videoUrl: getVideoUrl('che.mp4'),
+    thumbnail: getVideoUrl('che.mp4'),
   },
   {
     id: 'hellp-full',
@@ -165,8 +179,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Hellp',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/hellpFULL.mp4',
-    thumbnail: '/videos/hellpFULL.mp4',
+    videoUrl: getVideoUrl('hellpFULL.mp4'),
+    thumbnail: getVideoUrl('hellpFULL.mp4'),
   },
   {
     id: 'hellp2',
@@ -174,8 +188,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Hellp',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/hellp2.mp4',
-    thumbnail: '/videos/hellp2.mp4',
+    videoUrl: getVideoUrl('hellp2.mp4'),
+    thumbnail: getVideoUrl('hellp2.mp4'),
   },
   {
     id: 'osamason-preview',
@@ -183,8 +197,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Osamason',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/osamasonpreview.mp4',
-    thumbnail: '/videos/osamasonpreview.mp4',
+    videoUrl: getVideoUrl('osamasonpreview.mp4'),
+    thumbnail: getVideoUrl('osamasonpreview.mp4'),
   },
   {
     id: 'osamason-outro',
@@ -192,8 +206,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Osamason',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/osamasonoutro.mp4',
-    thumbnail: '/videos/osamasonoutro.mp4',
+    videoUrl: getVideoUrl('osamasonoutro.mp4'),
+    thumbnail: getVideoUrl('osamasonoutro.mp4'),
   },
   {
     id: '2hollis-full',
@@ -201,8 +215,8 @@ export const lostFilesVideos: Video[] = [
     client: '2hollis',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/2hollisfull.mp4',
-    thumbnail: '/videos/2hollisfull.mp4',
+    videoUrl: getVideoUrl('2hollisfull.mp4'),
+    thumbnail: getVideoUrl('2hollisfull.mp4'),
   },
   {
     id: 'osamason-full',
@@ -210,8 +224,8 @@ export const lostFilesVideos: Video[] = [
     client: 'Osamason',
     year: 2024,
     category: 'music-video',
-    videoUrl: '/videos/osamasonfull.mp4',
-    thumbnail: '/videos/osamasonfull.mp4',
+    videoUrl: getVideoUrl('osamasonfull.mp4'),
+    thumbnail: getVideoUrl('osamasonfull.mp4'),
   },
 ];
 

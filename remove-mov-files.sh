@@ -41,3 +41,4 @@ echo ""
 echo "⚠️  Note: Local .mov files are still on your computer (not deleted)"
 echo "   If you want to delete them locally too, run: rm public/videos/*.mov"
 
+

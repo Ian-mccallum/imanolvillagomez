@@ -34,3 +34,4 @@ echo "2. Verify: brew --version"
 echo "3. Install ffmpeg: brew install ffmpeg"
 echo ""
 
+

@@ -62,3 +62,4 @@ done
 
 echo "✅ Compression complete!"
 
+
