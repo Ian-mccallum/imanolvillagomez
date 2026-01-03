@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LostFilesHero } from '@/components/ui/LostFilesHero';
 import { FullscreenModal } from '@/components/video';
