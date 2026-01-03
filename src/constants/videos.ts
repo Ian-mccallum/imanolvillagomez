@@ -15,8 +15,15 @@ const R2_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || '';
 /**
  * Helper function to get full video URL
  * Uses R2 URL if available, otherwise falls back to local path
+ * Exception: osamasonpreview.mp4 always uses local path (homepage background)
  */
 const getVideoUrl = (filename: string): string => {
+  // Always use local path for homepage background video
+  if (filename === 'osamasonpreview.mp4') {
+    return `/videos/${filename}`;
+  }
+  
+  // Use R2 for all other videos
   if (R2_BASE_URL) {
     return `${R2_BASE_URL}/videos/${filename}`;
   }

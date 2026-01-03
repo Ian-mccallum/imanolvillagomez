@@ -241,6 +241,8 @@ export const VideoPlayer = ({
         autoPlay
         playsInline
         muted={isMuted}
+        preload="metadata"
+        crossOrigin="anonymous"
         className={`w-full h-full ${needsRotation ? 'object-cover' : 'object-contain'} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         style={{
           transform: needsRotation ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill screen after rotation, reduced zoom
