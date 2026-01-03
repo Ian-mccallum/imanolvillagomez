@@ -30,5 +30,7 @@ dist-ssr
 .env.test.local
 .env.production.local
 
-# Video source files (keep .mov files local, only commit .mp4)
+# Video files - now hosted on Cloudflare R2
+# Keep videos locally for development, but don't commit to git
 public/videos/*.mov
+public/videos/*.mp4

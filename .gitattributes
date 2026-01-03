@@ -1,2 +1,0 @@
-# Git LFS tracking for video files (MP4 only - no .mov files)
-*.mp4 filter=lfs diff=lfs merge=lfs -text
