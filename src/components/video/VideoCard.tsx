@@ -104,6 +104,7 @@ export const VideoCard = ({
           muted
           playsInline
           preload="metadata"
+          crossOrigin="anonymous"
           style={{
             transform: video.rotation === 270 ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill after rotation, reduced zoom
             transformOrigin: 'center center',

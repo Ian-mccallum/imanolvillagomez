@@ -144,6 +144,7 @@ export const VideoCard3D = ({
               muted
               playsInline
               preload="metadata"
+              crossOrigin="anonymous"
               style={{
                 transform: isHovered ? 'scale(1.1) translateZ(20px)' : 'scale(1) translateZ(0)',
               }}
