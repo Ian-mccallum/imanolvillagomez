@@ -111,11 +111,27 @@ export const HomePage = () => {
     const handleCanPlay = () => {
       logState('canplay');
       setVideoCanPlay(true);
-      videoEl.play().catch((err) => {
-        console.warn('Video autoplay prevented:', err);
-        // Still show video even if autoplay is blocked
-        setVideoCanPlay(true);
-      });
+      // Force play for Chromium browsers
+      const playPromise = videoEl.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Video autoplay succeeded');
+          })
+          .catch((err) => {
+            console.warn('Video autoplay prevented:', err);
+            // Still show video even if autoplay is blocked
+            setVideoCanPlay(true);
+            // Try to play again after user interaction
+            const tryPlay = () => {
+              videoEl.play().catch(() => {});
+              document.removeEventListener('click', tryPlay);
+              document.removeEventListener('touchstart', tryPlay);
+            };
+            document.addEventListener('click', tryPlay, { once: true });
+            document.addEventListener('touchstart', tryPlay, { once: true });
+          });
+      }
     };
 
     const handleError = () => {
