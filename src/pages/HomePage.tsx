@@ -113,27 +113,48 @@ export const HomePage = () => {
       setVideoCanPlay(true);
       videoEl.play().catch((err) => {
         console.warn('Video autoplay prevented:', err);
+        // Still show video even if autoplay is blocked
+        setVideoCanPlay(true);
       });
     };
 
+    const handleError = () => {
+      console.error('Video failed to load:', videoEl.error);
+      // Show video anyway (might still work)
+      setVideoCanPlay(true);
+    };
+
     videoEl.addEventListener('loadstart', () => logState('loadstart'));
-    videoEl.addEventListener('loadedmetadata', () => logState('loadedmetadata'));
+    videoEl.addEventListener('loadedmetadata', () => {
+      logState('loadedmetadata');
+      // Show video as soon as metadata is loaded
+      setVideoCanPlay(true);
+    });
     videoEl.addEventListener('loadeddata', () => logState('loadeddata'));
     videoEl.addEventListener('canplay', handleCanPlay);
     videoEl.addEventListener('canplaythrough', () => {
       logState('canplaythrough');
       setVideoCanPlay(true);
     });
+    videoEl.addEventListener('error', handleError);
+
+    // Fallback: Show video after 2 seconds even if events don't fire
+    const fallbackTimer = setTimeout(() => {
+      console.log('Video loading fallback: showing video after timeout');
+      setVideoCanPlay(true);
+    }, 2000);
 
     // Load the video
     videoEl.load();
 
     return () => {
+      clearTimeout(fallbackTimer);
       videoEl.removeEventListener('loadstart', () => logState('loadstart'));
       videoEl.removeEventListener('loadedmetadata', () => logState('loadedmetadata'));
       videoEl.removeEventListener('loadeddata', () => logState('loadeddata'));
       videoEl.removeEventListener('canplay', handleCanPlay);
       videoEl.removeEventListener('canplaythrough', () => logState('canplaythrough'));
+      videoEl.removeEventListener('error', handleError);
     };
   }, [heroVideoUrl]);
 
@@ -165,15 +186,15 @@ export const HomePage = () => {
         muted
         playsInline
         preload="auto"
-        className={`fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none transition-opacity duration-500 ${
-          videoCanPlay ? 'opacity-100' : 'opacity-0'
+        className={`fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none transition-opacity duration-700 ${
+          videoCanPlay ? 'opacity-100' : 'opacity-30'
         }`}
         style={{ 
           width: '100vw', 
           height: '100vh', 
           objectFit: 'cover',
           zIndex: 0,
-          backgroundColor: videoCanPlay ? 'transparent' : '#000'
+          backgroundColor: 'transparent'
         }}
         onError={(e) => {
           const video = e.currentTarget;
