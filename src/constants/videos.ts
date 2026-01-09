@@ -14,16 +14,12 @@ const R2_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || '';
 
 /**
  * Helper function to get full video URL
- * Uses R2 URL if available, otherwise falls back to local path
- * Exception: osamasonpreview.mp4 always uses local path (homepage background)
+ * Uses R2 CDN URL if available, otherwise falls back to local path
+ * All videos including background video use R2 CDN for optimal performance
  */
 const getVideoUrl = (filename: string): string => {
-  // Always use local path for homepage background video
-  if (filename === 'osamasonpreview.mp4') {
-    return `/videos/${filename}`;
-  }
-  
-  // Use R2 for all other videos
+  // Use R2 CDN for all videos (including background video)
+  // R2 CDN is much faster than Vercel static hosting due to edge caching
   if (R2_BASE_URL) {
     return `${R2_BASE_URL}/videos/${filename}`;
   }

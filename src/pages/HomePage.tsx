@@ -6,8 +6,16 @@ import { motion } from 'framer-motion';
 import { videoToMediaItem } from '@/types/media';
 import { videos } from '@/constants/videos';
 import { usePageTitle, useMetaTags } from '@/hooks';
-import { useResponsive } from '@/hooks/useResponsive';
 import { StructuredData, createPersonSchema, createProfessionalServiceSchema, createWebSiteSchema } from '@/components/seo/StructuredData';
+
+// Helper to get video URL from R2 CDN
+const getVideoUrl = (filename: string): string => {
+  const R2_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || '';
+  if (R2_BASE_URL) {
+    return `${R2_BASE_URL}/videos/${filename}`;
+  }
+  return `/videos/${filename}`;
+};
 
 /**
  * HomePage
@@ -27,7 +35,6 @@ import { StructuredData, createPersonSchema, createProfessionalServiceSchema, cr
 
 export const HomePage = () => {
   const seoConfig = SEO_CONFIG.home;
-  const { isMobile } = useResponsive();
   usePageTitle('Official Website');
   useMetaTags({
     title: seoConfig.title,
@@ -78,8 +85,9 @@ export const HomePage = () => {
   // Video ref for background video
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Background video - osamasonpreview.mp4 from public/videos (converted from .mov for web compatibility)
-  const heroVideoUrl = '/videos/osamasonpreview.mp4';
+  // Background video - osamasonpreview.mp4 from R2 CDN for optimal performance
+  // Using R2 CDN provides edge caching, faster loading, and better reliability
+  const heroVideoUrl = getVideoUrl('osamasonpreview.mp4');
 
   // Ensure video loads and plays
   useEffect(() => {
@@ -173,6 +181,7 @@ export const HomePage = () => {
       {/* Homepage content */}
       <div className="relative min-h-screen w-full overflow-hidden homepage-scrollbar">
       {/* Full-screen video background - osamason video only, fully visible */}
+      {/* Using R2 CDN for optimal performance: edge caching, faster loading, better reliability */}
       <video
         ref={videoRef}
         src={heroVideoUrl}
@@ -180,7 +189,7 @@ export const HomePage = () => {
         loop
         muted
         playsInline
-        preload={isMobile ? "metadata" : "auto"}
+        preload="auto"
         crossOrigin="anonymous"
         className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none opacity-100"
         style={{ 

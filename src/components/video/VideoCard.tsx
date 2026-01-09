@@ -5,7 +5,7 @@ import { GrainTexture } from '@/components/ui/GrainTexture';
 import { FlashOverlay } from '@/components/ui/FlashOverlay';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
 import { HandwrittenText } from '@/components/ui/HandwrittenText';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useGlitchIntensity } from '@/hooks/useResponsive';
 
 /**
@@ -37,7 +37,36 @@ export const VideoCard = ({
   darkBackground = false
 }: VideoCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const glitchIntensity = useGlitchIntensity();
+  
+  // Lazy load video thumbnail when card enters viewport
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoadVideo(true);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: '50px', // Start loading 50px before entering viewport
+        threshold: 0.1,
+      }
+    );
+    
+    observer.observe(containerRef.current);
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
   
   // Memoize random values for year tag placement (stable across re-renders)
   const yearTagConfig = useMemo(() => {
@@ -93,74 +122,79 @@ export const VideoCard = ({
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       {/* Video thumbnail container - Standard size */}
-      <div className={cn(
-        'relative w-full overflow-hidden bg-black',
-        sizeClasses[size]
-      )}>
+      <div 
+        ref={containerRef}
+        className={cn(
+          'relative w-full overflow-hidden bg-black',
+          sizeClasses[size]
+        )}
+      >
         {/* Use video element to display actual video thumbnail */}
-        <video
-          src={video.thumbnail || video.videoUrl}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          muted
-          playsInline
-          preload="metadata"
-          crossOrigin="anonymous"
-          style={{
-            transform: video.rotation === 270 ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill after rotation, reduced zoom
-            transformOrigin: 'center center',
-          }}
-          onMouseEnter={(e) => {
-            const videoEl = e.currentTarget;
-            // Seek to 1 second for better thumbnail
-            if (videoEl.readyState >= 2) {
+        {/* Optimized: Lazy load when in viewport, preload metadata for faster thumbnail display */}
+        {shouldLoadVideo && (
+          <video
+            ref={videoRef}
+            src={video.thumbnail || video.videoUrl}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            muted
+            playsInline
+            preload="metadata"
+            crossOrigin="anonymous"
+            style={{
+              transform: video.rotation === 270 ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill after rotation, reduced zoom
+              transformOrigin: 'center center',
+            }}
+            onLoadedMetadata={(e) => {
+              // Seek to middle of video for better thumbnail display
+              const videoEl = e.currentTarget;
               if (isFinite(videoEl.duration) && videoEl.duration > 0) {
                 videoEl.currentTime = Math.min(1, videoEl.duration / 2);
-              } else {
-                videoEl.currentTime = 1;
               }
-              videoEl.play().catch(() => {
-                // Autoplay prevented, that's okay
+            }}
+            onMouseEnter={(e) => {
+              const videoEl = e.currentTarget;
+              // Play on hover for preview effect
+              if (videoEl.readyState >= 2) {
+                videoEl.play().catch(() => {
+                  // Autoplay prevented, that's okay
+                });
+              }
+            }}
+            onMouseLeave={(e) => {
+              const videoEl = e.currentTarget;
+              videoEl.pause();
+              // Reset to thumbnail frame
+              if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+                videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+              }
+            }}
+            onError={(e) => {
+              const videoEl = e.currentTarget;
+              const errorCodes: Record<number, string> = {
+                1: 'MEDIA_ERR_ABORTED - Video loading aborted',
+                2: 'MEDIA_ERR_NETWORK - Network error',
+                3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
+                4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
+              };
+              console.error('Video thumbnail error:', {
+                code: videoEl.error?.code,
+                codeName: videoEl.error ? errorCodes[videoEl.error.code] || 'Unknown error' : 'No error code',
+                message: videoEl.error?.message,
+                src: videoEl.src,
+                networkState: videoEl.networkState,
+                readyState: videoEl.readyState,
+                videoUrl: video.thumbnail || video.videoUrl
               });
-            } else {
-              videoEl.addEventListener('loadedmetadata', () => {
-                if (isFinite(videoEl.duration) && videoEl.duration > 0) {
-                  videoEl.currentTime = Math.min(1, videoEl.duration / 2);
-                } else {
-                  videoEl.currentTime = 1;
-                }
-                videoEl.play().catch(() => {});
-              }, { once: true });
-            }
-          }}
-          onMouseLeave={(e) => {
-            const videoEl = e.currentTarget;
-            videoEl.pause();
-            if (isFinite(videoEl.duration) && videoEl.duration > 0) {
-              videoEl.currentTime = Math.min(1, videoEl.duration / 2);
-            } else {
-              videoEl.currentTime = 1;
-            }
-          }}
-          onError={(e) => {
-            const videoEl = e.currentTarget;
-            const errorCodes: Record<number, string> = {
-              1: 'MEDIA_ERR_ABORTED - Video loading aborted',
-              2: 'MEDIA_ERR_NETWORK - Network error',
-              3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
-              4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
-            };
-            console.error('Video thumbnail error:', {
-              code: videoEl.error?.code,
-              codeName: videoEl.error ? errorCodes[videoEl.error.code] || 'Unknown error' : 'No error code',
-              message: videoEl.error?.message,
-              src: videoEl.src,
-              networkState: videoEl.networkState,
-              readyState: videoEl.readyState,
-              videoUrl: video.thumbnail || video.videoUrl
-            });
-            // Could show a placeholder here if needed
-          }}
-        />
+              // Could show a placeholder here if needed
+            }}
+          />
+        )}
+        {/* Placeholder while video loads */}
+        {!shouldLoadVideo && (
+          <div className="w-full h-full bg-black/50 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+          </div>
+        )}
         
         {/* Oliver: Indie sleaze grain overlay - Enhanced (more prominent) */}
         <GrainTexture />
