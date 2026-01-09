@@ -4,8 +4,7 @@ import { cn } from '@/utils';
 import { GrainTexture } from '@/components/ui/GrainTexture';
 import { FlashOverlay } from '@/components/ui/FlashOverlay';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
-import { HandwrittenText } from '@/components/ui/HandwrittenText';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGlitchIntensity } from '@/hooks/useResponsive';
 
 /**
@@ -31,7 +30,7 @@ interface VideoCardProps {
 
 export const VideoCard = ({ 
   video, 
-  isFeatured = false, 
+  isFeatured: _isFeatured = false, 
   onSelect, 
   size = 'standard',
   darkBackground = false
@@ -68,19 +67,6 @@ export const VideoCard = ({
     };
   }, []);
   
-  // Memoize random values for year tag placement (stable across re-renders)
-  const yearTagConfig = useMemo(() => {
-    if (!video.year) return null;
-    const shouldShow = Math.random() > 0.7;
-    if (!shouldShow) return null;
-    return {
-      show: true,
-      top: 10 + Math.random() * 20,
-      right: 10 + Math.random() * 20,
-      rotation: -5 + Math.random() * 10,
-      color: isFeatured ? 'red' : (Math.random() > 0.5 ? 'pink' : 'white') as 'red' | 'pink' | 'white',
-    };
-  }, [video.year, isFeatured]);
 
   // Standard sizing for Pinterest/scrapbook layout
   // Allows many videos to fill the page - larger videos with more breathing room
@@ -205,25 +191,6 @@ export const VideoCard = ({
         {/* Weirdcore: Glitch overlay - Intentional, responsive intensity */}
         {/* Mobile: Subtle, Tablet: Medium, Desktop: Strong */}
         <GlitchOverlay intensity={glitchIntensity} trigger="hover" />
-
-        {/* Handwritten year tag - Random placement, rotated (Indie sleaze) */}
-        {yearTagConfig && (
-          <div 
-            className="absolute pointer-events-none z-10"
-            style={{
-              top: `${yearTagConfig.top}%`,
-              right: `${yearTagConfig.right}%`,
-            }}
-          >
-            <HandwrittenText
-              color={yearTagConfig.color}
-              rotation={yearTagConfig.rotation}
-              size="sm"
-            >
-              {video.year}
-            </HandwrittenText>
-          </div>
-        )}
 
       </div>
 

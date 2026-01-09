@@ -31,8 +31,8 @@ export const ScanLines = ({ intensity = 'medium', speed = 'normal' }: ScanLinesP
           0deg,
           transparent,
           transparent 2px,
-          rgba(34, 197, 94, 0.1) 2px,
-          rgba(34, 197, 94, 0.1) 4px
+          rgba(255, 255, 255, 0.05) 2px,
+          rgba(255, 255, 255, 0.05) 4px
         )`,
         mixBlendMode: 'screen',
       }}

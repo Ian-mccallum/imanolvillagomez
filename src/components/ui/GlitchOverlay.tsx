@@ -77,7 +77,7 @@ export const GlitchOverlay = ({
         variants={glitchVariants}
         animate="glitch"
         style={{
-          background: 'linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent)',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent)',
           mixBlendMode: 'difference',
         }}
       />
@@ -91,7 +91,7 @@ export const GlitchOverlay = ({
         variants={glitchVariants}
         whileHover="glitch"
         style={{
-          background: 'linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent)',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent)',
           mixBlendMode: 'difference',
         }}
       />

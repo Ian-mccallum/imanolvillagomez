@@ -5,7 +5,6 @@ import { GrainTexture } from '@/components/ui/GrainTexture';
 import { TornEdge } from '@/components/ui/TornEdge';
 import { ScanLines } from '@/components/ui/ScanLines';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
-import { HandwrittenText } from '@/components/ui/HandwrittenText';
 
 /**
  * MasonryVideoCard
@@ -126,19 +125,6 @@ export const MasonryVideoCard = ({
         
         {/* Grain texture */}
         <GrainTexture />
-        
-        {/* Handwritten text overlay (indie sleaze) */}
-        {Math.random() > 0.7 && (
-          <div className="absolute top-2 left-2 z-10">
-            <HandwrittenText
-              color={Math.random() > 0.5 ? 'green' : 'pink'}
-              size="sm"
-              rotation={Math.random() * 10 - 5}
-            >
-              {video.year || 'NEW'}
-            </HandwrittenText>
-          </div>
-        )}
         
         {/* Play button overlay */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">

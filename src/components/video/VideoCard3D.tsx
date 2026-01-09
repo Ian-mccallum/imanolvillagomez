@@ -5,7 +5,6 @@ import { GrainTexture } from '@/components/ui/GrainTexture';
 import { TornEdge } from '@/components/ui/TornEdge';
 import { ScanLines } from '@/components/ui/ScanLines';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
-import { HandwrittenText } from '@/components/ui/HandwrittenText';
 import { useState } from 'react';
 
 /**
@@ -127,7 +126,7 @@ export const VideoCard3D = ({
           style={{
             transform: 'translateZ(0)',
             boxShadow: isHovered
-              ? '0 30px 80px rgba(34, 197, 94, 0.4), 0 0 60px rgba(34, 197, 94, 0.2), 0 0 100px rgba(34, 197, 94, 0.1)'
+              ? '0 30px 80px rgba(255, 255, 255, 0.1), 0 0 60px rgba(255, 255, 255, 0.05), 0 0 100px rgba(255, 255, 255, 0.03)'
               : '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3)',
             transformStyle: 'preserve-3d',
           }}
@@ -167,24 +166,6 @@ export const VideoCard3D = ({
             
             {/* Grain texture */}
             <GrainTexture />
-            
-            {/* Handwritten text overlay */}
-            {Math.random() > 0.7 && (
-              <motion.div
-                className="absolute top-2 left-2 z-10"
-                style={{
-                  transform: 'translateZ(30px)',
-                }}
-              >
-                <HandwrittenText
-                  color={Math.random() > 0.5 ? 'green' : 'pink'}
-                  size="sm"
-                  rotation={Math.random() * 10 - 5}
-                >
-                  {video.year || 'NEW'}
-                </HandwrittenText>
-              </motion.div>
-            )}
             
             {/* Play button overlay */}
             <motion.div
