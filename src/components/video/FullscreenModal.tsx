@@ -349,10 +349,10 @@ export const FullscreenModal = ({
             <div 
               className="relative w-full h-full pointer-events-auto flex items-center justify-center"
               style={{
-                paddingTop: platform.isIOS ? `env(safe-area-inset-top)` : 0,
-                paddingBottom: platform.isIOS ? `env(safe-area-inset-bottom)` : 0,
-                paddingLeft: platform.isIOS ? `env(safe-area-inset-left)` : 0,
-                paddingRight: platform.isIOS ? `env(safe-area-inset-right)` : 0,
+                paddingTop: platform.isIOS ? `env(safe-area-inset-top)` : (currentItem?.type === 'image' ? '0' : '0'),
+                paddingBottom: platform.isIOS ? `env(safe-area-inset-bottom)` : (currentItem?.type === 'image' ? '0' : '0'),
+                paddingLeft: platform.isIOS ? `env(safe-area-inset-left)` : (currentItem?.type === 'image' ? '0' : '0'),
+                paddingRight: platform.isIOS ? `env(safe-area-inset-right)` : (currentItem?.type === 'image' ? '0' : '0'),
                 minWidth: '100%',
                 minHeight: '100%',
               }}
@@ -404,16 +404,16 @@ export const FullscreenModal = ({
               {/* Gallery Navigation - Mobile-optimized with touch targets */}
               {enableGalleryNavigation && items.length > 1 && (
                 <>
-                      {/* Previous Button - Mobile: 44px touch target, positioned at edge with safe area */}
+                      {/* Previous Button - Mobile: 44px touch target, Desktop: Larger and closer to center */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handlePrevious();
                         }}
-                        className={`absolute min-w-[44px] min-h-[44px] md:w-12 md:h-12 bg-black/60 active:bg-black/80 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 border border-white/30 touch-manipulation ${
+                        className={`absolute min-w-[44px] min-h-[44px] md:w-16 md:h-16 bg-black/60 active:bg-black/80 md:hover:bg-black/70 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 md:hover:scale-110 border border-white/30 touch-manipulation ${
                           shouldPositionArrowsBelow 
                             ? 'bottom-20 left-[calc(50%-3.5rem)]' 
-                            : 'left-2 md:left-4 top-1/2 -translate-y-1/2'
+                            : 'left-2 md:left-12 top-1/2 -translate-y-1/2'
                         }`}
                         style={{ 
                           touchAction: 'manipulation',
@@ -421,21 +421,21 @@ export const FullscreenModal = ({
                         }}
                         aria-label="Previous item"
                       >
-                        <svg className="w-6 h-6 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                         </svg>
                       </button>
                       
-                      {/* Next Button - Mobile: 44px touch target, positioned at edge with safe area */}
+                      {/* Next Button - Mobile: 44px touch target, Desktop: Larger and closer to center */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleNext();
                         }}
-                        className={`absolute min-w-[44px] min-h-[44px] md:w-12 md:h-12 bg-black/60 active:bg-black/80 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 border border-white/30 touch-manipulation ${
+                        className={`absolute min-w-[44px] min-h-[44px] md:w-16 md:h-16 bg-black/60 active:bg-black/80 md:hover:bg-black/70 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 md:hover:scale-110 border border-white/30 touch-manipulation ${
                           shouldPositionArrowsBelow 
                             ? 'bottom-20 left-[calc(50%+1.5rem)]' 
-                            : 'right-2 md:right-4 top-1/2 -translate-y-1/2'
+                            : 'right-2 md:right-12 top-1/2 -translate-y-1/2'
                         }`}
                         style={{ 
                           touchAction: 'manipulation',
@@ -443,7 +443,7 @@ export const FullscreenModal = ({
                         }}
                         aria-label="Next item"
                       >
-                        <svg className="w-6 h-6 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                         </svg>
                       </button>

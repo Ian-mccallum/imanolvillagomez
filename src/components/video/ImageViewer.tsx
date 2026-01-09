@@ -203,12 +203,12 @@ export const ImageViewer = ({
         </div>
       )}
       
-      {/* Image with zoom and pan */}
+      {/* Image with zoom and pan - Web: object-contain to show full photo with minimal padding, Mobile: full screen */}
       <img
         ref={imageRef}
         src={item.imageUrl}
         alt={item.title || 'Image'}
-        className={`w-full h-full ${isMobile ? 'object-contain' : 'object-cover'} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 select-none`}
+        className={`${isMobile ? 'w-full h-full' : 'max-w-[98vw] max-h-[98vh]'} object-contain ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 select-none`}
         style={{
           transform: `scale(${zoomState.scale}) translate(${zoomState.translateX / zoomState.scale}px, ${zoomState.translateY / zoomState.scale}px)`,
           transformOrigin: 'center center',

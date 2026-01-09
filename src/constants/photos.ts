@@ -9,12 +9,6 @@ import { Photo } from '@/types';
  */
 export const photos: Photo[] = [
   {
-    id: 'photo-1',
-    imageUrl: '/images/ninevicious-2.jpeg',
-    year: 2024,
-    client: 'Nine Vicious',
-  },
-  {
     id: 'photo-2',
     imageUrl: '/images/frostchildren-7.jpeg',
     year: 2024,
@@ -37,12 +31,6 @@ export const photos: Photo[] = [
     imageUrl: '/images/frostchildren-6.jpeg',
     year: 2024,
     client: 'Frost Children',
-  },
-  {
-    id: 'photo-6',
-    imageUrl: '/images/ninevicious-1.jpeg',
-    year: 2024,
-    client: 'Nine Vicious',
   },
   {
     id: 'photo-7',

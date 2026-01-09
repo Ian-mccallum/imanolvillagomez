@@ -205,7 +205,7 @@ export const OtherPage = () => {
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: 'url("/images/ninevicious-2.jpeg")',
+            backgroundImage: 'url("/images/osamason-2.jpeg")',
             backgroundSize: isMobile ? 'contain' : 'cover',
             backgroundPosition: isMobile ? 'center center' : 'center bottom',
             backgroundRepeat: 'no-repeat',
