@@ -5,7 +5,7 @@ import { photos } from '@/constants/photos';
 import { Photo } from '@/types';
 import { cn } from '@/utils';
 import { photosToMediaItems } from '@/types/media';
-import { usePageTitle, useMetaTags } from '@/hooks';
+import { usePageTitle, useMetaTags, useResponsive } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
 
@@ -209,7 +209,8 @@ export const PhotosPage = () => {
       </header>
 
       {/* Photo grid (80% visual weight) - Pinterest/masonry layout - scrapbook aesthetic */}
-      <main className="container mx-auto px-4 md:px-6 pb-12 md:pb-20 relative z-10">
+      {/* Mobile: Single column grid for better photo visibility, Desktop: Masonry columns */}
+      <main className="w-full max-w-[100vw] mx-auto px-2 sm:px-4 md:px-6 pb-12 md:pb-20 relative z-10">
         {filteredAndSortedPhotos.length === 0 ? (
           <motion.div
             className="min-h-[60vh] flex items-center justify-center"
@@ -224,10 +225,10 @@ export const PhotosPage = () => {
           </motion.div>
         ) : (
           <AnimatePresence mode="wait">
-            {/* Masonry/Pinterest layout - scrapbook aesthetic */}
+            {/* Mobile: Single column grid for full photo visibility, Desktop: Masonry columns for scrapbook aesthetic */}
             <motion.div
               key={selectedArtist || 'all'}
-              className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 md:gap-6"
+              className="grid grid-cols-1 md:block md:columns-2 lg:columns-3 xl:columns-4 gap-3 md:gap-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -280,8 +281,10 @@ interface PhotoCardProps {
 
 const PhotoCard = ({ photo, index, onSelect }: PhotoCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { isMobile } = useResponsive();
 
   // Random sizing for scrapbook aesthetic (but not too extreme)
+  // Mobile: Let photos use natural aspect ratio, Desktop: Varied for scrapbook feel
   const aspectRatios = [1, 1.2, 0.8, 1.5, 0.9, 1.3];
   const aspectRatio = aspectRatios[index % aspectRatios.length];
 
@@ -301,7 +304,7 @@ const PhotoCard = ({ photo, index, onSelect }: PhotoCardProps) => {
 
   return (
     <motion.div
-      className="break-inside-avoid mb-4 md:mb-6 group cursor-pointer"
+      className="break-inside-avoid mb-3 md:mb-6 group cursor-pointer w-full"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
@@ -309,18 +312,35 @@ const PhotoCard = ({ photo, index, onSelect }: PhotoCardProps) => {
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
     >
+      {/* Mobile: Container adapts to image natural size, Desktop: Fixed aspect ratio for masonry */}
       <motion.div
-        className="relative overflow-hidden bg-black"
-        style={{ aspectRatio }}
-        whileHover={{ scale: 1.02 }}
+        className={cn(
+          "relative overflow-hidden bg-black w-full",
+          isMobile ? "min-h-[200px]" : ""
+        )}
+        style={{ 
+          // Mobile: No aspect ratio constraint - let image determine height naturally
+          // Desktop: Use aspect ratio for masonry layout
+          aspectRatio: !isMobile ? aspectRatio : undefined,
+          maxWidth: '100%',
+        }}
+        whileHover={{ scale: isMobile ? 1 : 1.02 }}
         transition={{ duration: 0.2 }}
       >
         {/* Photo - Oliver: Photos as light in darkness */}
+        {/* Mobile: object-contain to show full photo without cropping, Desktop: object-cover for scrapbook aesthetic */}
         <img
           src={photo.imageUrl}
           alt={`IMANOL VILLAGOMEZ - ${photo.client || 'Concert'} photography${photo.year ? ` - ${photo.year}` : ''}`}
-          className="w-full h-full object-cover"
+          className={cn(
+            "w-full",
+            isMobile ? "h-auto object-contain" : "h-full object-cover"
+          )}
           loading="lazy"
+          style={{
+            maxWidth: '100%',
+            display: 'block',
+          }}
         />
 
         {/* Oliver: Indie sleaze grain overlay */}

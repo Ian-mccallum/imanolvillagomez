@@ -258,14 +258,15 @@ export const FullscreenModal = ({
       clearTimeout(controlsTimeout);
     }
     
-    // Auto-hide after 3 seconds (only for videos)
+    // Auto-hide after shorter time on mobile (2s) vs desktop (3s) for videos
     if (currentItem?.type === 'video') {
+      const hideDelay = isMobile ? 2000 : 3000;
       const timer = setTimeout(() => {
         setShowControls(false);
-      }, 3000);
+      }, hideDelay);
       setControlsTimeout(timer);
     }
-  }, [controlsTimeout, currentItem?.type]);
+  }, [controlsTimeout, currentItem?.type, isMobile]);
   
   // Cleanup timer on unmount
   useEffect(() => {
@@ -381,98 +382,120 @@ export const FullscreenModal = ({
                 />
               )}
               
-              {/* Always-visible Exit Button - Below Header (Never hidden) */}
+              {/* Always-visible Exit Button - Mobile: 44px touch target with safe area */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onClose();
                 }}
-                className="absolute top-20 md:top-24 right-6 w-14 h-14 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-[100] focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+                className="absolute top-4 md:top-6 right-4 md:right-6 min-w-[44px] min-h-[44px] md:w-12 md:h-12 bg-black/60 active:bg-black/80 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-[100] focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 border border-white/30 touch-manipulation"
+                style={{ 
+                  top: 'max(16px, env(safe-area-inset-top))',
+                  right: 'max(16px, env(safe-area-inset-right))',
+                  touchAction: 'manipulation',
+                }}
                 aria-label="Close modal"
               >
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-6 h-6 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
               
-              {/* Gallery Navigation - Always visible arrows if multiple items */}
+              {/* Gallery Navigation - Mobile-optimized with touch targets */}
               {enableGalleryNavigation && items.length > 1 && (
                 <>
-                      {/* Previous Button - Positioned below video on mobile for vertical videos, otherwise on left */}
+                      {/* Previous Button - Mobile: 44px touch target, positioned at edge with safe area */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handlePrevious();
                         }}
-                        className={`absolute w-16 h-16 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10 ${
+                        className={`absolute min-w-[44px] min-h-[44px] md:w-12 md:h-12 bg-black/60 active:bg-black/80 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 border border-white/30 touch-manipulation ${
                           shouldPositionArrowsBelow 
-                            ? 'bottom-20 left-[calc(50%-4.5rem)]' 
-                            : 'left-6 top-1/2 -translate-y-1/2'
+                            ? 'bottom-20 left-[calc(50%-3.5rem)]' 
+                            : 'left-2 md:left-4 top-1/2 -translate-y-1/2'
                         }`}
+                        style={{ 
+                          touchAction: 'manipulation',
+                          left: shouldPositionArrowsBelow ? undefined : 'max(8px, env(safe-area-inset-left))',
+                        }}
                         aria-label="Previous item"
                       >
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+                        <svg className="w-6 h-6 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                         </svg>
                       </button>
                       
-                      {/* Next Button - Positioned below video on mobile for vertical videos, otherwise on right */}
+                      {/* Next Button - Mobile: 44px touch target, positioned at edge with safe area */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleNext();
                         }}
-                        className={`absolute w-16 h-16 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl hover:scale-110 active:scale-95 border border-white/10 ${
+                        className={`absolute min-w-[44px] min-h-[44px] md:w-12 md:h-12 bg-black/60 active:bg-black/80 backdrop-blur-sm text-white rounded-full flex items-center justify-center transition-all pointer-events-auto z-50 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg active:scale-95 border border-white/30 touch-manipulation ${
                           shouldPositionArrowsBelow 
                             ? 'bottom-20 left-[calc(50%+1.5rem)]' 
-                            : 'right-6 top-1/2 -translate-y-1/2'
+                            : 'right-2 md:right-4 top-1/2 -translate-y-1/2'
                         }`}
+                        style={{ 
+                          touchAction: 'manipulation',
+                          right: shouldPositionArrowsBelow ? undefined : 'max(8px, env(safe-area-inset-right))',
+                        }}
                         aria-label="Next item"
                       >
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                        <svg className="w-6 h-6 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
                       
-                      {/* Gallery Counter - Bottom Center (Simple, no bar) - Adjust position for mobile vertical videos */}
-                      <div className={`absolute bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium pointer-events-auto z-50 shadow-lg ${
-                        shouldPositionArrowsBelow 
-                          ? 'bottom-6 left-1/2 -translate-x-1/2' 
-                          : 'bottom-6 left-1/2 -translate-x-1/2'
-                      }`}>
+                      {/* Gallery Counter - Mobile: Smaller, positioned with safe area */}
+                      <div 
+                        className={`absolute bg-black/70 backdrop-blur-md text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium pointer-events-auto z-50 shadow-lg ${
+                          shouldPositionArrowsBelow 
+                            ? 'bottom-6 left-1/2 -translate-x-1/2' 
+                            : 'bottom-6 left-1/2 -translate-x-1/2'
+                        }`}
+                        style={{
+                          bottom: `max(24px, calc(24px + env(safe-area-inset-bottom)))`,
+                        }}
+                      >
                         {currentIndex + 1} / {items.length}
                       </div>
                 </>
               )}
               
-              {/* Minimal Metadata - Above video controls (only if available) - Bigger space */}
+              {/* Minimal Metadata - Mobile: Positioned above controls with safe area */}
               {showControls && (currentItem.title || currentItem.artist || currentItem.client) && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute bottom-24 left-6 bg-black/60 backdrop-blur-md text-white px-6 py-4 rounded-lg max-w-md pointer-events-auto z-50 shadow-lg"
+                  className="absolute bottom-20 md:bottom-24 left-4 md:left-6 bg-black/70 backdrop-blur-md text-white px-4 py-2.5 md:px-6 md:py-4 rounded-lg max-w-[calc(100%-2rem)] md:max-w-md pointer-events-auto z-50 shadow-lg"
+                  style={{
+                    bottom: `max(80px, calc(80px + env(safe-area-inset-bottom)))`,
+                    left: 'max(16px, env(safe-area-inset-left))',
+                  }}
                 >
                   {currentItem.type === 'video' ? (
                     <>
                       {currentItem.artist && currentItem.song && (
-                        <div className="font-semibold text-base md:text-lg leading-tight">{currentItem.artist} / {currentItem.song}</div>
+                        <div className="font-semibold text-sm md:text-base leading-tight">{currentItem.artist} / {currentItem.song}</div>
                       )}
                       {currentItem.title && !currentItem.artist && (
-                        <div className="font-semibold text-base md:text-lg leading-tight">{currentItem.title}</div>
+                        <div className="font-semibold text-sm md:text-base leading-tight">{currentItem.title}</div>
                       )}
                       {currentItem.date && (
-                        <div className="text-sm text-white/70 mt-2">{currentItem.date}</div>
+                        <div className="text-xs md:text-sm text-white/70 mt-1.5">{currentItem.date}</div>
                       )}
                     </>
                   ) : (
                     <>
                       {currentItem.title && (
-                        <div className="font-semibold text-base md:text-lg leading-tight">{currentItem.title}</div>
+                        <div className="font-semibold text-sm md:text-base leading-tight">{currentItem.title}</div>
                       )}
                       {currentItem.client && (
-                        <div className="text-sm text-white/70 mt-2">{currentItem.client}</div>
+                        <div className="text-xs md:text-sm text-white/70 mt-1.5">{currentItem.client}</div>
                       )}
                     </>
                   )}
