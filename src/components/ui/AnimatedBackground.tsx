@@ -74,8 +74,8 @@ export const AnimatedBackground = () => {
             0deg,
             transparent,
             transparent 2px,
-            rgba(34, 197, 94, 0.03) 2px,
-            rgba(34, 197, 94, 0.03) 4px
+            rgba(255, 255, 255, 0.02) 2px,
+            rgba(255, 255, 255, 0.02) 4px
           )`,
         }}
         animate={{

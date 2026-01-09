@@ -186,15 +186,6 @@ export const lostFilesVideos: Video[] = [
     thumbnail: getVideoUrl('hellpFULL.mp4'),
   },
   {
-    id: 'hellp2',
-    title: 'Hellp 2',
-    client: 'Hellp',
-    year: 2024,
-    category: 'music-video',
-    videoUrl: getVideoUrl('hellp2.mp4'),
-    thumbnail: getVideoUrl('hellp2.mp4'),
-  },
-  {
     id: 'osamason-preview',
     title: 'Osamason Preview',
     client: 'Osamason',
