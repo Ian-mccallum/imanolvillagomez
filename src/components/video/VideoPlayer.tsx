@@ -35,8 +35,42 @@ export const VideoPlayer = ({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showLoadingBar, setShowLoadingBar] = useState(false);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const needsRotation = item.rotation === 270;
+  
+  // Show loading bar if loading takes more than 1 second
+  useEffect(() => {
+    if (isLoading) {
+      // Show loading bar after 1 second of loading
+      const timeout = setTimeout(() => {
+        setShowLoadingBar(true);
+      }, 1000);
+      
+      // Only show error after 15 seconds of loading
+      errorTimeoutRef.current = setTimeout(() => {
+        if (isLoading) {
+          console.warn('Video loading timeout after 15 seconds');
+          onError();
+        }
+      }, 15000);
+      
+      return () => {
+        clearTimeout(timeout);
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current);
+        }
+      };
+    } else {
+      setShowLoadingBar(false);
+      setLoadingProgress(0);
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    }
+  }, [isLoading, onError]);
   
   // Handle video loading and playback
   useEffect(() => {
@@ -227,8 +261,40 @@ export const VideoPlayer = ({
       }}
       onClick={togglePlay}
     >
-      {/* Loading state */}
-      {isLoading && !hasError && (
+      {/* Loading state with progress bar */}
+      {isLoading && !hasError && showLoadingBar && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
+          <div className="w-full max-w-md px-8">
+            {/* Loading text */}
+            <div className="text-center mb-4">
+              <p className="text-white text-sm font-medium mb-2">Loading video...</p>
+              <p className="text-white/60 text-xs">{Math.round(loadingProgress)}%</p>
+            </div>
+            
+            {/* Progress bar container */}
+            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+              {/* Animated progress bar */}
+              <motion.div
+                className="h-full bg-white rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${loadingProgress}%` }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                style={{
+                  boxShadow: '0 0 10px rgba(255, 255, 255, 0.5)',
+                }}
+              />
+            </div>
+            
+            {/* Pulsing indicator */}
+            <div className="mt-4 flex justify-center">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Quick loading spinner (first second) */}
+      {isLoading && !hasError && !showLoadingBar && (
         <div className="absolute inset-0 flex items-center justify-center z-20">
           <div className="w-12 h-12 border-3 border-white border-t-transparent rounded-full animate-spin" />
         </div>
@@ -293,9 +359,33 @@ export const VideoPlayer = ({
           onError();
         }}
         onLoadedData={onLoad}
-        onLoadStart={() => console.log('Video loadstart:', item.videoUrl)}
-        onLoadedMetadata={() => console.log('Video loadedmetadata:', item.videoUrl)}
-        onCanPlay={() => console.log('Video canplay:', item.videoUrl)}
+        onLoadStart={() => {
+          console.log('Video loadstart:', item.videoUrl);
+          setLoadingProgress(0);
+        }}
+        onProgress={(e) => {
+          // Calculate loading progress based on buffered ranges
+          const video = e.currentTarget;
+          if (video.buffered.length > 0 && video.duration > 0) {
+            const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+            const progress = (bufferedEnd / video.duration) * 100;
+            setLoadingProgress(Math.min(progress, 95)); // Cap at 95% until fully loaded
+          } else {
+            // Fallback: show incremental progress
+            setLoadingProgress((prev) => Math.min(prev + 10, 90));
+          }
+        }}
+        onLoadedMetadata={() => {
+          console.log('Video loadedmetadata:', item.videoUrl);
+          setLoadingProgress(50); // Metadata loaded = ~50% progress
+        }}
+        onCanPlay={() => {
+          console.log('Video canplay:', item.videoUrl);
+          setLoadingProgress(90); // Can play = ~90% progress
+        }}
+        onCanPlayThrough={() => {
+          setLoadingProgress(100); // Fully loaded
+        }}
         aria-label={item.title || 'Video'}
       />
       

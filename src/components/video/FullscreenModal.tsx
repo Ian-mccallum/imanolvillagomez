@@ -53,9 +53,40 @@ export const FullscreenModal = ({
   const [hasError, setHasError] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const platform = useMemo(() => detectPlatform(), []);
   const { isMobile } = useResponsive();
+  
+  // Only show error after loading timeout (15 seconds)
+  useEffect(() => {
+    if (isLoading) {
+      // Clear any existing timeout
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+      
+      // Set timeout to show error after 15 seconds
+      errorTimeoutRef.current = setTimeout(() => {
+        if (isLoading) {
+          console.warn('Video loading timeout after 15 seconds');
+          setIsLoading(false);
+          setHasError(true);
+        }
+      }, 15000);
+      
+      return () => {
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current);
+        }
+      };
+    } else {
+      // Clear timeout if loading completes
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    }
+  }, [isLoading]);
   
   // Get current item
   const currentItem = useMemo(() => {
@@ -210,6 +241,10 @@ export const FullscreenModal = ({
   }, []);
   
   const handleError = useCallback(() => {
+    // Clear timeout since we're handling error now
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
     setIsLoading(false);
     setHasError(true);
   }, []);
