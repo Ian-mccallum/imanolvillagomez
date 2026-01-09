@@ -8,15 +8,6 @@ import { videos } from '@/constants/videos';
 import { usePageTitle, useMetaTags } from '@/hooks';
 import { StructuredData, createPersonSchema, createProfessionalServiceSchema, createWebSiteSchema } from '@/components/seo/StructuredData';
 
-// Helper to get video URL from R2 CDN
-const getVideoUrl = (filename: string): string => {
-  const R2_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || '';
-  if (R2_BASE_URL) {
-    return `${R2_BASE_URL}/videos/${filename}`;
-  }
-  return `/videos/${filename}`;
-};
-
 /**
  * HomePage
  * 
@@ -84,86 +75,164 @@ export const HomePage = () => {
 
   // Video ref for background video
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentVideoSrc, setCurrentVideoSrc] = useState<string>('');
 
-  // Background video - osamasonpreview.mp4 from R2 CDN for optimal performance
-  // Using R2 CDN provides edge caching, faster loading, and better reliability
-  const heroVideoUrl = getVideoUrl('osamasonpreview.mp4');
+  // Background video URLs with fallback strategy
+  // Primary: R2 CDN (fast, cached)
+  // Fallback: Local path (reliable, always available)
+  const R2_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || '';
+  const primaryVideoUrl = R2_BASE_URL ? `${R2_BASE_URL}/videos/osamasonpreview.mp4` : '';
+  const fallbackVideoUrl = '/videos/osamasonpreview.mp4';
 
-  // Ensure video loads and plays
+  // Initialize with primary URL, fallback to local if needed
+  useEffect(() => {
+    if (primaryVideoUrl) {
+      setCurrentVideoSrc(primaryVideoUrl);
+    } else {
+      setCurrentVideoSrc(fallbackVideoUrl);
+    }
+  }, [primaryVideoUrl]);
+
+  // Foolproof video loading and playback with multiple strategies
   useEffect(() => {
     const videoEl = videoRef.current;
-    if (!videoEl) return;
+    if (!videoEl || !currentVideoSrc) return;
 
-    // Log video loading states for debugging
-    const logState = (event: string) => {
-      console.log(`Video ${event}:`, {
-        networkState: videoEl.networkState,
-        readyState: videoEl.readyState,
-        error: videoEl.error,
+    let playAttempts = 0;
+    const maxPlayAttempts = 5;
+    let retryTimeout: NodeJS.Timeout | null = null;
+    let loadTimeout: NodeJS.Timeout | null = null;
+    let playPromise: Promise<void> | null = null;
+    let isPlaying = false;
+
+    // Strategy 1: Try to play immediately when video can play
+    const attemptPlay = async (): Promise<void> => {
+      if (isPlaying || playAttempts >= maxPlayAttempts) return;
+      
+      playAttempts++;
+      try {
+        playPromise = videoEl.play();
+        await playPromise;
+        isPlaying = true;
+        console.log('✅ Background video playing successfully');
+      } catch (err: any) {
+        // Ignore AbortError (video was paused/removed)
+        if (err.name === 'AbortError') {
+          return;
+        }
+        
+        console.warn(`⚠️ Autoplay attempt ${playAttempts} failed:`, err.name);
+        
+        // Strategy 2: Retry after short delay
+        if (playAttempts < maxPlayAttempts) {
+          retryTimeout = setTimeout(() => {
+            attemptPlay();
+          }, 300 * playAttempts); // Exponential backoff
+        } else {
+          // Strategy 3: Wait for user interaction
+          const tryPlayOnInteraction = () => {
+            videoEl.play().catch(() => {});
+            document.removeEventListener('click', tryPlayOnInteraction);
+            document.removeEventListener('touchstart', tryPlayOnInteraction);
+            document.removeEventListener('scroll', tryPlayOnInteraction);
+            document.removeEventListener('keydown', tryPlayOnInteraction);
+          };
+          document.addEventListener('click', tryPlayOnInteraction, { once: true });
+          document.addEventListener('touchstart', tryPlayOnInteraction, { once: true });
+          document.addEventListener('scroll', tryPlayOnInteraction, { once: true });
+          document.addEventListener('keydown', tryPlayOnInteraction, { once: true });
+        }
+      }
+    };
+
+    // Handle video ready to play
+    const handleCanPlay = () => {
+      console.log('📹 Video can play, attempting autoplay...');
+      attemptPlay();
+    };
+
+    const handleCanPlayThrough = () => {
+      console.log('📹 Video can play through, ensuring playback...');
+      if (!isPlaying) {
+        attemptPlay();
+      }
+    };
+
+    // Handle video errors with fallback
+    const handleError = () => {
+      const error = videoEl.error;
+      console.error('❌ Video error:', {
+        code: error?.code,
+        message: error?.message,
         src: videoEl.src,
         currentSrc: videoEl.currentSrc
       });
+
+      // Strategy 4: Fallback to local video if R2 fails
+      if (currentVideoSrc === primaryVideoUrl && primaryVideoUrl) {
+        console.log('🔄 Falling back to local video...');
+        setCurrentVideoSrc(fallbackVideoUrl);
+        return; // Will trigger useEffect to reload with fallback
+      }
+
+      // If fallback also fails, log error but keep trying
+      console.error('❌ Both R2 and local video failed to load');
     };
 
-    const handleCanPlay = () => {
-      logState('canplay');
-      // Force play for Chromium browsers
-      const playPromise = videoEl.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('Video autoplay succeeded');
-          })
-          .catch((err) => {
-            console.warn('Video autoplay prevented:', err);
-            // Try to play again after user interaction
-            const tryPlay = () => {
-              videoEl.play().catch(() => {});
-              document.removeEventListener('click', tryPlay);
-              document.removeEventListener('touchstart', tryPlay);
-            };
-            document.addEventListener('click', tryPlay, { once: true });
-            document.addEventListener('touchstart', tryPlay, { once: true });
-          });
+    // Handle video loaded
+    const handleLoadedData = () => {
+      console.log('📹 Video data loaded');
+      if (!isPlaying) {
+        attemptPlay();
       }
     };
 
-    const handleError = () => {
-      console.error('Video failed to load:', videoEl.error);
-    };
-
-    videoEl.addEventListener('loadstart', () => logState('loadstart'));
-    videoEl.addEventListener('loadedmetadata', () => logState('loadedmetadata'));
-    videoEl.addEventListener('loadeddata', () => logState('loadeddata'));
+    // Set up event listeners
     videoEl.addEventListener('canplay', handleCanPlay);
-    videoEl.addEventListener('canplaythrough', () => logState('canplaythrough'));
+    videoEl.addEventListener('canplaythrough', handleCanPlayThrough);
+    videoEl.addEventListener('loadeddata', handleLoadedData);
     videoEl.addEventListener('error', handleError);
-
-    // Force video to load immediately
-    // Set src again to trigger load in browsers that delay loading
-    const currentSrc = videoEl.src;
-    videoEl.src = '';
-    videoEl.src = currentSrc;
-    videoEl.load();
     
-    // Also try setting load() after a small delay for stubborn browsers
-    const loadTimeout = setTimeout(() => {
-      if (videoEl.readyState === 0) {
-        console.log('Video not loading, forcing load again...');
+    // Ensure video is muted for autoplay
+    videoEl.muted = true;
+    videoEl.volume = 0;
+
+    // Strategy 5: Force load video immediately
+    videoEl.load();
+
+    // Strategy 6: Retry load if not loading after delay
+    loadTimeout = setTimeout(() => {
+      if (videoEl.readyState === 0 && videoEl.networkState === 0) {
+        console.log('🔄 Video not loading, retrying...');
         videoEl.load();
       }
-    }, 100);
+    }, 500);
 
+    // Strategy 7: Periodic check to ensure video is playing
+    const playCheckInterval = setInterval(() => {
+      if (videoEl.paused && !videoEl.ended && videoEl.readyState >= 2) {
+        console.log('🔄 Video paused, attempting to resume...');
+        attemptPlay();
+      }
+    }, 2000);
+
+    // Cleanup
     return () => {
-      clearTimeout(loadTimeout);
-      videoEl.removeEventListener('loadstart', () => logState('loadstart'));
-      videoEl.removeEventListener('loadedmetadata', () => logState('loadedmetadata'));
-      videoEl.removeEventListener('loadeddata', () => logState('loadeddata'));
+      if (retryTimeout) clearTimeout(retryTimeout);
+      if (loadTimeout) clearTimeout(loadTimeout);
+      clearInterval(playCheckInterval);
+      
+      if (playPromise) {
+        videoEl.pause();
+        playPromise.catch(() => {}); // Swallow errors
+      }
+      
       videoEl.removeEventListener('canplay', handleCanPlay);
-      videoEl.removeEventListener('canplaythrough', () => logState('canplaythrough'));
+      videoEl.removeEventListener('canplaythrough', handleCanPlayThrough);
+      videoEl.removeEventListener('loadeddata', handleLoadedData);
       videoEl.removeEventListener('error', handleError);
     };
-  }, [heroVideoUrl]);
+  }, [currentVideoSrc, primaryVideoUrl, fallbackVideoUrl]);
 
   // Navigation items
   const navItems = [
@@ -181,16 +250,16 @@ export const HomePage = () => {
       {/* Homepage content */}
       <div className="relative min-h-screen w-full overflow-hidden homepage-scrollbar">
       {/* Full-screen video background - osamason video only, fully visible */}
-      {/* Using R2 CDN for optimal performance: edge caching, faster loading, better reliability */}
+      {/* Foolproof implementation with R2 CDN primary + local fallback */}
       <video
         ref={videoRef}
-        src={heroVideoUrl}
+        src={currentVideoSrc}
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
-        crossOrigin="anonymous"
+        crossOrigin={currentVideoSrc.startsWith('http') ? "anonymous" : undefined}
         className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none opacity-100"
         style={{ 
           width: '100vw', 
@@ -199,37 +268,24 @@ export const HomePage = () => {
           zIndex: 0,
           backgroundColor: 'transparent'
         }}
-        onError={(e) => {
-          const video = e.currentTarget;
-          const errorCodes: Record<number, string> = {
-            1: 'MEDIA_ERR_ABORTED - Video loading aborted',
-            2: 'MEDIA_ERR_NETWORK - Network error',
-            3: 'MEDIA_ERR_DECODE - Video decoding error (codec not supported)',
-            4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Video format not supported'
-          };
-          
-          if (video.error) {
-            const errorInfo = {
-              code: video.error.code,
-              codeName: errorCodes[video.error.code] || 'Unknown error',
-              message: video.error.message,
-              src: video.src,
-              currentSrc: video.currentSrc,
-              networkState: video.networkState,
-              readyState: video.readyState
-            };
-            
-            // Log each property separately so they're visible without expanding
-            console.error('❌ Video background error:');
-            console.error('   Error Code:', video.error.code, '-', errorCodes[video.error.code] || 'Unknown');
-            console.error('   Error Message:', video.error.message);
-            console.error('   Video SRC:', video.src);
-            console.error('   Current SRC:', video.currentSrc);
-            console.error('   Network State:', video.networkState);
-            console.error('   Ready State:', video.readyState);
-            console.error('   Full error object:', errorInfo);
-          } else {
-            console.error('❌ Video background error (no error object):', e);
+        onPlay={() => {
+          console.log('✅ Background video started playing');
+        }}
+        onPause={() => {
+          // Auto-resume if paused unintentionally
+          const videoEl = videoRef.current;
+          if (videoEl && !videoEl.ended && videoEl.readyState >= 2) {
+            setTimeout(() => {
+              videoEl.play().catch(() => {});
+            }, 100);
+          }
+        }}
+        onEnded={() => {
+          // Restart if video ends (shouldn't happen with loop, but just in case)
+          const videoEl = videoRef.current;
+          if (videoEl) {
+            videoEl.currentTime = 0;
+            videoEl.play().catch(() => {});
           }
         }}
       />
