@@ -1,0 +1,9 @@
+# Basenames must exist under public/videos/. One filename per line.
+# New work batch — upload with:
+#   set -a && source .env && set +a && node scripts/upload-to-r2.js --list=newWork/upload-batch.txt
+
+earlylifecrisis.mp4
+MgnaCRRRTA.mp4
+reel1776802607072991.mp4
+reel1776901621418237.mp4
+reel1776903207924937.mp4

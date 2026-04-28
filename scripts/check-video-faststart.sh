@@ -91,7 +91,7 @@ echo ""
 if [ "$NEEDS_OPTIMIZATION" -gt 0 ]; then
     echo "💡 To optimize videos with faststart flag:"
     echo "   1. Run: bash scripts/optimize-videos-for-r2.sh"
-    echo "   2. Re-upload to R2: node scripts/upload-to-r2.js"
+    echo "   2. Re-upload to R2: node scripts/upload-to-r2.js --list=newWork/upload-batch.txt  (or --all)"
     echo ""
     echo "   This will allow videos to start playing before fully downloading!"
 else

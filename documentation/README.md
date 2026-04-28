@@ -4,6 +4,7 @@ Welcome to the NOL Videography project documentation. This documentation provide
 
 ## Table of Contents
 
+- [Upload new work](./upload-new-work.md) - **Atomic steps for videos, photos, Cloudflare R2, and AI assistants**
 - [Getting Started](./getting-started.md) - Quick start guide for new developers
 - [Architecture](./architecture.md) - System architecture and design decisions
 - [Project Structure](./project-structure.md) - Detailed directory structure and organization
@@ -20,7 +21,9 @@ Welcome to the NOL Videography project documentation. This documentation provide
 
 ## Quick Links
 
+- [Upload new work](./upload-new-work.md) - End-to-end media pipeline (videos R2 + photos + git policy)
 - [Main README](../README.md) - Project overview and setup instructions
+- [Cloudflare R2 setup](../CLOUDFLARE_R2_SETUP.md) - Bucket creation, DNS, API tokens, CORS, cache rules
 - [Package.json](../package.json) - Dependencies and scripts
 
 ## Contributing to Documentation

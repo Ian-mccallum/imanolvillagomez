@@ -36,13 +36,14 @@ Copy the example environment file and configure your local environment:
 cp .env.example .env
 ```
 
-Edit `.env` and add your configuration values:
+Edit `.env` using **`/.env.example`** as the checklist. Minimum for portfolio video URLs from Cloudflare:
 
-```env
-VITE_API_BASE_URL=https://api.example.com
-VITE_CONTACT_EMAIL=contact@example.com
-VITE_CONTACT_PHONE=+1234567890
-```
+- **`VITE_R2_PUBLIC_URL`** — public HTTPS base for MP4 URLs (same host as your R2/custom domain serving videos; **no trailing slash**).
+- **`R2_*`** — only needed to run **`node scripts/upload-to-r2.js`** locally.
+
+Do **not** commit `.env`.
+
+**Adding new reels or shoots:** follow **[upload-new-work.md](./upload-new-work.md)** (videos, optional photos, selective R2 upload, Vercel env).
 
 ### 4. Start Development Server
 

@@ -74,11 +74,29 @@ npm run type-check
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in the values:
+Copy the example env file and set values (secrets never go in git):
 
 ```bash
 cp .env.example .env
 ```
+
+See **`.env.example`** for **`VITE_R2_PUBLIC_URL`** (public URL for video assets) vs **`R2_*`** variables (upload script only).
+
+## Portfolio media — adding new videos & photos
+
+**Authoritative playbook (atomic steps, AI-friendly):**
+
+- **[documentation/upload-new-work.md](documentation/upload-new-work.md)**
+
+Summary:
+
+1. Portfolio video files are hosted on **Cloudflare R2** (`videos/<filename>.mp4`); the app resolves URLs via **`VITE_R2_PUBLIC_URL`**.
+2. Almost all **`public/videos/*.mp4`** are **gitignored** (see `.gitignore`); only **`osamasonpreview.mp4`** may be tracked for local homepage fallback — do **not** commit bulk MP4s.
+3. After editing **`src/constants/videos.ts`** and placing files under **`public/videos/`**, run **`scripts/upload-to-r2.js`** (selective uploads recommended via **`newWork/upload-batch.txt`**).
+4. **`HEVC / H.265`** exports often fail in Chrome/Firefox; re-encode with **`scripts/reencode-hevc-to-h264-web.sh`** before uploading.
+5. Stills live under **`public/images/`**; register them in **`src/constants/photos.ts`** (or linked JSON — see playbook).
+
+One-time Cloudflare setup (bucket, custom domain, CORS): **[CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md)** · Script catalog: **[scripts/README.md](scripts/README.md)**.
 
 ## Features
 

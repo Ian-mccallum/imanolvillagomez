@@ -2,6 +2,8 @@
 
 Complete guide to set up Cloudflare R2 for hosting your videos (100% FREE for your use case).
 
+**Ongoing uploads (videos + env + codebase):** use the **[atomic playbook](documentation/upload-new-work.md)** after the bucket exists. **This guide** stays focused on Cloudflare Dashboard setup (tokens, DNS, public access, optional CORS + cache).
+
 ## Why Cloudflare R2?
 
 - ✅ **10GB free storage** (you have 2.2GB)
@@ -80,14 +82,23 @@ VITE_R2_PUBLIC_URL=https://your-bucket.r2.dev
 
 ## Step 8: Upload Videos
 
-Run the upload script:
+Copy new `.mp4` files into `public/videos/` (your site references these basenames).
+
+Run the upload script (load env vars first; the Node script reads `process.env` only):
 
 ```bash
-node scripts/upload-to-r2.js
+set -a && source .env && set +a
+
+# Only new clips (recommended) — edit newWork/upload-batch.txt with basenames:
+node scripts/upload-to-r2.js --list=newWork/upload-batch.txt
+
+# Or upload all MP4s in public/videos (full re-sync; slower):
+node scripts/upload-to-r2.js --all
 ```
 
 This will:
-- Upload all MP4 files from `public/videos/`
+
+- Upload the selected MP4 file(s) to R2 at keys `videos/<filename>`
 - Show progress for each file
 - Display the final URLs
 
@@ -117,9 +128,9 @@ This will:
 ## Troubleshooting
 
 ### Videos not loading?
-- Check that `VITE_R2_PUBLIC_URL` is set in Vercel
-- Verify bucket is set to public access
-- Check browser console for CORS errors (R2 handles CORS automatically)
+- **`VITE_R2_PUBLIC_URL`** set in **Vercel** and locally; value matches the HTTPS host serving MP4 (no trailing slash). See **`documentation/upload-new-work.md` Part A**.
+- **HEVC/H.265** uploads may play only in Safari; re-encode to **H.264** (`scripts/reencode-hevc-to-h264-web.sh`) and re-upload the same basename.
+- Verify bucket **public access**. **CORS**: optional tooling may need origins listed; **`<video>` playback in this codebase does not set `crossOrigin`** for general decode.
 
 ### Upload script fails?
 - Verify all environment variables are set correctly

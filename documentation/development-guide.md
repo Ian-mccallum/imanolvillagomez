@@ -2,6 +2,10 @@
 
 This guide covers development workflows, best practices, and common tasks for working on the NOL Videography project.
 
+## Adding portfolio media
+
+For **videos (R2)** and **photos (static)** use the checklist in **[Upload new work](./upload-new-work.md)** (atomic steps optimized for repeatable workflow and assistant use).
+
 ## Development Workflow
 
 ### Starting Development

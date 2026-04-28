@@ -251,6 +251,7 @@ export const HomePage = () => {
       <div className="relative min-h-screen w-full overflow-hidden homepage-scrollbar">
       {/* Full-screen video background - osamason video only, fully visible */}
       {/* Foolproof implementation with R2 CDN primary + local fallback */}
+      {/* Background video: omit crossOrigin — anonymous mode requires R2 CORS and breaks playback if misconfigured */}
       <video
         ref={videoRef}
         src={currentVideoSrc}
@@ -259,7 +260,6 @@ export const HomePage = () => {
         muted
         playsInline
         preload="auto"
-        crossOrigin={currentVideoSrc.startsWith('http') ? "anonymous" : undefined}
         className="fixed inset-0 w-screen h-screen object-cover z-0 pointer-events-none opacity-100"
         style={{ 
           width: '100vw', 

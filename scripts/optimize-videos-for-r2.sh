@@ -76,7 +76,7 @@ echo "   Optimized: $OPTIMIZED_COUNT files"
 echo "   Skipped: $SKIPPED_COUNT files"
 echo ""
 echo "📝 Next steps:"
-echo "   1. Re-upload to R2: node scripts/upload-to-r2.js"
+echo "   1. Re-upload to R2: node scripts/upload-to-r2.js --list=newWork/upload-batch.txt  (or --all)"
 echo "   2. Videos will now load much faster!"
 echo ""
 

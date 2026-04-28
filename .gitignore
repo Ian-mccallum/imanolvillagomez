@@ -36,3 +36,8 @@ dist-ssr
 public/videos/*.mov
 public/videos/*.mp4
 !public/videos/osamasonpreview.mp4
+
+# Raw client delivery (zips, duplicate media) — too large for Git; see newWork/README.md
+newWork/*
+!newWork/README.md
+!newWork/upload-batch.txt

@@ -3,6 +3,7 @@ import { ROUTES, SEO_CONFIG, BASE_URL } from '@/constants';
 import { motion } from 'framer-motion';
 import { usePageTitle, useMetaTags } from '@/hooks';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
+import { WorkSessionsSpotlight } from '@/components/layout/WorkSessionsSpotlight';
 
 /**
  * WorkHubPage
@@ -46,6 +47,8 @@ export const WorkHubPage = () => {
           CHOOSE YOUR PATH
         </p>
       </header>
+
+      <WorkSessionsSpotlight />
 
       {/* Choice Interface - Two large clickable sections */}
       <main className="container mx-auto px-4 md:px-6 pb-12 md:pb-20">

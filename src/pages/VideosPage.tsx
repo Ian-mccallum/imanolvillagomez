@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { FullscreenModal, VideoGrid } from '@/components/video';
 import { VideoFilterBar } from '@/components/video/VideoFilterBar';
 import { VideoFormatLegend } from '@/components/video/VideoFormatLegend';
@@ -9,7 +9,7 @@ import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
 import { generateFilterOptions, applyFilters, queryStringToFilterState, filterStateToQueryString } from '@/utils/filters';
 import { videosToMediaItems } from '@/types/media';
 import { usePageTitle, useMetaTags } from '@/hooks';
-import { SEO_CONFIG, BASE_URL } from '@/constants';
+import { SEO_CONFIG, BASE_URL, ROUTES } from '@/constants';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
 
 /**
@@ -67,8 +67,13 @@ export const VideosPage = () => {
   // Apply filters to videos and sort alphabetically by artist
   const filteredVideos = useMemo(() => {
     const filtered = applyFilters(videos, filterState);
-    // Sort alphabetically by artist (case-insensitive)
     return [...filtered].sort((a, b) => {
+      const yearA = a.year ?? 0;
+      const yearB = b.year ?? 0;
+      if (yearA !== yearB) return yearB - yearA;
+      const featA = a.featured ? 1 : 0;
+      const featB = b.featured ? 1 : 0;
+      if (featA !== featB) return featB - featA;
       const artistA = (a.artist || a.client || '').toLowerCase();
       const artistB = (b.artist || b.client || '').toLowerCase();
       return artistA.localeCompare(artistB);
@@ -154,9 +159,17 @@ export const VideosPage = () => {
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter transform rotate-neg05">
               VIDEOS
             </h1>
-            <p className="mt-2 md:mt-4 text-zinc-50 text-xs sm:text-sm md:text-sm uppercase tracking-wider">
-              {videos.length} PROJECTS
-            </p>
+            <div className="mt-2 md:mt-4 flex flex-wrap items-center gap-3">
+              <p className="text-zinc-50 text-xs sm:text-sm md:text-sm uppercase tracking-wider">
+                {videos.length} PROJECTS
+              </p>
+              <Link
+                to={`${ROUTES.WORK_VIDEOS}?year=2026`}
+                className="text-xs sm:text-sm font-bold uppercase tracking-wider text-red-primary border border-red-primary/60 px-3 py-1 hover:bg-red-primary hover:text-white transition-colors"
+              >
+                2026 only
+              </Link>
+            </div>
           </div>
           {/* Formatting legend - positioned on right side, aligned with header */}
           <div className="hidden md:block">

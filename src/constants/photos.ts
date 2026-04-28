@@ -1,13 +1,15 @@
 import { Photo } from '@/types';
+import shootFeb2026 from '@/constants/data/photos-shoot-20260228.json';
 
 /**
  * Photo portfolio data for Imanol Villagomez
  * Images are located in /public/images/
- * 
+ *
  * To mark a photo as an "Edit" (separate from artist work), add: isEdit: true
  * Photos without isEdit will be organized by their client/artist name
  */
-export const photos: Photo[] = [
+
+const photosArchive: Photo[] = [
   {
     id: 'photo-2',
     imageUrl: '/images/frostchildren-7.jpeg',
@@ -130,3 +132,5 @@ export const photos: Photo[] = [
   },
 ];
 
+/** Feb 2026 shoots (Puma Blue, Salami, selects) — listed first; detail pages sort by year */
+export const photos: Photo[] = [...(shootFeb2026 as Photo[]), ...photosArchive];

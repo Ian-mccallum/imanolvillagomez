@@ -224,7 +224,6 @@ export const VideoModal = ({ isOpen, onClose, video, initialPosition }: VideoMod
                 autoPlay
                 playsInline
                 preload="metadata"
-                crossOrigin="anonymous"
                 className={`w-full h-full max-w-full max-h-full object-contain relative z-10 ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 style={{
                   transform: needsRotation ? 'rotate(270deg)' : 'none',

@@ -2,6 +2,8 @@
 
 This directory contains utility scripts for the project.
 
+For **new videos → R2 → site**, see **`documentation/upload-new-work.md`** (canonical atomic steps).
+
 ## Active Scripts
 
 ### `upload-to-r2.js`
@@ -9,12 +11,21 @@ This directory contains utility scripts for the project.
 
 **Usage**:
 ```bash
-# Set environment variables in .env file
-node scripts/upload-to-r2.js
+# Load secrets (script does not load .env by itself unless you shell-source it)
+set -a && source .env && set +a
+
+# Recommended: only MP4s for a batch (paths are always public/videos/<name>)
+node scripts/upload-to-r2.js --list=newWork/upload-batch.txt
+
+# Or list filenames explicitly
+node scripts/upload-to-r2.js earlylifecrisis.mp4 MgnaCRRRTA.mp4
+
+# Full re-sync from local public/videos/ (slow; re-uploads everything)
+node scripts/upload-to-r2.js --all
 ```
 
 **What it does**:
-- Uploads all MP4 files from `public/videos/` to Cloudflare R2
+- Uploads chosen MP4 file(s) from `public/videos/` to Cloudflare R2 at keys `videos/<filename>`
 - Sets proper cache headers for video files
 - Displays upload progress and final URLs
 
@@ -58,6 +69,21 @@ These scripts are useful for processing videos locally before uploading to R2.
 - Reduces file size for easier handling
 
 **Requirements**: `ffmpeg` installed
+
+### `reencode-hevc-to-h264-web.sh`
+**Purpose**: Fix “video failed to load” in Chrome/Firefox when source files are **HEVC (H.265)** (common for iPhone HDR). Browsers need **H.264** in MP4 for reliable `<video>` playback.
+
+**Usage** (specific files):
+```bash
+./scripts/reencode-hevc-to-h264-web.sh earlylifecrisis.mp4 MgnaCRRRTA.mp4
+```
+
+Or scan **all** HEVC clips in `public/videos/`:
+```bash
+./scripts/reencode-hevc-to-h264-web.sh
+```
+
+After re-encoding, **re-upload changed files to R2** (same filenames overwrite the old objects).
 
 ### `convert-videos-to-mp4.sh`
 **Purpose**: Convert .mov files to web-compatible MP4 format

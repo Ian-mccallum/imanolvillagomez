@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FullscreenModal } from '@/components/video';
 import { photos } from '@/constants/photos';
@@ -44,43 +45,63 @@ export const PhotosPage = () => {
     { name: 'Photos', url: `${BASE_URL}${seoConfig.path}` },
   ]);
   
+  const [searchParams, setSearchParams] = useSearchParams();
+  const yearParam = searchParams.get('year');
+  const filterYear =
+    yearParam != null && yearParam !== ''
+      ? parseInt(yearParam, 10)
+      : null;
+  const validYear =
+    filterYear !== null && !Number.isNaN(filterYear) ? filterYear : null;
+
+  const setYearFilter = (year: number | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (year !== null) {
+      next.set('year', String(year));
+    } else {
+      next.delete('year');
+    }
+    setSearchParams(next, { replace: true });
+  };
+
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
 
-  // Get all unique artists from photos
+  const photoYears = useMemo(() => {
+    const ys = [...new Set(photos.map((p) => p.year).filter((y): y is number => typeof y === 'number'))];
+    return ys.sort((a, b) => b - a);
+  }, []);
+
   const artists = useMemo(() => {
     const artistSet = new Set<string>();
-    photos.forEach(photo => {
-      if (photo.client) {
-        artistSet.add(photo.client);
-      }
+    photos.forEach((photo) => {
+      if (photo.client) artistSet.add(photo.client);
     });
     return Array.from(artistSet).sort();
   }, []);
-
-  // Filter and sort photos by artist
   const filteredAndSortedPhotos = useMemo(() => {
     let filtered = photos;
-    
-    // Filter by selected artist
-    if (selectedArtist) {
-      filtered = photos.filter(photo => photo.client === selectedArtist);
+
+    if (validYear !== null) {
+      filtered = filtered.filter((photo) => photo.year === validYear);
     }
 
-    // Sort by artist (client), then by id
-    return filtered.sort((a, b) => {
+    if (selectedArtist) {
+      filtered = filtered.filter((photo) => photo.client === selectedArtist);
+    }
+
+    return [...filtered].sort((a, b) => {
+      const yearA = a.year ?? 0;
+      const yearB = b.year ?? 0;
+      if (yearA !== yearB) return yearB - yearA;
       const artistA = a.client || 'Unknown';
       const artistB = b.client || 'Unknown';
-      
-      if (artistA !== artistB) {
-        return artistA.localeCompare(artistB);
-      }
-      
+      if (artistA !== artistB) return artistA.localeCompare(artistB);
       return a.id.localeCompare(b.id);
     });
-  }, [selectedArtist]);
+  }, [selectedArtist, validYear]);
 
 
   const handlePhotoSelect = (photo: Photo, position: { x: number; y: number; width: number; height: number }) => {
@@ -159,13 +180,53 @@ export const PhotosPage = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {filteredAndSortedPhotos.length} {filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}
+              {filteredAndSortedPhotos.length}{' '}
+              {filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}
               {selectedArtist && ` • ${selectedArtist.toUpperCase()}`}
+              {validYear !== null && ` • ${validYear}`}
             </motion.p>
           </div>
 
           {/* Artist filter - West's minimal but bold - Touch-friendly on mobile */}
-          <div className="flex flex-wrap gap-2 md:gap-3">
+          {/* Year + artist filters */}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-2 md:gap-3">
+              <motion.button
+                type="button"
+                onClick={() => setYearFilter(null)}
+                className={cn(
+                  'px-4 py-2.5 text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200',
+                  'border-2 min-h-[44px] flex items-center justify-center',
+                  validYear === null
+                    ? 'bg-white text-black border-white'
+                    : 'bg-transparent text-white border-white/30 hover:border-white/60',
+                )}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                All years
+              </motion.button>
+              {photoYears.map((y) => (
+                <motion.button
+                  key={y}
+                  type="button"
+                  onClick={() => setYearFilter(y)}
+                  className={cn(
+                    'px-4 py-2.5 text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200',
+                    'border-2 min-h-[44px] flex items-center justify-center',
+                    validYear === y
+                      ? 'bg-green-500 text-black border-green-500'
+                      : 'bg-transparent text-white border-white/30 hover:border-white/60',
+                  )}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {y}
+                </motion.button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2 md:gap-3">
             <motion.button
               onClick={() => handleArtistFilter(null)}
               className={cn(
@@ -205,6 +266,7 @@ export const PhotosPage = () => {
               </motion.button>
             ))}
           </div>
+          </div>
         </div>
       </header>
 
@@ -227,7 +289,7 @@ export const PhotosPage = () => {
           <AnimatePresence mode="wait">
             {/* Mobile: Single column grid for full photo visibility, Desktop: Masonry columns for scrapbook aesthetic */}
             <motion.div
-              key={selectedArtist || 'all'}
+              key={`${validYear ?? 'all'}-${selectedArtist ?? 'all'}`}
               className="grid grid-cols-1 md:block md:columns-2 lg:columns-3 xl:columns-4 gap-3 md:gap-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
