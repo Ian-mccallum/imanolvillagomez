@@ -38,7 +38,7 @@ export const WorkPage = () => {
   const mediaItems = useMemo(() => videosToMediaItems(videos), []);
 
   return (
-    <div className="min-h-screen bg-black overflow-x-hidden">
+    <div className="min-h-screen bg-zinc-darkest overflow-x-hidden">
       {/* VIDEO-FIRST: No hero section - Videos start immediately (80% visual weight) */}
       {/* Minimal header (5% visual weight) - West's bold but minimal */}
       <header className="container mx-auto px-4 md:px-6 py-6 md:py-8 relative">

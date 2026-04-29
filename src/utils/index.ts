@@ -50,3 +50,4 @@ export const cn = (...classes: (string | undefined | null | false)[]): string =>
 };
 
 export * from './animations';
+export * from './videoRotation270';

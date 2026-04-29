@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Video, Photo } from '@/types';
-import { cn } from '@/utils';
+import { cn, cssTransformRotation270 } from '@/utils';
 import { GrainTexture } from '@/components/ui/GrainTexture';
 import { TornEdge } from '@/components/ui/TornEdge';
 import { ScanLines } from '@/components/ui/ScanLines';
@@ -203,7 +203,8 @@ export const PaperCutoutCard = ({
               playsInline
               preload="metadata"
               style={{
-                transform: videoRotation === 270 ? 'rotate(270deg)' : 'none',
+                transform:
+                  videoRotation === 270 ? cssTransformRotation270() : 'none',
                 transformOrigin: 'center center',
               }}
               onMouseEnter={(e) => {

@@ -38,7 +38,7 @@ export const PortfolioPage = () => {
   const mediaItems = useMemo(() => videosToMediaItems(videos), []);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-zinc-darkest">
       {/* Minimal header (5% visual weight) - West's bold but minimal */}
       <header className="container mx-auto px-4 md:px-6 py-6 md:py-8 relative">
         {/* Background texture - Oliver's distressed */}

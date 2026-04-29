@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   return (
-    <footer className="relative z-10 border-t border-zinc-800/50 bg-black py-2 md:py-3" style={{ backgroundColor: '#000000' }}>
+    <footer className="relative z-10 border-t border-zinc-800/50 bg-zinc-darkest py-2 md:py-3">
       {/* Grain texture overlay - subtle */}
       <div
         className="absolute inset-0 pointer-events-none z-0"

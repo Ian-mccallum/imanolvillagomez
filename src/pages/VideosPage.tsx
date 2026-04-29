@@ -106,7 +106,7 @@ export const VideosPage = () => {
   return (
     <>
       <StructuredData data={breadcrumbSchema} />
-      <div className="min-h-screen bg-black text-white relative -mt-12 md:-mt-14">
+      <div className="min-h-screen bg-zinc-darkest text-white relative -mt-12 md:-mt-14">
       {(
         [
           { blend: 'overlay' as const, bg: PAGE_FILM_GRAIN_SVG.layer1 },

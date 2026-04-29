@@ -15,7 +15,7 @@ import { GrainTexture } from '@/components/ui/GrainTexture';
 
 export const AboutPage = () => {
   return (
-    <div className="min-h-screen bg-black relative">
+    <div className="min-h-screen bg-zinc-darkest relative">
       <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
         {/* Carson: Experimental typography layout - Asymmetrical */}
         <div className="max-w-6xl mx-auto">

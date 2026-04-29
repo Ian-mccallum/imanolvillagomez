@@ -3,6 +3,7 @@ import { MediaItem } from '@/types/media';
 import { PlatformInfo as _PlatformInfo } from '@/utils/platform';
 import { addFullscreenChangeListener } from '@/utils/fullscreen';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cssTransformRotation270 } from '@/utils/videoRotation270';
 
 interface VideoPlayerProps {
   item: MediaItem;
@@ -335,7 +336,7 @@ export const VideoPlayer = ({
         preload="metadata"
         className={`w-full h-full object-contain ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         style={{
-          transform: needsRotation ? 'rotate(270deg)' : 'none',
+          transform: needsRotation ? cssTransformRotation270() : 'none',
           transformOrigin: 'center center',
         }}
         onError={(e) => {

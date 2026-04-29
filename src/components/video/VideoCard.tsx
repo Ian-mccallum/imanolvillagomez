@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Video } from '@/types';
-import { cn } from '@/utils';
+import { cn, cssTransformRotation270 } from '@/utils';
 import { GrainTexture } from '@/components/ui/GrainTexture';
 import { FlashOverlay } from '@/components/ui/FlashOverlay';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
@@ -122,14 +122,17 @@ export const VideoCard = ({
           <video
             ref={videoRef}
             src={video.thumbnail || video.videoUrl}
-            className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${
-              video.rotation === 270 ? 'object-contain' : 'object-cover'
+            className={`w-full h-full transition-transform duration-500 ${
+              video.rotation === 270
+                ? 'object-contain'
+                : 'object-cover group-hover:scale-110'
             }`}
             muted
             playsInline
             preload="metadata"
             style={{
-              transform: video.rotation === 270 ? 'rotate(270deg)' : 'none',
+              transform:
+                video.rotation === 270 ? cssTransformRotation270() : 'none',
               transformOrigin: 'center center',
             }}
             onLoadedMetadata={(e) => {

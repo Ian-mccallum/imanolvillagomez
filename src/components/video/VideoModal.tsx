@@ -4,6 +4,7 @@ import { ScanLines } from '@/components/ui/ScanLines';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
 import { useEffect, useRef, useState } from 'react';
 import { formatVideoSongLocationCaption } from '@/utils/videoCaption';
+import { cssTransformRotation270 } from '@/utils/videoRotation270';
 
 /**
  * VideoModal
@@ -227,7 +228,7 @@ export const VideoModal = ({ isOpen, onClose, video, initialPosition }: VideoMod
                 preload="metadata"
                 className={`w-full h-full max-w-full max-h-full object-contain relative z-10 ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                 style={{
-                  transform: needsRotation ? 'rotate(270deg)' : 'none',
+                  transform: needsRotation ? cssTransformRotation270() : 'none',
                   transformOrigin: 'center center',
                 }}
                 onError={() => {

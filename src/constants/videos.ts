@@ -7,6 +7,7 @@ import { Video } from '@/types';
  * 
  * To mark a video as an "Edit" (separate from artist work), add: isEdit: true
  * Videos without isEdit will be organized by their client/artist name
+ * Captions (SONG | LOCATION): omit song to use artist/client as the primary line; set song for named pieces (e.g. NETTSPEND, Mgna CRRRTA)
  *
  * Location (`location`): Prefer the specific venue or site (theatre, park, arena).
  * Use CHICAGO when the venue is unknown or only the city applies.
@@ -168,7 +169,8 @@ export const videos: Video[] = [
     title: 'Early Life Crisis',
     client: 'Early Life Crisis',
     artist: 'Early Life Crisis',
-    song: 'Session cut',
+    song: 'NETTSPEND',
+    tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
     location: 'CHICAGO',
@@ -182,7 +184,7 @@ export const videos: Video[] = [
     title: 'Mgna CRRRTA',
     client: 'Mgna',
     artist: 'Mgna',
-    song: 'Live session',
+    song: 'Mgna CRRRTA',
     date: 'February 28, 2026',
     year: 2026,
     location: 'CHICAGO',
@@ -196,8 +198,8 @@ export const videos: Video[] = [
     title: 'Puma Blue — Reel 01',
     client: 'Puma Blue',
     artist: 'Puma Blue',
-    song: 'B-roll reel',
-    tour: 'Feb 2026 session',
+    song: 'NETTSPEND',
+    tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
     location: 'CHICAGO',
@@ -210,8 +212,8 @@ export const videos: Video[] = [
     title: 'Salami — Stage reel',
     client: 'Salami',
     artist: 'Salami',
-    song: 'Reel capture',
-    tour: 'Feb 2026 session',
+    song: 'NETTSPEND',
+    tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
     location: 'CHICAGO',
@@ -225,8 +227,8 @@ export const videos: Video[] = [
     title: 'Studio drop — Reel 03',
     client: 'Feb 2026 Session',
     artist: 'Feb 2026 Session',
-    song: 'Short reel',
-    tour: 'Feb 2026 session',
+    song: 'NETTSPEND',
+    tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
     location: 'CHICAGO',

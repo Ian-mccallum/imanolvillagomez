@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Video } from '@/types';
-import { cn } from '@/utils';
+import { cn, cssTransformRotation270 } from '@/utils';
 import { GrainTexture } from '@/components/ui/GrainTexture';
 import { TornEdge } from '@/components/ui/TornEdge';
 import { ScanLines } from '@/components/ui/ScanLines';
@@ -88,14 +88,17 @@ export const MasonryVideoCard = ({
           <div className="relative w-full h-full overflow-hidden">
             <video
               src={video.thumbnail}
-              className={`w-full h-full transition-transform duration-700 group-hover:scale-110 ${
-                video.rotation === 270 ? 'object-contain' : 'object-cover'
+              className={`w-full h-full transition-transform duration-700 ${
+                video.rotation === 270
+                  ? 'object-contain'
+                  : 'object-cover group-hover:scale-110'
               }`}
               muted
               playsInline
               preload="metadata"
               style={{
-                transform: video.rotation === 270 ? 'rotate(270deg)' : 'none',
+                transform:
+                  video.rotation === 270 ? cssTransformRotation270() : 'none',
                 transformOrigin: 'center center',
               }}
               onMouseEnter={(e) => {

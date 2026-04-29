@@ -38,7 +38,7 @@ export const ThankYouPage = () => {
   return (
     <>
       <StructuredData data={breadcrumbSchema} />
-    <div className="min-h-screen bg-black text-white relative -mt-12 md:-mt-14">
+    <div className="min-h-screen bg-zinc-darkest text-white relative -mt-12 md:-mt-14">
       {/* Oliver: Very intense grainy background texture - multiple layers */}
       <div
         className="fixed inset-0 pointer-events-none z-0"

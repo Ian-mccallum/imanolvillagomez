@@ -104,7 +104,7 @@ export const PhotosPage = () => {
   return (
     <>
       <StructuredData data={breadcrumbSchema} />
-      <div className="min-h-screen bg-black text-white relative -mt-12 md:-mt-14">
+      <div className="min-h-screen bg-zinc-darkest text-white relative -mt-12 md:-mt-14">
       {(
         [
           { blend: 'overlay' as const, bg: PAGE_FILM_GRAIN_SVG.layer1 },
@@ -261,7 +261,7 @@ function PhotoMasonryCard({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <div className="relative overflow-hidden bg-black">
+        <div className="relative overflow-hidden bg-zinc-darkest">
           <img
             src={photo.imageUrl}
             alt={`IMANOL VILLAGOMEZ - ${photo.client || 'Concert'} photography${photo.year ? ` - ${photo.year}` : ''}`}
