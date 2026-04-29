@@ -9,8 +9,7 @@ import { Video } from '@/types';
  * Videos without isEdit will be organized by their client/artist name
  * Captions (SONG | LOCATION): omit song to use artist/client as the primary line; set song for named pieces (e.g. NETTSPEND, Mgna CRRRTA)
  *
- * Location (`location`): Prefer the specific venue or site (theatre, park, arena).
- * Use CHICAGO when the venue is unknown or only the city applies.
+ * Location (`location`): City, festival name (e.g. LOLLAPALOOZA), or site when it reads best in SONG | LOCATION.
  */
 
 // Get R2 base URL from environment variable, fallback to local paths for development
@@ -96,10 +95,10 @@ export const videos: Video[] = [
     client: 'Hellp',
     artist: 'The Hellp',
     song: 'Ether',
-    tour: 'Vic Theatre',
+    tour: 'Chicago',
     date: 'September 16, 2025',
     year: 2025,
-    location: 'VIC THEATRE',
+    location: 'CHICAGO',
     category: 'music-video',
     videoUrl: getVideoUrl('hellp1.mp4'),
     thumbnail: getVideoUrl('hellp1.mp4'),
@@ -113,7 +112,7 @@ export const videos: Video[] = [
     tour: 'Lollapalooza',
     date: 'July 31st, 2025',
     year: 2025,
-    location: 'GRANT PARK',
+    location: 'Lollapalooza',
     category: 'music-video',
     videoUrl: getVideoUrl('2hollisLOLLA.mp4'),
     thumbnail: getVideoUrl('2hollisLOLLA.mp4'),
@@ -141,8 +140,8 @@ export const videos: Video[] = [
     artist: 'Charli XCX',
     song: '365',
     tour: 'Sweat Tour',
-    date: 'September 30, 2024',
-    year: 2024,
+    date: 'September 30, 2025',
+    year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
     videoUrl: getVideoUrl('charlixcxSWEAT.mp4'),
@@ -156,8 +155,8 @@ export const videos: Video[] = [
     artist: 'Charli XCX',
     song: 'Guess',
     tour: 'Sweat Tour',
-    date: 'September 30, 2024',
-    year: 2024,
+    date: 'September 30, 2025',
+    year: 2025,
     location: 'CHICAGO',
     category: 'music-video',
     videoUrl: getVideoUrl('charlixcxGUESS.mp4'),
@@ -173,7 +172,7 @@ export const videos: Video[] = [
     tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
-    location: 'CHICAGO',
+    location: 'MILWAUKEE',
     category: 'music-video',
     videoUrl: getVideoUrl('earlylifecrisis.mp4'),
     thumbnail: getVideoUrl('earlylifecrisis.mp4'),
@@ -202,7 +201,7 @@ export const videos: Video[] = [
     tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
-    location: 'CHICAGO',
+    location: 'MILWAUKEE',
     category: 'music-video',
     videoUrl: getVideoUrl('reel1776802607072991.mp4'),
     thumbnail: getVideoUrl('reel1776802607072991.mp4'),
@@ -216,7 +215,7 @@ export const videos: Video[] = [
     tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
-    location: 'CHICAGO',
+    location: 'MILWAUKEE',
     category: 'music-video',
     videoUrl: getVideoUrl('reel1776901621418237.mp4'),
     thumbnail: getVideoUrl('reel1776901621418237.mp4'),
@@ -231,7 +230,7 @@ export const videos: Video[] = [
     tour: 'Early life crisis',
     date: 'February 28, 2026',
     year: 2026,
-    location: 'CHICAGO',
+    location: 'MILWAUKEE',
     category: 'music-video',
     videoUrl: getVideoUrl('reel1776903207924937.mp4'),
     thumbnail: getVideoUrl('reel1776903207924937.mp4'),

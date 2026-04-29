@@ -38,7 +38,6 @@ export const HomePage = () => {
     name: 'IMANOL VILLAGOMEZ',
     jobTitle: 'Music Videographer',
     url: BASE_URL,
-    email: 'imanolV20@icloud.com',
     address: {
       locality: 'Aurora',
       region: 'Illinois',

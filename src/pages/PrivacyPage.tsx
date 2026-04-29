@@ -48,7 +48,7 @@ export const PrivacyPage = () => {
       content: `We collect information that you provide directly to us and information that is automatically collected when you visit our Website.
 
 INFORMATION YOU PROVIDE DIRECTLY:
-Contact Form Information: When you submit our contact form, we collect your name, email address, subject (optional), and message content. This information is processed by FormSubmit, a third-party form submission service, which forwards your submission to our email address (imanolV20@icloud.com).
+Email Inquiries: If you choose to contact us by email (including after using the verification steps on our Contact page), we receive the email address you send from, the contents of your message, and any information you include in that message.
 
 AUTOMATICALLY COLLECTED INFORMATION:
 Browser Local Storage: We may use browser local storage to store simple preference settings. This information is stored locally on your device and is not transmitted to our servers.
@@ -60,7 +60,7 @@ Device and Usage Information: When you visit our Website, your browser automatic
       title: 'HOW WE USE YOUR INFORMATION',
       content: `We use the information we collect for the following purposes:
 
-• To respond to your inquiries and communications submitted through our contact form
+• To respond to your inquiries when you email us or contact us through our Website
 • To provide and maintain our Website functionality
 • To remember your preferences using local storage
 • To improve our Website and user experience
@@ -72,11 +72,11 @@ We do not sell, rent, trade, or otherwise share your personal information with t
     {
       id: 'third-party-services',
       title: 'THIRD-PARTY SERVICES',
-      content: `Our Website uses the following third-party service:
+      content: `Our Website may use the following third-party services:
 
-FORMSUBMIT: Our contact form is processed through FormSubmit (formsubmit.co), a third-party form submission service. When you submit our contact form, FormSubmit temporarily processes your submission and forwards it to our email address. According to FormSubmit's privacy practices, they do not permanently store form submission data; submissions are immediately forwarded to the designated email address and then deleted from their servers. Your use of our contact form is subject to FormSubmit's privacy policy and terms of service.
+CLOUDFLARE TURNSTILE: Our Contact page may use Cloudflare Turnstile, a bot-detection and verification service operated by Cloudflare, Inc. When you interact with Turnstile, Cloudflare may process limited technical data in accordance with your browser session. This helps reduce automated abuse. Please review Cloudflare's privacy policy for details on how they handle such data.
 
-We do not control FormSubmit's data practices, and we encourage you to review their privacy policy to understand how they handle your information.`
+We do not control Cloudflare's data practices beyond our configuration of Turnstile for this purpose.`
     },
     {
       id: 'cookies',
@@ -90,7 +90,7 @@ Our Website does not currently use cookies, web beacons, or other tracking techn
       title: 'DATA RETENTION',
       content: `We retain the personal information we collect as follows:
 
-CONTACT FORM SUBMISSIONS: We retain contact form submissions received via email indefinitely, unless you request deletion. You may request deletion of your information at any time by contacting us at imanolV20@icloud.com.
+EMAIL CORRESPONDENCE: We retain emails we receive indefinitely unless you request deletion, subject to applicable law. You may request deletion of correspondence that constitutes your personal information by contacting us at imanolV20@icloud.com.
 
 LOCAL STORAGE DATA: Local storage data remains on your device until you clear your browser's local storage or use a different device/browser.
 
@@ -101,9 +101,7 @@ You have the right to request deletion of your personal information at any time.
     {
       id: 'data-security',
       title: 'DATA SECURITY',
-      content: `We implement reasonable security measures designed to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive to protect your personal information, we cannot guarantee absolute security. You use our Website and provide information at your own risk.
-
-When you submit our contact form through FormSubmit, your information is transmitted over the Internet. FormSubmit uses industry-standard security measures, but we cannot guarantee the security of information transmitted through third-party services.`
+      content: `We implement reasonable security measures designed to protect your personal information. However, no method of transmission over the Internet or electronic storage is 100% secure. While we strive to protect your personal information, we cannot guarantee absolute security. You use our Website and provide information at your own risk.`
     },
     {
       id: 'your-rights',
@@ -145,7 +143,7 @@ To exercise any of these rights, please contact us at imanolV20@icloud.com with 
     {
       id: 'contact',
       title: 'CONTACT US',
-      content: `If you have any questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us:
+      content: `If you have any questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us using the Contact page (which uses verification steps before displaying an email address) or, for legal and privacy-rights requests, at:
 
 EMAIL: imanolV20@icloud.com
 
