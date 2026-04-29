@@ -333,9 +333,9 @@ export const VideoPlayer = ({
         playsInline
         muted={isMuted}
         preload="metadata"
-        className={`w-full h-full ${needsRotation ? 'object-cover' : 'object-contain'} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        className={`w-full h-full object-contain ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         style={{
-          transform: needsRotation ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill screen after rotation, reduced zoom
+          transform: needsRotation ? 'rotate(270deg)' : 'none',
           transformOrigin: 'center center',
         }}
         onError={(e) => {

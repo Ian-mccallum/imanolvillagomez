@@ -7,6 +7,9 @@ import { Video } from '@/types';
  * 
  * To mark a video as an "Edit" (separate from artist work), add: isEdit: true
  * Videos without isEdit will be organized by their client/artist name
+ *
+ * Location (`location`): Prefer the specific venue or site (theatre, park, arena).
+ * Use CHICAGO when the venue is unknown or only the city applies.
  */
 
 // Get R2 base URL from environment variable, fallback to local paths for development
@@ -95,7 +98,7 @@ export const videos: Video[] = [
     tour: 'Vic Theatre',
     date: 'September 16, 2025',
     year: 2025,
-    location: 'CHICAGO',
+    location: 'VIC THEATRE',
     category: 'music-video',
     videoUrl: getVideoUrl('hellp1.mp4'),
     thumbnail: getVideoUrl('hellp1.mp4'),
@@ -109,7 +112,7 @@ export const videos: Video[] = [
     tour: 'Lollapalooza',
     date: 'July 31st, 2025',
     year: 2025,
-    location: 'CHICAGO',
+    location: 'GRANT PARK',
     category: 'music-video',
     videoUrl: getVideoUrl('2hollisLOLLA.mp4'),
     thumbnail: getVideoUrl('2hollisLOLLA.mp4'),

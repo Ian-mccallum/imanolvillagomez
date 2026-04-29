@@ -4,8 +4,7 @@ import { cn } from '@/utils';
  * VideoFormatLegend
  * 
  * Shows the formatting legend for video captions
- * Format: artist/song/tour
- * Date: year
+ * Primary line: song | location (all caps); edits without song: artist | location
  * 
  * Carson: Experimental typography, minimal
  * West: Clean, minimal, bold
@@ -27,7 +26,7 @@ export const VideoFormatLegend = ({ className, darkBackground = false }: VideoFo
     )}>
       <div className="flex items-center gap-2">
         <span className="font-medium">FORMAT:</span>
-        <span className="font-normal">artist/song/tour</span>
+        <span className="font-normal">song | location</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="font-medium">DATE:</span>

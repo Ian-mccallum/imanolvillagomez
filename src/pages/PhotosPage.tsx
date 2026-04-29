@@ -1,34 +1,28 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FullscreenModal } from '@/components/video';
+import { FullscreenModal, VideoFilterBar, VideoFormatLegend } from '@/components/video';
 import { photos } from '@/constants/photos';
 import { Photo } from '@/types';
+import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
 import { cn } from '@/utils';
+import {
+  generatePhotoFilterOptions,
+  applyPhotoFilters,
+  queryStringToFilterState,
+  videoBarFilterStateToQueryString,
+  sanitizeVideoBarFilterState,
+  hasVideoBarActiveFilters,
+} from '@/utils/filters';
 import { photosToMediaItems } from '@/types/media';
 import { usePageTitle, useMetaTags, useResponsive } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
+import { PAGE_FILM_GRAIN_OPACITY, PAGE_FILM_GRAIN_SVG } from '@/constants/pageFilmGrain';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
 
 /**
- * PhotosPage
- * 
- * Carson: Experimental typography, break the grid, asymmetrical layouts
- * Oliver: Dark canvas, photos as light, distressed textures, gothic beauty
- * West: Minimalist perfectionism, bold statements, clean aesthetics
- * Weirdcore: Glitch effects, digital artifacts, intentional glitches
- * 
- * Features:
- * - Photos sorted by artist (client)
- * - Artist filter dropdown/buttons
- * - Pinterest/masonry layout (scrapbook aesthetic)
- * - Dark background (Oliver)
- * - Experimental typography (Carson)
- * - Minimal, bold design (West)
- * - Glitch effects on hover (Weirdcore)
- * - Indie sleaze grain textures (Oliver)
+ * PhotosPage — same filter bar as Videos: ALL + ARTIST / YEAR / TOUR (artist ↔ photo client).
  */
-
 export const PhotosPage = () => {
   const seoConfig = SEO_CONFIG.photos;
   usePageTitle('Photos');
@@ -38,60 +32,38 @@ export const PhotosPage = () => {
     keywords: seoConfig.keywords,
   });
 
-  // Breadcrumb schema
   const breadcrumbSchema = createBreadcrumbSchema([
     { name: 'Home', url: BASE_URL },
     { name: 'Work', url: `${BASE_URL}/work` },
     { name: 'Photos', url: `${BASE_URL}${seoConfig.path}` },
   ]);
-  
-  const [searchParams, setSearchParams] = useSearchParams();
-  const yearParam = searchParams.get('year');
-  const filterYear =
-    yearParam != null && yearParam !== ''
-      ? parseInt(yearParam, 10)
-      : null;
-  const validYear =
-    filterYear !== null && !Number.isNaN(filterYear) ? filterYear : null;
 
-  const setYearFilter = (year: number | null) => {
-    const next = new URLSearchParams(searchParams);
-    if (year !== null) {
-      next.set('year', String(year));
-    } else {
-      next.delete('year');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filterState, setFilterState] = useState<FilterState>(() => {
+    const queryString = searchParams.toString();
+    if (queryString) {
+      return sanitizeVideoBarFilterState(queryStringToFilterState(queryString));
     }
-    setSearchParams(next, { replace: true });
-  };
+    return EMPTY_FILTER_STATE;
+  });
+
+  useEffect(() => {
+    const queryString = videoBarFilterStateToQueryString(filterState);
+    if (queryString) {
+      setSearchParams(new URLSearchParams(queryString), { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [filterState, setSearchParams]);
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
 
-  const photoYears = useMemo(() => {
-    const ys = [...new Set(photos.map((p) => p.year).filter((y): y is number => typeof y === 'number'))];
-    return ys.sort((a, b) => b - a);
-  }, []);
+  const filterOptions = useMemo(() => generatePhotoFilterOptions(photos), []);
 
-  const artists = useMemo(() => {
-    const artistSet = new Set<string>();
-    photos.forEach((photo) => {
-      if (photo.client) artistSet.add(photo.client);
-    });
-    return Array.from(artistSet).sort();
-  }, []);
   const filteredAndSortedPhotos = useMemo(() => {
-    let filtered = photos;
-
-    if (validYear !== null) {
-      filtered = filtered.filter((photo) => photo.year === validYear);
-    }
-
-    if (selectedArtist) {
-      filtered = filtered.filter((photo) => photo.client === selectedArtist);
-    }
-
+    const filtered = applyPhotoFilters(photos, sanitizeVideoBarFilterState(filterState));
     return [...filtered].sort((a, b) => {
       const yearA = a.year ?? 0;
       const yearB = b.year ?? 0;
@@ -101,11 +73,13 @@ export const PhotosPage = () => {
       if (artistA !== artistB) return artistA.localeCompare(artistB);
       return a.id.localeCompare(b.id);
     });
-  }, [selectedArtist, validYear]);
+  }, [filterState]);
 
-
-  const handlePhotoSelect = (photo: Photo, position: { x: number; y: number; width: number; height: number }) => {
-    const index = filteredAndSortedPhotos.findIndex(p => p.id === photo.id);
+  const handlePhotoSelect = (
+    photo: Photo,
+    position: { x: number; y: number; width: number; height: number }
+  ) => {
+    const index = filteredAndSortedPhotos.findIndex((p) => p.id === photo.id);
     if (index !== -1) {
       setSelectedPhotoIndex(index);
       setClickPosition(position);
@@ -118,61 +92,47 @@ export const PhotosPage = () => {
     setSelectedPhotoIndex(null);
     setClickPosition(null);
   };
-  
-  // Convert filtered photos to media items
+
   const mediaItems = useMemo(() => photosToMediaItems(filteredAndSortedPhotos), [filteredAndSortedPhotos]);
 
-  const handleArtistFilter = (artist: string | null) => {
-    setSelectedArtist(artist);
+  const handleFilterChange = (newState: FilterState) => {
+    setFilterState(sanitizeVideoBarFilterState(newState));
   };
+
+  const filtersActive = hasVideoBarActiveFilters(filterState);
 
   return (
     <>
       <StructuredData data={breadcrumbSchema} />
       <div className="min-h-screen bg-black text-white relative -mt-12 md:-mt-14">
-      {/* Oliver: Very intense grainy background texture - multiple layers */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='5.0' numOctaves='12' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'overlay',
-          opacity: 1,
-        }}
-      />
-      
-      {/* Second grain layer - more intensity */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='8.0' numOctaves='15' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter2)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'multiply',
-          opacity: 0.9,
-        }}
-      />
-      
-      {/* Third grain layer - maximum intensity */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter3'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='10.0' numOctaves='18' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter3)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'screen',
-          opacity: 0.7,
-        }}
-      />
+      {(
+        [
+          { blend: 'overlay' as const, bg: PAGE_FILM_GRAIN_SVG.layer1 },
+          { blend: 'multiply' as const, bg: PAGE_FILM_GRAIN_SVG.layer2 },
+          { blend: 'screen' as const, bg: PAGE_FILM_GRAIN_SVG.layer3 },
+        ] as const
+      ).map((layer, i) => (
+        <div
+          key={i}
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            backgroundImage: layer.bg,
+            mixBlendMode: layer.blend,
+            opacity: PAGE_FILM_GRAIN_OPACITY[i],
+          }}
+        />
+      ))}
 
-      {/* Minimal header (5% visual weight) - West's bold minimalism + Carson's experimental typography */}
-      {/* Mobile: Stack elements, reduce typography size */}
       <header className="container mx-auto px-4 md:px-6 pt-24 md:pt-20 lg:pt-24 pb-4 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-6">
-          {/* Carson: Experimental typography - break the grid */}
+        <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-6">
           <div>
             <motion.h1
               className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
             >
-            PHOTOS
+              PHOTOS
             </motion.h1>
             <motion.p
               className="mt-2 text-zinc-400 text-xs sm:text-sm md:text-base uppercase tracking-wider"
@@ -182,96 +142,30 @@ export const PhotosPage = () => {
             >
               {filteredAndSortedPhotos.length}{' '}
               {filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}
-              {selectedArtist && ` • ${selectedArtist.toUpperCase()}`}
-              {validYear !== null && ` • ${validYear}`}
+              {filtersActive && ' • FILTERED'}
             </motion.p>
           </div>
-
-          {/* Artist filter - West's minimal but bold - Touch-friendly on mobile */}
-          {/* Year + artist filters */}
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap gap-2 md:gap-3">
-              <motion.button
-                type="button"
-                onClick={() => setYearFilter(null)}
-                className={cn(
-                  'px-4 py-2.5 text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200',
-                  'border-2 min-h-[44px] flex items-center justify-center',
-                  validYear === null
-                    ? 'bg-white text-black border-white'
-                    : 'bg-transparent text-white border-white/30 hover:border-white/60',
-                )}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                All years
-              </motion.button>
-              {photoYears.map((y) => (
-                <motion.button
-                  key={y}
-                  type="button"
-                  onClick={() => setYearFilter(y)}
-                  className={cn(
-                    'px-4 py-2.5 text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200',
-                    'border-2 min-h-[44px] flex items-center justify-center',
-                    validYear === y
-                      ? 'bg-green-500 text-black border-green-500'
-                      : 'bg-transparent text-white border-white/30 hover:border-white/60',
-                  )}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {y}
-                </motion.button>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap gap-2 md:gap-3">
-            <motion.button
-              onClick={() => handleArtistFilter(null)}
-              className={cn(
-                "px-4 py-2.5 text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200",
-                "border-2 min-h-[44px] flex items-center justify-center",
-                selectedArtist === null
-                  ? "bg-white text-black border-white"
-                  : "bg-transparent text-white border-white/30 hover:border-white/60"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              ALL
-            </motion.button>
-            
-            {artists.map((artist, index) => (
-              <motion.button
-                key={artist}
-                onClick={() => handleArtistFilter(artist)}
-                className={cn(
-                  "px-4 py-2.5 text-sm md:text-base font-bold uppercase tracking-wider transition-all duration-200",
-                  "border-2 min-h-[44px] flex items-center justify-center",
-                  selectedArtist === artist
-                    ? "bg-white text-black border-white"
-                    : "bg-transparent text-white border-white/30 hover:border-white/60"
-                )}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
-              >
-                {artist}
-              </motion.button>
-            ))}
+          <div className="hidden md:block">
+            <VideoFormatLegend darkBackground />
           </div>
-          </div>
+        </div>
+        <div className="md:hidden mt-4">
+          <VideoFormatLegend darkBackground />
         </div>
       </header>
 
-      {/* Photo grid (80% visual weight) - Pinterest/masonry layout - scrapbook aesthetic */}
-      {/* Mobile: Single column grid for better photo visibility, Desktop: Masonry columns */}
+      {/* z-20 sibling so filter dropdowns stack above main (also z-10); same pattern as VideosPage */}
+      <div className="container mx-auto px-4 md:px-6 relative z-20">
+        <VideoFilterBar
+          filterState={filterState}
+          filterOptions={filterOptions}
+          onFilterChange={handleFilterChange}
+          videoCount={filteredAndSortedPhotos.length}
+          countLabel="photos"
+          darkBackground
+        />
+      </div>
+
       <main className="w-full max-w-[100vw] mx-auto px-2 sm:px-4 md:px-6 pb-12 md:pb-20 relative z-10">
         {filteredAndSortedPhotos.length === 0 ? (
           <motion.div
@@ -282,34 +176,38 @@ export const PhotosPage = () => {
           >
             <div className="text-center">
               <h2 className="text-4xl md:text-6xl font-black text-white mb-4">NO PHOTOS</h2>
-              <p className="text-zinc-400 text-lg">No photos found for this filter.</p>
+              <p className="text-zinc-400 text-lg">No photos match your filters.</p>
+              <button
+                type="button"
+                onClick={() => setFilterState(EMPTY_FILTER_STATE)}
+                className="mt-6 px-4 py-2 text-xs uppercase tracking-wider font-medium border border-zinc-700 text-white hover:bg-zinc-900 transition-colors focus:outline-none focus:ring-1 focus:ring-white/50"
+              >
+                Clear filters
+              </button>
             </div>
           </motion.div>
         ) : (
           <AnimatePresence mode="wait">
-            {/* Mobile: Single column grid for full photo visibility, Desktop: Masonry columns for scrapbook aesthetic */}
             <motion.div
-              key={`${validYear ?? 'all'}-${selectedArtist ?? 'all'}`}
-              className="grid grid-cols-1 md:block md:columns-2 lg:columns-3 xl:columns-4 gap-3 md:gap-6"
+              key={`grid-${filteredAndSortedPhotos.length}-${filtersActive ? 'f' : 'all'}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
+              className={cn(
+                'mx-auto',
+                'columns-1 sm:columns-2 lg:columns-3 xl:columns-4',
+                'gap-1.5 sm:gap-2 md:gap-4 space-y-1.5 sm:space-y-2 md:space-y-4'
+              )}
             >
-              {filteredAndSortedPhotos.map((photo, index) => (
-                <PhotoCard
-                  key={photo.id}
-                  photo={photo}
-                  index={index}
-                  onSelect={handlePhotoSelect}
-                />
+              {filteredAndSortedPhotos.map((photo) => (
+                <PhotoMasonryCard key={photo.id} photo={photo} onSelect={handlePhotoSelect} />
               ))}
             </motion.div>
           </AnimatePresence>
         )}
       </main>
 
-      {/* Fullscreen Modal */}
       <FullscreenModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
@@ -326,127 +224,93 @@ export const PhotosPage = () => {
   );
 };
 
-/**
- * PhotoCard
- * 
- * Individual photo card for masonry layout
- * Carson: Experimental layout, typography as image
- * Oliver: Dark, gothic, photos as light
- * West: Minimal, bold, iconic
- * Weirdcore: Glitch effects on hover
- */
-interface PhotoCardProps {
+/** Single photo tile (masonry) — kept colocated; uses responsive hooks */
+function PhotoMasonryCard({
+  photo,
+  onSelect,
+}: {
   photo: Photo;
-  index: number;
   onSelect: (photo: Photo, position: { x: number; y: number; width: number; height: number }) => void;
-}
-
-const PhotoCard = ({ photo, index, onSelect }: PhotoCardProps) => {
-  const [isHovered, setIsHovered] = useState(false);
+}) {
   const { isMobile } = useResponsive();
-
-  // Random sizing for scrapbook aesthetic (but not too extreme)
-  // Mobile: Let photos use natural aspect ratio, Desktop: Varied for scrapbook feel
-  const aspectRatios = [1, 1.2, 0.8, 1.5, 0.9, 1.3];
-  const aspectRatio = aspectRatios[index % aspectRatios.length];
-
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const scrollX = window.scrollX || window.pageXOffset;
-    const scrollY = window.scrollY || window.pageYOffset;
-    
-    const x = rect.left + rect.width / 2 + scrollX;
-    const y = rect.top + rect.height / 2 + scrollY;
-    const width = rect.width;
-    const height = rect.height;
-    
-    onSelect(photo, { x, y, width, height });
-  };
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <motion.div
-      className="break-inside-avoid mb-3 md:mb-6 group cursor-pointer w-full"
+      className="break-inside-avoid mb-1.5 sm:mb-2 md:mb-4"
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
+      transition={{ duration: 0.5 }}
     >
-      {/* Mobile: Container adapts to image natural size, Desktop: Fixed aspect ratio for masonry */}
       <motion.div
-        className={cn(
-          "relative overflow-hidden bg-black w-full",
-          isMobile ? "min-h-[200px]" : ""
-        )}
-        style={{ 
-          // Mobile: No aspect ratio constraint - let image determine height naturally
-          // Desktop: Use aspect ratio for masonry layout
-          aspectRatio: !isMobile ? aspectRatio : undefined,
-          maxWidth: '100%',
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const scrollX = window.scrollX || window.pageXOffset;
+          const scrollY = window.scrollY || window.pageYOffset;
+          onSelect(photo, {
+            x: rect.left + rect.width / 2 + scrollX,
+            y: rect.top + rect.height / 2 + scrollY,
+            width: rect.width,
+            height: rect.height,
+          });
         }}
-        whileHover={{ scale: isMobile ? 1 : 1.02 }}
-        transition={{ duration: 0.2 }}
+        className="relative group cursor-zoom-in"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
       >
-        {/* Photo - Oliver: Photos as light in darkness */}
-        {/* Mobile: object-contain to show full photo without cropping, Desktop: object-cover for scrapbook aesthetic */}
-        <img
-          src={photo.imageUrl}
-          alt={`IMANOL VILLAGOMEZ - ${photo.client || 'Concert'} photography${photo.year ? ` - ${photo.year}` : ''}`}
-          className={cn(
-            "w-full",
-            isMobile ? "h-auto object-contain" : "h-full object-cover"
-          )}
-          loading="lazy"
-          style={{
-            maxWidth: '100%',
-            display: 'block',
-          }}
-        />
-
-        {/* Oliver: Indie sleaze grain overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            mixBlendMode: 'overlay',
-          }}
-        />
-
-        {/* Weirdcore: Glitch overlay on hover */}
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: [0, 0.3, 0, 0.2, 0],
-                x: [0, -2, 2, -1, 1, 0],
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)',
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* West: Minimal metadata overlay - Show on tap for mobile */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-active:opacity-100 md:group-hover:opacity-100 transition-opacity duration-200">
-          {photo.client && (
-            <p className="text-white text-sm font-bold uppercase tracking-wider">
-              {photo.client}
-            </p>
-          )}
-          {photo.year && (
-            <p className="text-zinc-400 text-xs mt-1">
-              {photo.year}
-            </p>
-          )}
+        <div className="relative overflow-hidden bg-black">
+          <img
+            src={photo.imageUrl}
+            alt={`IMANOL VILLAGOMEZ - ${photo.client || 'Concert'} photography${photo.year ? ` - ${photo.year}` : ''}`}
+            className={cn('w-full', isMobile ? 'h-auto object-contain' : 'h-full object-cover')}
+            loading="lazy"
+            style={{ maxWidth: '100%', display: 'block' }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none opacity-[0.1]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+              mixBlendMode: 'overlay',
+            }}
+          />
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: [0, 0.3, 0, 0.2, 0],
+                  x: [0, -2, 2, -1, 1, 0],
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                style={{
+                  background:
+                    'linear-gradient(45deg, rgba(220, 38, 38, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%)',
+                  mixBlendMode: 'screen',
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+        <div className="relative z-10 mt-2 md:mt-3 p-1">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-xs md:text-sm font-black text-white uppercase tracking-tighter">
+                {photo.client || 'PHOTO'}
+              </p>
+              {photo.year && (
+                <p className="text-[10px] md:text-xs text-zinc-400 uppercase tracking-wider mt-0.5">
+                  {photo.year}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </motion.div>
     </motion.div>
   );
-};
+}

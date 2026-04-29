@@ -6,10 +6,11 @@ import { VideoFormatLegend } from '@/components/video/VideoFormatLegend';
 import { videos } from '@/constants/videos';
 import { Video } from '@/types';
 import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
-import { generateFilterOptions, applyFilters, queryStringToFilterState, filterStateToQueryString } from '@/utils/filters';
+import { generateFilterOptions, applyFilters, queryStringToFilterState, videoBarFilterStateToQueryString, sanitizeVideoBarFilterState } from '@/utils/filters';
 import { videosToMediaItems } from '@/types/media';
 import { usePageTitle, useMetaTags } from '@/hooks';
 import { SEO_CONFIG, BASE_URL, ROUTES } from '@/constants';
+import { PAGE_FILM_GRAIN_OPACITY, PAGE_FILM_GRAIN_SVG } from '@/constants/pageFilmGrain';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
 
 /**
@@ -46,14 +47,14 @@ export const VideosPage = () => {
   const [filterState, setFilterState] = useState<FilterState>(() => {
     const queryString = searchParams.toString();
     if (queryString) {
-      return queryStringToFilterState(queryString);
+      return sanitizeVideoBarFilterState(queryStringToFilterState(queryString));
     }
     return EMPTY_FILTER_STATE;
   });
 
   // Update URL when filter state changes
   useEffect(() => {
-    const queryString = filterStateToQueryString(filterState);
+    const queryString = videoBarFilterStateToQueryString(filterState);
     if (queryString) {
       setSearchParams(new URLSearchParams(queryString), { replace: true });
     } else {
@@ -66,7 +67,7 @@ export const VideosPage = () => {
 
   // Apply filters to videos and sort alphabetically by artist
   const filteredVideos = useMemo(() => {
-    const filtered = applyFilters(videos, filterState);
+    const filtered = applyFilters(videos, sanitizeVideoBarFilterState(filterState));
     return [...filtered].sort((a, b) => {
       const yearA = a.year ?? 0;
       const yearB = b.year ?? 0;
@@ -99,57 +100,30 @@ export const VideosPage = () => {
   const mediaItems = useMemo(() => videosToMediaItems(filteredVideos), [filteredVideos]);
 
   const handleFilterChange = (newState: FilterState) => {
-    setFilterState(newState);
+    setFilterState(sanitizeVideoBarFilterState(newState));
   };
 
   return (
     <>
       <StructuredData data={breadcrumbSchema} />
       <div className="min-h-screen bg-black text-white relative -mt-12 md:-mt-14">
-      {/* Oliver: Very intense grainy background texture - multiple layers - fixed at top */}
-      <div
-        className="fixed top-0 left-0 right-0 bottom-0 pointer-events-none z-0"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='5.0' numOctaves='12' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'overlay',
-          opacity: 1,
-        }}
-      />
-      
-      {/* Second grain layer - more intensity */}
-      <div
-        className="fixed top-0 left-0 right-0 bottom-0 pointer-events-none z-0"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='8.0' numOctaves='15' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter2)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'multiply',
-          opacity: 0.9,
-        }}
-      />
-      
-      {/* Third grain layer - maximum intensity */}
-      <div
-        className="fixed top-0 left-0 right-0 bottom-0 pointer-events-none z-0"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter3'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='10.0' numOctaves='18' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter3)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'screen',
-          opacity: 0.7,
-        }}
-      />
+      {(
+        [
+          { blend: 'overlay' as const, bg: PAGE_FILM_GRAIN_SVG.layer1 },
+          { blend: 'multiply' as const, bg: PAGE_FILM_GRAIN_SVG.layer2 },
+          { blend: 'screen' as const, bg: PAGE_FILM_GRAIN_SVG.layer3 },
+        ] as const
+      ).map((layer, i) => (
+        <div
+          key={i}
+          className="fixed top-0 left-0 right-0 bottom-0 pointer-events-none z-0"
+          style={{
+            backgroundImage: layer.bg,
+            mixBlendMode: layer.blend,
+            opacity: PAGE_FILM_GRAIN_OPACITY[i],
+          }}
+        />
+      ))}
 
       {/* Minimal header */}
       {/* Mobile: Stack elements, reduce typography size */}

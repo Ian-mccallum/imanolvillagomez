@@ -3,6 +3,7 @@ import { Video } from '@/types';
 import { ScanLines } from '@/components/ui/ScanLines';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
 import { useEffect, useRef, useState } from 'react';
+import { formatVideoSongLocationCaption } from '@/utils/videoCaption';
 
 /**
  * VideoModal
@@ -244,13 +245,7 @@ export const VideoModal = ({ isOpen, onClose, video, initialPosition }: VideoMod
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 md:p-8 z-20">
                 {/* Format: artist / song / tour (with spaces before and after slashes) */}
                 <h2 className="text-2xl md:text-4xl font-black text-white mb-2 uppercase tracking-tighter">
-                  {video.artist && video.song && video.tour ? (
-                    <span>{video.artist} / {video.song} / {video.tour}</span>
-                  ) : video.artist && video.song ? (
-                    <span>{video.artist} / {video.song}</span>
-                  ) : video.title ? (
-                    <span>{video.title}</span>
-                  ) : null}
+                  {formatVideoSongLocationCaption(video) ?? video.title}
                 </h2>
                 {/* Date */}
                 {video.date ? (

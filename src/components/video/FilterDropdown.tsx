@@ -20,6 +20,8 @@ interface FilterDropdownProps {
   onDeselect: (value: string | number) => void;
   type: 'artist' | 'location' | 'year' | 'tour' | 'category';
   darkBackground?: boolean;
+  /** Match Photos page: bold bordered chips; selected state = white fill when filters active */
+  photosStyle?: boolean;
   className?: string;
 }
 
@@ -31,6 +33,7 @@ export const FilterDropdown = ({
   onDeselect,
   type: _type,
   darkBackground = false,
+  photosStyle = false,
   className,
 }: FilterDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -91,13 +94,20 @@ export const FilterDropdown = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'px-3 py-1.5 text-xs uppercase tracking-wider font-medium',
-          'border transition-colors',
-          'focus:outline-none focus:ring-1 focus:ring-white/50',
-          darkBackground
-            ? 'bg-black/50 border-zinc-700 text-white hover:bg-black/70 hover:border-red-600'
-            : 'bg-black/50 border-zinc-700 text-white hover:bg-black/70 hover:border-red-600',
-          hasActiveFilters && 'border-red-600',
+          photosStyle
+            ? cn(
+                'px-2 py-1 text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all duration-200 border-2 min-h-[32px] md:min-h-[36px] flex items-center justify-center gap-1 focus:outline-none focus:ring-2 focus:ring-white/40',
+                hasActiveFilters
+                  ? 'bg-white text-black border-white'
+                  : 'bg-transparent text-white border-white/30 hover:border-white/60'
+              )
+            : cn(
+                'px-3 py-1.5 text-xs uppercase tracking-wider font-medium border transition-colors focus:outline-none focus:ring-1 focus:ring-white/50',
+                darkBackground
+                  ? 'bg-black/50 border-zinc-700 text-white hover:bg-black/70 hover:border-red-600'
+                  : 'bg-black/50 border-zinc-700 text-white hover:bg-black/70 hover:border-red-600',
+                hasActiveFilters && 'border-red-600'
+              ),
           className
         )}
         aria-haspopup="listbox"
@@ -116,7 +126,8 @@ export const FilterDropdown = ({
             transition={{ duration: 0.2 }}
             className={cn(
               'absolute top-full left-0 mt-1 z-[9990]',
-              'min-w-[200px] max-h-[300px] overflow-y-auto',
+              photosStyle ? 'min-w-[160px]' : 'min-w-[200px]',
+              'max-h-[280px] overflow-y-auto',
               'bg-black border border-zinc-700',
               'shadow-lg'
             )}

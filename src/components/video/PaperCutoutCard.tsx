@@ -198,12 +198,12 @@ export const PaperCutoutCard = ({
           ) : (
             <video
               src={imageUrl}
-              className={`w-full h-full ${videoRotation === 270 ? 'object-cover' : 'object-contain'} transition-transform duration-700 group-hover:scale-105`}
+              className={`w-full h-full object-contain transition-transform duration-700 group-hover:scale-105`}
               muted
               playsInline
               preload="metadata"
               style={{
-                transform: videoRotation === 270 ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill after rotation, reduced zoom
+                transform: videoRotation === 270 ? 'rotate(270deg)' : 'none',
                 transformOrigin: 'center center',
               }}
               onMouseEnter={(e) => {

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { MediaItem } from '@/types/media';
+import { formatVideoSongLocationCaptionFromMediaItem } from '@/utils/videoCaption';
 import { detectPlatform } from '@/utils/platform';
 import { useSwipeGesture } from '@/hooks/useSwipeGesture';
 import { preloadVideo, preloadImage } from '@/utils/preload';
@@ -93,6 +94,11 @@ export const FullscreenModal = ({
     if (items.length === 0) return null;
     return items[currentIndex] || null;
   }, [items, currentIndex]);
+
+  const videoCaptionPrimary = useMemo(() => {
+    if (!currentItem || currentItem.type !== 'video') return null;
+    return formatVideoSongLocationCaptionFromMediaItem(currentItem);
+  }, [currentItem]);
   
   // Calculate animation values for smooth zoom-in from clicked position
   const getAnimationValues = useCallback(() => {
@@ -465,7 +471,11 @@ export const FullscreenModal = ({
               )}
               
               {/* Minimal Metadata - Mobile: Positioned above controls with safe area */}
-              {showControls && (currentItem.title || currentItem.artist || currentItem.client) && (
+              {showControls && currentItem && (
+                (currentItem.type === 'video' &&
+                  (videoCaptionPrimary || currentItem.date || currentItem.title || currentItem.client)) ||
+                (currentItem.type === 'image' && (currentItem.title || currentItem.client))
+              ) && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -479,11 +489,10 @@ export const FullscreenModal = ({
                 >
                   {currentItem.type === 'video' ? (
                     <>
-                      {currentItem.artist && currentItem.song && (
-                        <div className="font-semibold text-sm md:text-base leading-tight">{currentItem.artist} / {currentItem.song}</div>
-                      )}
-                      {currentItem.title && !currentItem.artist && (
-                        <div className="font-semibold text-sm md:text-base leading-tight">{currentItem.title}</div>
+                      {videoCaptionPrimary && (
+                        <div className="font-semibold text-sm md:text-base leading-tight uppercase tracking-tighter">
+                          {videoCaptionPrimary}
+                        </div>
                       )}
                       {currentItem.date && (
                         <div className="text-xs md:text-sm text-white/70 mt-1.5">{currentItem.date}</div>

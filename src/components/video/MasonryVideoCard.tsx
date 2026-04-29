@@ -88,12 +88,14 @@ export const MasonryVideoCard = ({
           <div className="relative w-full h-full overflow-hidden">
             <video
               src={video.thumbnail}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className={`w-full h-full transition-transform duration-700 group-hover:scale-110 ${
+                video.rotation === 270 ? 'object-contain' : 'object-cover'
+              }`}
               muted
               playsInline
               preload="metadata"
               style={{
-                transform: video.rotation === 270 ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill after rotation, reduced zoom
+                transform: video.rotation === 270 ? 'rotate(270deg)' : 'none',
                 transformOrigin: 'center center',
               }}
               onMouseEnter={(e) => {

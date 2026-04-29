@@ -27,6 +27,8 @@ export interface MediaItem {
   date?: string;
   year?: number;
   description?: string;
+  location?: string;
+  isEdit?: boolean;
 }
 
 /**
@@ -47,6 +49,8 @@ export function videoToMediaItem(video: Video): MediaItem {
     date: video.date,
     year: video.year,
     description: video.description,
+    location: video.location,
+    isEdit: video.isEdit,
   };
 }
 

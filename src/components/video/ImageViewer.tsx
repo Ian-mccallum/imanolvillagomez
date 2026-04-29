@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { MediaItem } from '@/types/media';
 import { PlatformInfo } from '@/utils/platform';
 import { useResponsive } from '@/hooks/useResponsive';
+import { PhotoViewfinderCursor, useFinePointer } from './PhotoViewfinderCursor';
 
 interface ImageViewerProps {
   item: MediaItem;
@@ -30,7 +31,8 @@ export const ImageViewer = ({
 }: ImageViewerProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { isMobile } = useResponsive();
+  const { isMobile, prefersReducedMotion } = useResponsive();
+  const finePointer = useFinePointer();
   const [zoomState, setZoomState] = useState<ZoomState>({
     scale: 1,
     translateX: 0,
@@ -175,12 +177,41 @@ export const ImageViewer = ({
     }));
   }, [zoomState.scale, minScale]);
   
+  const viewfinderEnabled = useMemo(
+    () =>
+      !isLoading &&
+      !hasError &&
+      zoomState.scale <= minScale &&
+      !isDragging &&
+      !isMobile &&
+      !prefersReducedMotion &&
+      finePointer,
+    [
+      isLoading,
+      hasError,
+      zoomState.scale,
+      minScale,
+      isDragging,
+      isMobile,
+      prefersReducedMotion,
+      finePointer,
+    ]
+  );
+
+  const imageCursor = useMemo(() => {
+    if (zoomState.scale > minScale) {
+      return isDragging ? 'grabbing' : 'grab';
+    }
+    if (viewfinderEnabled) return 'none';
+    return 'default';
+  }, [zoomState.scale, minScale, isDragging, viewfinderEnabled]);
+
   if (!item.imageUrl) return null;
-  
+
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full flex items-center justify-center overflow-hidden"
+      className={`relative w-full h-full flex items-center justify-center overflow-hidden ${viewfinderEnabled ? 'cursor-none' : ''}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onDoubleClick={handleDoubleTap}
@@ -212,13 +243,16 @@ export const ImageViewer = ({
         style={{
           transform: `scale(${zoomState.scale}) translate(${zoomState.translateX / zoomState.scale}px, ${zoomState.translateY / zoomState.scale}px)`,
           transformOrigin: 'center center',
-          cursor: zoomState.scale > minScale ? 'grab' : 'default',
+          cursor: imageCursor,
         }}
         onLoad={onLoad}
         onError={onError}
         draggable={false}
         aria-label={item.title || 'Image'}
       />
+
+      {/* Fullscreen-photo only: quiet rangefinder brackets (desktop, fine pointer, motion OK) */}
+      <PhotoViewfinderCursor containerRef={containerRef} enabled={viewfinderEnabled} />
     </div>
   );
 };

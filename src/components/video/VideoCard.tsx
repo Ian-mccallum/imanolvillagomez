@@ -6,6 +6,7 @@ import { FlashOverlay } from '@/components/ui/FlashOverlay';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
 import { useState, useEffect, useRef } from 'react';
 import { useGlitchIntensity } from '@/hooks/useResponsive';
+import { formatVideoSongLocationCaption } from '@/utils/videoCaption';
 
 /**
  * VideoCard
@@ -121,12 +122,14 @@ export const VideoCard = ({
           <video
             ref={videoRef}
             src={video.thumbnail || video.videoUrl}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className={`w-full h-full transition-transform duration-500 group-hover:scale-110 ${
+              video.rotation === 270 ? 'object-contain' : 'object-cover'
+            }`}
             muted
             playsInline
             preload="metadata"
             style={{
-              transform: video.rotation === 270 ? 'rotate(270deg) scale(1.2)' : 'none', // Scale to fill after rotation, reduced zoom
+              transform: video.rotation === 270 ? 'rotate(270deg)' : 'none',
               transformOrigin: 'center center',
             }}
             onLoadedMetadata={(e) => {
@@ -193,22 +196,13 @@ export const VideoCard = ({
 
       </div>
 
-      {/* Carson: Title is experimental typography - minimal, videos are primary */}
-      {/* Note: Text colors adapt to background (light or dark) */}
-      {/* Format: artist/song/tour and date (matching legend) */}
+      {/* Carson: Title line — SONG | LOCATION (see legend) */}
       <div className="mt-3 md:mt-4">
-        {/* Format: artist / song / tour (with spaces before and after slashes) */}
         <div className={cn(
-          "text-sm md:text-base font-medium",
+          "text-sm md:text-base font-medium uppercase tracking-tight",
           darkBackground ? "text-white" : "text-text-dark"
         )}>
-          {video.artist && video.song && video.tour ? (
-            <span>{video.artist} / {video.song} / {video.tour}</span>
-          ) : video.artist && video.song ? (
-            <span>{video.artist} / {video.song}</span>
-          ) : video.title ? (
-            <span>{video.title}</span>
-          ) : null}
+          {formatVideoSongLocationCaption(video) ?? video.title}
         </div>
         
         {/* Date */}

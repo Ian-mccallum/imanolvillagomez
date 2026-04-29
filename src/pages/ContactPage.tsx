@@ -4,6 +4,7 @@ import { GlitchText } from '@/components/ui/GlitchText';
 import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
 import { usePageTitle, useMetaTags } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
+import { PAGE_FILM_GRAIN_OPACITY, PAGE_FILM_GRAIN_SVG } from '@/constants/pageFilmGrain';
 import { StructuredData, createBreadcrumbSchema, createFAQSchema } from '@/components/seo/StructuredData';
 
 /**
@@ -78,35 +79,23 @@ export const ContactPage = () => {
     <>
       <StructuredData data={[breadcrumbSchema, faqSchema]} />
       <div className="min-h-screen bg-black text-white relative -mt-12 md:-mt-14">
-      {/* Oliver: Very intense grainy background texture - multiple layers */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='5.0' numOctaves='12' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'overlay',
-          opacity: 1,
-        }}
-      />
-      
-      {/* Second grain layer - more intensity */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='8.0' numOctaves='15' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter2)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'multiply',
-          opacity: 0.9,
-        }}
-      />
-      
-      {/* Third grain layer - maximum intensity */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter3'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='10.0' numOctaves='18' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter3)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'screen',
-          opacity: 0.7,
-        }}
-      />
+      {(
+        [
+          { blend: 'overlay' as const, bg: PAGE_FILM_GRAIN_SVG.layer1 },
+          { blend: 'multiply' as const, bg: PAGE_FILM_GRAIN_SVG.layer2 },
+          { blend: 'screen' as const, bg: PAGE_FILM_GRAIN_SVG.layer3 },
+        ] as const
+      ).map((layer, i) => (
+        <div
+          key={i}
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            backgroundImage: layer.bg,
+            mixBlendMode: layer.blend,
+            opacity: PAGE_FILM_GRAIN_OPACITY[i],
+          }}
+        />
+      ))}
 
       <div className="container mx-auto px-4 md:px-6 pt-20 md:pt-24 pb-8 md:pb-12 lg:pb-16 relative z-10">
         <div className="max-w-3xl mx-auto">

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { MediaItem } from '@/types/media';
+import { formatVideoSongLocationCaptionFromMediaItem } from '@/utils/videoCaption';
 
 interface MetadataOverlayProps {
   item: MediaItem;
@@ -34,15 +35,9 @@ export const MetadataOverlay = ({
         >
           {item.type === 'video' ? (
             <>
-              {/* Video metadata: Artist / Song / Tour and Date */}
+              {/* Video metadata: SONG | LOCATION (ARTIST | LOCATION when edit without song) */}
               <h2 className="text-2xl md:text-4xl font-black text-white mb-2 uppercase tracking-tighter">
-                {item.artist && item.song && item.tour ? (
-                  <span>{item.artist} / {item.song} / {item.tour}</span>
-                ) : item.artist && item.song ? (
-                  <span>{item.artist} / {item.song}</span>
-                ) : item.title ? (
-                  <span>{item.title}</span>
-                ) : null}
+                {formatVideoSongLocationCaptionFromMediaItem(item) ?? item.title ?? ''}
               </h2>
               {/* Date */}
               {item.date ? (

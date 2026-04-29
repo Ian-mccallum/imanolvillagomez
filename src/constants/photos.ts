@@ -133,4 +133,7 @@ const photosArchive: Photo[] = [
 ];
 
 /** Feb 2026 shoots (Puma Blue, Salami, selects) — listed first; detail pages sort by year */
-export const photos: Photo[] = [...(shootFeb2026 as Photo[]), ...photosArchive];
+export const photos: Photo[] = [
+  ...(shootFeb2026 as Photo[]).map((p) => ({ ...p, tour: p.tour ?? 'Feb 2026 session' })),
+  ...photosArchive.map((p) => ({ ...p, tour: p.tour ?? 'Archive' })),
+];

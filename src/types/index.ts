@@ -7,12 +7,12 @@ export interface Video {
   thumbnail: string;
   videoUrl: string;
   client?: string; // Artist/client name
-  artist?: string; // Artist name (for legend format: artist/song/tour)
+  artist?: string; // Artist name (captions: song | location; edits without song use artist)
   song?: string; // Song name
   tour?: string; // Tour name
   date?: string; // Date in format like "October 25, 2025"
   year?: number;
-  location?: string; // Location like "CHICAGO"
+  location?: string; // Venue or site when known (e.g. theatre, park); CHICAGO when unknown
   category?: string; // music-video, behind-the-scenes, etc.
   tags?: string[];
   featured?: boolean; // For featured videos in grid
@@ -26,6 +26,8 @@ export interface Photo {
   imageUrl: string;
   client?: string;
   year?: number;
+  /** Session / tour label for filters (matches video “tour” dimension) */
+  tour?: string;
   category?: string;
   tags?: string[];
   isEdit?: boolean; // Mark as an edit (separate from artist work)

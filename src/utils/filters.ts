@@ -4,7 +4,7 @@
  * Functions for generating filter options, applying filters, and managing URL state
  */
 
-import { Video } from '@/types';
+import { Video, Photo } from '@/types';
 import { FilterState, FilterOptions } from '@/types/filters';
 
 /**
@@ -25,6 +25,41 @@ export function generateFilterOptions(videos: Video[]): FilterOptions {
     tours: tours.sort(),
     categories: categories.sort(),
   };
+}
+
+/** Filter options for photos (artist = client; year; tour — same bar as videos). */
+export function generatePhotoFilterOptions(photoList: Photo[]): FilterOptions {
+  const artists = [
+    ...new Set(photoList.map((p) => p.client).filter((c): c is string => Boolean(c))),
+  ];
+  const years = [
+    ...new Set(photoList.map((p) => p.year).filter((y): y is number => typeof y === 'number')),
+  ];
+  const tours = [...new Set(photoList.map((p) => p.tour).filter((t): t is string => Boolean(t)))];
+
+  return {
+    artists: artists.sort(),
+    locations: [],
+    years: years.sort((a, b) => b - a),
+    tours: tours.sort(),
+    categories: [],
+  };
+}
+
+/** AND logic for photos: artist ↔ client; year; tour. */
+export function applyPhotoFilters(photoList: Photo[], state: FilterState): Photo[] {
+  return photoList.filter((photo) => {
+    if (state.artists.length > 0) {
+      if (!photo.client || !state.artists.includes(photo.client)) return false;
+    }
+    if (state.years.length > 0) {
+      if (!photo.year || !state.years.includes(photo.year)) return false;
+    }
+    if (state.tours.length > 0) {
+      if (!photo.tour || !state.tours.includes(photo.tour)) return false;
+    }
+    return true;
+  });
 }
 
 /**
@@ -95,6 +130,30 @@ export function filterStateToQueryString(state: FilterState): string {
   }
 
   return params.toString();
+}
+
+/** Videos page UI only uses artist / year / tour — strip legacy URL fields so they do not affect results. */
+export function sanitizeVideoBarFilterState(state: FilterState): FilterState {
+  return {
+    ...state,
+    locations: [],
+    categories: [],
+    featured: null,
+  };
+}
+
+/** Query string for the video filter bar only (no location, category, featured). */
+export function videoBarFilterStateToQueryString(state: FilterState): string {
+  const params = new URLSearchParams();
+  state.artists.forEach((artist) => params.append('artist', artist));
+  state.years.forEach((year) => params.append('year', year.toString()));
+  state.tours.forEach((tour) => params.append('tour', tour));
+  return params.toString();
+}
+
+/** Whether the video bar shows any active filter (artist / year / tour only). */
+export function hasVideoBarActiveFilters(state: FilterState): boolean {
+  return state.artists.length > 0 || state.years.length > 0 || state.tours.length > 0;
 }
 
 /**
