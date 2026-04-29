@@ -68,7 +68,7 @@ const photosArchive: Photo[] = [
     id: 'photo-12',
     imageUrl: '/images/frostchildren-4.jpeg',
     year: 2024,
-    client: 'Frost Children',
+    client: '2hollis',
   },
   {
     id: 'photo-13',
