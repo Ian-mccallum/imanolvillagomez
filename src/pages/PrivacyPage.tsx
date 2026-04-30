@@ -90,7 +90,7 @@ Our Website does not currently use cookies, web beacons, or other tracking techn
       title: 'DATA RETENTION',
       content: `We retain the personal information we collect as follows:
 
-EMAIL CORRESPONDENCE: We retain emails we receive indefinitely unless you request deletion, subject to applicable law. You may request deletion of correspondence that constitutes your personal information by contacting us at imanolV20@icloud.com.
+EMAIL CORRESPONDENCE: We retain emails we receive indefinitely unless you request deletion, subject to applicable law. You may request deletion of correspondence that constitutes your personal information by contacting us through the Contact page on this Website (verification steps are required before an inbox is shown).
 
 LOCAL STORAGE DATA: Local storage data remains on your device until you clear your browser's local storage or use a different device/browser.
 
@@ -123,12 +123,12 @@ If you are a California resident, you have additional rights under the Californi
 • Right to Non-Discrimination: We will not discriminate against you for exercising your privacy rights.
 
 EXERCISING YOUR RIGHTS:
-To exercise any of these rights, please contact us at imanolV20@icloud.com with your request. We will respond to your request within the timeframes required by applicable law (typically 30-45 days). We may need to verify your identity before processing your request.`
+To exercise any of these rights, please use the Contact page on this Website, complete the verification steps, and send your request from the email address revealed there. We will respond to your request within the timeframes required by applicable law (typically 30-45 days). We may need to verify your identity before processing your request.`
     },
     {
       id: 'children',
       title: 'CHILDREN\'S PRIVACY',
-      content: `Our Website is not directed to children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at imanolV20@icloud.com and we will delete such information from our records.`
+      content: `Our Website is not directed to children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us through the Contact page on this Website (including after completing its verification steps), and we will delete such information from our records.`
     },
     {
       id: 'do-not-track',
@@ -143,9 +143,9 @@ To exercise any of these rights, please contact us at imanolV20@icloud.com with 
     {
       id: 'contact',
       title: 'CONTACT US',
-      content: `If you have any questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please contact us using the Contact page (which uses verification steps before displaying an email address) or, for legal and privacy-rights requests, at:
+      content: `If you have any questions, concerns, or requests regarding this Privacy Policy or our privacy practices, please use the Contact page on this Website. It uses verification steps before a work email address is displayed.
 
-EMAIL: imanolV20@icloud.com
+We do not publish a plain email address on this policy page in order to limit automated harvesting.
 
 BUSINESS OWNER: IMANOL VILLAGOMEZ
 LOCATION: Aurora, Illinois, United States
