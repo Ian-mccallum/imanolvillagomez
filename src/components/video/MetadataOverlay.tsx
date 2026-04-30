@@ -39,22 +39,11 @@ export const MetadataOverlay = ({
               <h2 className="text-2xl md:text-4xl font-black text-white mb-2 uppercase tracking-tighter">
                 {formatVideoSongLocationCaptionFromMediaItem(item) ?? item.title ?? ''}
               </h2>
-              {/* Date */}
-              {item.date ? (
-                <div className="text-sm md:text-base text-zinc-400">
-                  {item.date}
-                </div>
+              {item.year != null ? (
+                <div className="text-sm md:text-base text-zinc-400">{item.year}</div>
               ) : (
                 <div className="flex items-center gap-3 text-sm md:text-base text-zinc-400">
-                  {item.client && (
-                    <span className="font-medium">{item.client}</span>
-                  )}
-                  {item.year && (
-                    <>
-                      {item.client && <span>•</span>}
-                      <span>{item.year}</span>
-                    </>
-                  )}
+                  {item.client && <span className="font-medium">{item.client}</span>}
                 </div>
               )}
             </>

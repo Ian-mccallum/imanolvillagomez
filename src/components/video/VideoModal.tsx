@@ -248,22 +248,11 @@ export const VideoModal = ({ isOpen, onClose, video, initialPosition }: VideoMod
                 <h2 className="text-2xl md:text-4xl font-black text-white mb-2 uppercase tracking-tighter">
                   {formatVideoSongLocationCaption(video) ?? video.title}
                 </h2>
-                {/* Date */}
-                {video.date ? (
-                  <div className="text-sm md:text-base text-zinc-400">
-                    {video.date}
-                  </div>
+                {video.year != null ? (
+                  <div className="text-sm md:text-base text-zinc-400">{video.year}</div>
                 ) : (
                   <div className="flex items-center gap-3 text-sm md:text-base text-zinc-400">
-                    {video.client && (
-                      <span className="font-medium">{video.client}</span>
-                    )}
-                    {video.year && (
-                      <>
-                        <span>•</span>
-                        <span>{video.year}</span>
-                      </>
-                    )}
+                    {video.client && <span className="font-medium">{video.client}</span>}
                   </div>
                 )}
               </div>

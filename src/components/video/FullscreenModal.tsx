@@ -295,8 +295,10 @@ export const FullscreenModal = ({
   
   if (!currentItem) return null;
   
-  // Check if video is vertical (portrait orientation) for mobile arrow positioning
   const isVerticalVideo = currentItem.type === 'video' && currentItem.rotation === 270;
+  // Mobile + video: hide prev/next/counter while chrome is hidden (e.g. watching); tap video restores via onControlsToggle
+  const showGalleryNavChrome =
+    !isMobile || currentItem.type !== 'video' || showControls;
   const shouldPositionArrowsBelow = isMobile && isVerticalVideo;
   
   const modalContent = (
@@ -408,7 +410,7 @@ export const FullscreenModal = ({
               </button>
               
               {/* Gallery Navigation - Mobile-optimized with touch targets */}
-              {enableGalleryNavigation && items.length > 1 && (
+              {enableGalleryNavigation && items.length > 1 && showGalleryNavChrome && (
                 <>
                       {/* Previous Button - Mobile: 44px touch target, Desktop: Larger and closer to center */}
                       <button
@@ -473,7 +475,10 @@ export const FullscreenModal = ({
               {/* Minimal Metadata - Mobile: Positioned above controls with safe area */}
               {showControls && currentItem && (
                 (currentItem.type === 'video' &&
-                  (videoCaptionPrimary || currentItem.date || currentItem.title || currentItem.client)) ||
+                  (videoCaptionPrimary ||
+                    currentItem.year != null ||
+                    currentItem.title ||
+                    currentItem.client)) ||
                 (currentItem.type === 'image' && (currentItem.title || currentItem.client))
               ) && (
                 <motion.div
@@ -494,8 +499,8 @@ export const FullscreenModal = ({
                           {videoCaptionPrimary}
                         </div>
                       )}
-                      {currentItem.date && (
-                        <div className="text-xs md:text-sm text-white/70 mt-1.5">{currentItem.date}</div>
+                      {currentItem.year != null && (
+                        <div className="text-xs md:text-sm text-white/70 mt-1.5">{currentItem.year}</div>
                       )}
                     </>
                   ) : (

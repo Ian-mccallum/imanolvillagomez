@@ -146,11 +146,11 @@ export const PhotosPage = () => {
             </motion.p>
           </div>
           <div className="hidden md:block">
-            <VideoFormatLegend darkBackground />
+            <VideoFormatLegend darkBackground variant="photo" />
           </div>
         </div>
         <div className="md:hidden mt-4">
-          <VideoFormatLegend darkBackground />
+          <VideoFormatLegend darkBackground variant="photo" />
         </div>
       </header>
 

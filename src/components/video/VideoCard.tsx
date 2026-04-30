@@ -208,31 +208,14 @@ export const VideoCard = ({
           {formatVideoSongLocationCaption(video) ?? video.title}
         </div>
         
-        {/* Date */}
-        {video.date && (
-          <div className={cn(
-            "mt-1.5 text-xs md:text-sm",
-            darkBackground ? "text-zinc-300" : "text-text-dark-tertiary"
-          )}>
-            {video.date}
-          </div>
-        )}
-        
-        {/* Fallback: show client/year if no date format available */}
-        {!video.date && (video.client || video.year) && (
-          <div className={cn(
-            "flex items-center gap-2 mt-1.5 text-xs md:text-sm",
-            darkBackground ? "text-zinc-300" : "text-text-dark-tertiary"
-          )}>
-            {video.client && (
-              <span className="font-medium">{video.client}</span>
+        {video.year != null && (
+          <div
+            className={cn(
+              'mt-1.5 text-xs md:text-sm',
+              darkBackground ? 'text-zinc-300' : 'text-text-dark-tertiary'
             )}
-            {video.year && (
-              <>
-                <span>•</span>
-                <span>{video.year}</span>
-              </>
-            )}
+          >
+            {video.year}
           </div>
         )}
       </div>
