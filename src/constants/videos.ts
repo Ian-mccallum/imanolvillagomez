@@ -28,6 +28,12 @@ const getVideoUrl = (filename: string): string => {
   }
   return `/videos/${filename}`;
 };
+
+/** Tour filter label: same wording as before, prefixed with artist (Photos-style ALL CAPS). */
+function videoTourFilterLabel(artist: string, tourName: string): string {
+  return `${artist.trim().toUpperCase()} - ${tourName.trim().toUpperCase()}`;
+}
+
 export const videos: Video[] = [
   {
     id: 'osamason3',
@@ -35,7 +41,7 @@ export const videos: Video[] = [
     client: 'Osamason',
     artist: 'Osamason',
     song: 'Habits',
-    tour: 'Psykotic Tour',
+    tour: videoTourFilterLabel('Osamason', 'Psykotic Tour'),
     date: 'October 25, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -50,7 +56,7 @@ export const videos: Video[] = [
     client: 'Playboi Carti',
     artist: 'Playboi Carti',
     song: 'Like Weezy',
-    tour: 'Antagonist Tour',
+    tour: videoTourFilterLabel('Playboi Carti', 'Antagonist Tour'),
     date: 'October 30, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -66,7 +72,7 @@ export const videos: Video[] = [
     client: 'Osamason',
     artist: 'Osamason',
     song: "It's a Party",
-    tour: 'Psykotic Tour',
+    tour: videoTourFilterLabel('Osamason', 'Psykotic Tour'),
     date: 'October 25, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -80,7 +86,7 @@ export const videos: Video[] = [
     client: 'Osamason',
     artist: 'Osamason',
     song: "What's Happening",
-    tour: 'Psykotic Tour',
+    tour: videoTourFilterLabel('Osamason', 'Psykotic Tour'),
     date: 'October 25, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -108,7 +114,7 @@ export const videos: Video[] = [
     client: '2hollis',
     artist: '2hollis',
     song: 'Trauma',
-    tour: 'Lollapalooza',
+    tour: videoTourFilterLabel('2hollis', 'Lollapalooza'),
     date: 'July 31st, 2025',
     year: 2025,
     location: 'Lollapalooza',
@@ -124,7 +130,7 @@ export const videos: Video[] = [
     client: 'Playboi Carti',
     artist: 'Playboi Carti',
     song: 'RATHER LIE',
-    tour: 'After Hours Til Dawn Tour',
+    tour: videoTourFilterLabel('Playboi Carti', 'After Hours Til Dawn Tour'),
     date: 'May 30th, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -138,7 +144,7 @@ export const videos: Video[] = [
     client: 'Charli XCX',
     artist: 'Charli XCX',
     song: '365',
-    tour: 'Sweat Tour',
+    tour: videoTourFilterLabel('Charli XCX', 'Sweat Tour'),
     date: 'September 30, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -153,7 +159,7 @@ export const videos: Video[] = [
     client: 'Charli XCX',
     artist: 'Charli XCX',
     song: 'Guess',
-    tour: 'Sweat Tour',
+    tour: videoTourFilterLabel('Charli XCX', 'Sweat Tour'),
     date: 'September 30, 2025',
     year: 2025,
     location: 'CHICAGO',
@@ -168,7 +174,7 @@ export const videos: Video[] = [
     client: 'Early Life Crisis',
     artist: 'Early Life Crisis',
     song: 'NETTSPEND',
-    tour: 'Early life crisis',
+    tour: videoTourFilterLabel('NETTSPEND', 'EARLYLIFE CRISIS USA TOUR'),
     date: 'February 28, 2026',
     year: 2026,
     location: 'MILWAUKEE',
@@ -197,7 +203,7 @@ export const videos: Video[] = [
     client: 'Puma Blue',
     artist: 'Puma Blue',
     song: 'NETTSPEND',
-    tour: 'Early life crisis',
+    tour: videoTourFilterLabel('Puma Blue', 'Croak Dream Tour'),
     date: 'February 28, 2026',
     year: 2026,
     location: 'MILWAUKEE',
@@ -211,7 +217,7 @@ export const videos: Video[] = [
     client: 'Salami',
     artist: 'Salami',
     song: 'NETTSPEND',
-    tour: 'Early life crisis',
+    tour: videoTourFilterLabel('Salami', 'Croak Dream Tour'),
     date: 'February 28, 2026',
     year: 2026,
     location: 'MILWAUKEE',
@@ -226,7 +232,7 @@ export const videos: Video[] = [
     client: 'Feb 2026 Session',
     artist: 'Feb 2026 Session',
     song: 'NETTSPEND',
-    tour: 'Early life crisis',
+    tour: videoTourFilterLabel('NETTSPEND', 'EARLYLIFE CRISIS USA TOUR'),
     date: 'February 28, 2026',
     year: 2026,
     location: 'MILWAUKEE',

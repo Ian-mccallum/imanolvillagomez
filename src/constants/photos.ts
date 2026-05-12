@@ -30,9 +30,10 @@ function tourForFeb2026Shoot(client: string | undefined): string {
     case '1300saint':
       return PHOTO_TOUR.SAINT;
     case 'NETTSPEND':
-    case 'Salami':
     case 'Kels':
       return PHOTO_TOUR.NETTSPEND;
+    case 'Salami':
+      return 'SALAMI - CROAK DREAM TOUR';
     default:
       return PHOTO_TOUR.NETTSPEND;
   }
