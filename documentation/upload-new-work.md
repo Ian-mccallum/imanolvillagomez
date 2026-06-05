@@ -2,7 +2,7 @@
 
 This document is for **humans and AI coding agents** who need to add new **videos** and **photos** to the NOL site safely. Follow steps **in order**. Skipping steps (especially codec or basename matching) causes playback or deploy issues.
 
-**Related docs:** [Cloudflare R2 setup](../CLOUDFLARE_R2_SETUP.md) (one-time bucket + DNS + CORS), [Scripts README](../scripts/README.md).
+**Related docs:** [Cloudflare R2 setup](./ops/cloudflare-r2-setup.md) (one-time bucket + DNS + CORS), [Scripts README](../scripts/README.md).
 
 ---
 

@@ -126,7 +126,7 @@ After setup:
 ## 📞 Need Help?
 
 1. Run diagnostic: `./diagnose-git-lfs.sh`
-2. Check full guide: `GIT_LFS_FIX_GUIDE.md`
+2. Check full guide: [git-lfs-fix-guide.md](./git-lfs-fix-guide.md)
 3. Review Vercel build logs
 4. Check GitHub LFS usage: https://github.com/settings/billing
 

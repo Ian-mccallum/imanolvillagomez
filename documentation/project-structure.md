@@ -6,21 +6,20 @@ This document provides a detailed explanation of the project's directory structu
 
 ```
 nol/
-├── documentation/      # Project documentation
-├── public/            # Static public assets
-├── src/               # Source code
-├── index.html         # HTML entry point
-├── package.json       # Dependencies and scripts
-├── tsconfig.json      # TypeScript configuration
-├── tsconfig.node.json # TypeScript config for Node files
-├── vite.config.ts     # Vite build configuration
-├── tailwind.config.js # Tailwind CSS configuration
-├── postcss.config.js  # PostCSS configuration
-├── .eslintrc.cjs      # ESLint configuration
-├── .prettierrc        # Prettier configuration
-├── .prettierignore    # Prettier ignore patterns
-├── .gitignore         # Git ignore patterns
-└── README.md          # Project overview
+├── documentation/      # Docs (ops/, plans/, archive/, upload-new-work)
+├── features/           # Per-feature PRDs, design docs, plans
+├── template/           # Blank templates for new feature planning
+├── scripts/            # Build, upload, compression, install helpers
+├── public/             # Static public assets
+├── src/                # Source code
+├── index.html          # HTML entry point
+├── package.json        # Dependencies and scripts
+├── vercel.json         # Vercel routing / headers
+├── vercel-build.sh     # Production build script
+├── tsconfig.json       # TypeScript configuration
+├── vite.config.ts      # Vite build configuration
+├── tailwind.config.js  # Tailwind CSS configuration
+└── README.md           # Project overview (only markdown at repo root)
 ```
 
 ## Source Directory (`src/`)

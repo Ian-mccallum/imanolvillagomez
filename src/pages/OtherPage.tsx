@@ -49,25 +49,18 @@ export const OtherPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
-  // Filter and sort videos: Remove "che", Hellp first, then Osamason
+  // Filter and sort videos: Remove "che", Osamason first, then others
   const sortedVideos = useMemo(() => {
-    // Filter out "che" video
     const filtered = lostFilesVideos.filter(video => video.id !== 'che');
-    
-    // Separate by client
-    const hellpVideos = filtered.filter(video => 
-      video.client?.toLowerCase().includes('hellp')
-    );
-    const osamasonVideos = filtered.filter(video => 
+
+    const osamasonVideos = filtered.filter(video =>
       video.client?.toLowerCase().includes('osamason')
     );
-    const otherVideos = filtered.filter(video => 
-      !video.client?.toLowerCase().includes('hellp') && 
+    const otherVideos = filtered.filter(video =>
       !video.client?.toLowerCase().includes('osamason')
     );
-    
-    // Order: Hellp first, then Osamason, then others
-    return [...hellpVideos, ...osamasonVideos, ...otherVideos];
+
+    return [...osamasonVideos, ...otherVideos];
   }, []);
 
   const handleVideoSelect = (video: Video, position?: { x: number; y: number; width: number; height: number }) => {

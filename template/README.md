@@ -52,11 +52,6 @@ This directory contains industry-standard templates for feature planning and dev
    - Task breakdown
    - Validation steps
 
-9. **Context for AI** - `context-for-ai-template.md`
-   - AI-friendly feature context
-   - Code patterns and conventions
-   - Technical specifications for AI assistance
-
 ## Usage Workflow
 
 1. **Start with PRD**: Define the feature at a high level
@@ -65,9 +60,8 @@ This directory contains industry-standard templates for feature planning and dev
 4. **Map Requirements**: Connect business needs to technical specs
 5. **Design Document**: Create technical architecture
 6. **Security Review**: Identify and address security concerns
-7. **Atomic Steps**: Create implementation checklist
-8. **Context for AI**: Prepare AI assistance context
-9. **Runbook**: Document deployment and operations
+7. **Atomic Steps**: Create implementation checklist (see also feature `implementation-plan.md` examples under `features/`)
+8. **Runbook**: Document deployment and operations
 
 ## Quick Start
 

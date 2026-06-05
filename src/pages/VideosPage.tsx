@@ -65,10 +65,10 @@ export const VideosPage = () => {
   // Generate filter options from all videos
   const filterOptions = useMemo(() => generateFilterOptions(videos), []);
 
-  // Apply filters to videos and sort alphabetically by artist
+  // Apply filters to videos and sort by year, featured, artist — hellp-full follows mgna-crrrta
   const filteredVideos = useMemo(() => {
     const filtered = applyFilters(videos, sanitizeVideoBarFilterState(filterState));
-    return [...filtered].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       const yearA = a.year ?? 0;
       const yearB = b.year ?? 0;
       if (yearA !== yearB) return yearB - yearA;
@@ -79,6 +79,16 @@ export const VideosPage = () => {
       const artistB = (b.artist || b.client || '').toLowerCase();
       return artistA.localeCompare(artistB);
     });
+
+    const mgnaIndex = sorted.findIndex((v) => v.id === 'mgna-crrrta');
+    const hellpIndex = sorted.findIndex((v) => v.id === 'hellp-full');
+    if (mgnaIndex !== -1 && hellpIndex !== -1 && hellpIndex !== mgnaIndex + 1) {
+      const [hellpFull] = sorted.splice(hellpIndex, 1);
+      const insertAt = sorted.findIndex((v) => v.id === 'mgna-crrrta') + 1;
+      sorted.splice(insertAt, 0, hellpFull);
+    }
+
+    return sorted;
   }, [filterState]);
 
   const handleVideoSelect = (video: Video, position?: { x: number; y: number; width: number; height: number }) => {

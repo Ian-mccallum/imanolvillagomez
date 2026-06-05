@@ -32,7 +32,7 @@
 **Action Required:**
 - Check Cloudflare Dashboard → **Caching** → **Rules**
 - Verify cache rule exists for `videos.imanolvillagomez.com`
-- See `QUICK_CACHE_CHECK.md` for details
+- See [quick-cache-check.md](./quick-cache-check.md) for details
 
 **Expected Behavior:**
 - **First visit:** `CF-Cache-Status: MISS` (normal, ~2-3 seconds)
@@ -153,11 +153,11 @@ Before deploying, verify:
 
 ### For Localhost (Development)
 1. **Fix CORS** - Add `localhost:5175` to R2 CORS policy (5 min)
-   - See `URGENT_CORS_FIX.md`
+   - See [urgent-cors-fix.md](../archive/urgent-cors-fix.md) (archived)
 
 ### For Production (Before/After Deploy)
 1. **Verify cache** - Check Cloudflare cache rules (5 min)
-   - See `QUICK_CACHE_CHECK.md`
+   - See [quick-cache-check.md](./quick-cache-check.md)
 2. **Test production** - Deploy and verify videos load
 3. **Monitor performance** - Check cache hit rates
 

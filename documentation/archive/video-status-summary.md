@@ -22,7 +22,7 @@
 **Action Required:**
 1. Check Cloudflare Dashboard → **Caching** → **Rules**
 2. Verify cache rule exists for `videos.imanolvillagomez.com`
-3. If missing, create rule (see `QUICK_CACHE_CHECK.md`)
+3. If missing, create rule (see [quick-cache-check.md](../ops/quick-cache-check.md))
 
 **Impact:** Without cache, videos load from R2 origin every time (slow). With cache, videos load from edge (fast).
 
@@ -106,11 +106,11 @@ node scripts/upload-to-r2.js
 
 ## 📝 Files Created
 
-1. `VIDEO_SYSTEM_AUDIT.md` - Complete audit and analysis
-2. `VIDEO_OPTIMIZATION_GUIDE.md` - Quick reference guide
-3. `VERIFY_CACHE_CONFIGURATION.md` - Detailed cache verification
-4. `QUICK_CACHE_CHECK.md` - Quick cache check guide
-5. `VIDEO_STATUS_SUMMARY.md` - This file
+1. [video-system-audit.md](./video-system-audit.md) - Complete audit and analysis
+2. [video-optimization-guide.md](../ops/video-optimization-guide.md) - Quick reference guide
+3. [verify-cache-configuration.md](../ops/verify-cache-configuration.md) - Detailed cache verification
+4. [quick-cache-check.md](../ops/quick-cache-check.md) - Quick cache check guide
+5. video-status-summary.md - This file
 6. `scripts/check-video-faststart.sh` - Video optimization checker
 7. `scripts/verify-video-optimization.sh` - Alternative checker
 
@@ -118,7 +118,7 @@ node scripts/upload-to-r2.js
 
 ## ✅ Next Steps
 
-1. **Verify cache configuration** (5 min) - See `QUICK_CACHE_CHECK.md`
+1. **Verify cache configuration** (5 min) - See [quick-cache-check.md](../ops/quick-cache-check.md)
 2. **Test video loading** (2 min) - Use DevTools to check cache status
 3. **Optional: Optimize 2 videos** (10 min) - Run optimization script
 

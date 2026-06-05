@@ -96,7 +96,7 @@ Summary:
 4. **`HEVC / H.265`** exports often fail in Chrome/Firefox; re-encode with **`scripts/reencode-hevc-to-h264-web.sh`** before uploading.
 5. Stills live under **`public/images/`**; register them in **`src/constants/photos.ts`** (or linked JSON — see playbook).
 
-One-time Cloudflare setup (bucket, custom domain, CORS): **[CLOUDFLARE_R2_SETUP.md](CLOUDFLARE_R2_SETUP.md)** · Script catalog: **[scripts/README.md](scripts/README.md)**.
+One-time Cloudflare setup (bucket, custom domain, CORS): **[documentation/ops/cloudflare-r2-setup.md](documentation/ops/cloudflare-r2-setup.md)** · Full doc index: **[documentation/README.md](documentation/README.md)** · Script catalog: **[scripts/README.md](scripts/README.md)**.
 
 ## Features
 

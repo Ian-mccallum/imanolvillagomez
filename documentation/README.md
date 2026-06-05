@@ -1,31 +1,41 @@
 # Documentation Index
 
-Welcome to the NOL Videography project documentation. This documentation provides comprehensive information about the project structure, architecture, development workflows, and best practices.
+Documentation for the NOL (Imanol) videography portfolio site.
 
-## Table of Contents
+## Start here
 
-- [Upload new work](./upload-new-work.md) - **Atomic steps for videos, photos, Cloudflare R2, and AI assistants**
-- [Getting Started](./getting-started.md) - Quick start guide for new developers
-- [Architecture](./architecture.md) - System architecture and design decisions
-- [Project Structure](./project-structure.md) - Detailed directory structure and organization
-- [Development Guide](./development-guide.md) - Development workflow and practices
-- [Code Style Guide](./code-style-guide.md) - Coding standards and conventions
-- [Components](./components.md) - Component library and usage
-- [Services & API](./services-api.md) - API services and data layer
-- [Routing](./routing.md) - Routing structure and navigation
-- [Styling Guide](./styling-guide.md) - Tailwind CSS usage and styling patterns
-- [TypeScript Guide](./typescript-guide.md) - Type definitions and type safety
-- [Testing](./testing.md) - Testing strategies and guidelines (when implemented)
-- [Deployment](./deployment.md) - Build and deployment procedures
-- [Troubleshooting](./troubleshooting.md) - Common issues and solutions
+| Doc | Purpose |
+|-----|---------|
+| [Upload new work](./upload-new-work.md) | **Primary playbook** — videos (R2), photos, git policy, scripts |
+| [Getting started](./getting-started.md) | Dev environment and first run |
+| [Project structure](./project-structure.md) | Repo layout |
+| [Architecture](./architecture.md) | System design |
+| [Development guide](./development-guide.md) | Workflow and practices |
+| [Setup (legacy)](./setup-legacy.md) | Older setup notes (thumbnails, `.mov` era) |
 
-## Quick Links
+## Operations
 
-- [Upload new work](./upload-new-work.md) - End-to-end media pipeline (videos R2 + photos + git policy)
-- [Main README](../README.md) - Project overview and setup instructions
-- [Cloudflare R2 setup](../CLOUDFLARE_R2_SETUP.md) - Bucket creation, DNS, API tokens, CORS, cache rules
-- [Package.json](../package.json) - Dependencies and scripts
+See **[documentation/ops/](./ops/)** for hosting, cache, and video pipeline guides.
 
-## Contributing to Documentation
+Highlights:
 
-When adding new features or making architectural changes, please update the relevant documentation files to keep them current and accurate.
+- [Cloudflare R2 setup](./ops/cloudflare-r2-setup.md)
+- [Video optimization](./ops/video-optimization-guide.md)
+- [Quick cache check](./ops/quick-cache-check.md)
+
+## Plans
+
+See **[documentation/plans/](./plans/)** for feature and optimization plans (SEO, mobile/tablet, etc.).
+
+## Archive
+
+See **[documentation/archive/](./archive/)** for one-off incident writeups, audits, and superseded guides (CORS fixes, Git LFS, deployment notes). Kept for history — prefer **ops/** and **upload-new-work** for current workflows.
+
+## Feature specs
+
+Per-feature PRDs and design docs live under **[../features/](../features/)** (use **[../template/](../template/)** to start new ones).
+
+## Repo root
+
+- [Main README](../README.md) — overview, env vars, npm scripts
+- [Scripts catalog](../scripts/README.md)

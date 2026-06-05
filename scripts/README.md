@@ -129,12 +129,12 @@ After re-encoding, **re-upload changed files to R2** (same filenames overwrite t
 
 ## Utility Scripts
 
-### `../install-homebrew.sh`
+### `install-homebrew.sh`
 **Purpose**: Install Homebrew package manager on macOS
 
 **Usage**:
 ```bash
-./install-homebrew.sh
+./scripts/install-homebrew.sh
 ```
 
 **What it does**:

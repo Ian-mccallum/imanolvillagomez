@@ -41,8 +41,8 @@
 
 I've created these files to help you:
 
-1. **`QUICK_FIX.md`** - Fastest path to get videos working
-2. **`GIT_LFS_FIX_GUIDE.md`** - Comprehensive troubleshooting guide
+1. **[quick-fix.md](./quick-fix.md)** - Fastest path to get videos working
+2. **[git-lfs-fix-guide.md](./git-lfs-fix-guide.md)** - Comprehensive troubleshooting guide
 3. **`diagnose-git-lfs.sh`** - Diagnostic script to check current state
 
 ### Run Diagnostic:
@@ -108,7 +108,7 @@ git push origin main
 
 ### Option B: AWS S3 (If you want to save money)
 
-See `GIT_LFS_FIX_GUIDE.md` for detailed AWS S3 setup instructions.
+See [git-lfs-fix-guide.md](./git-lfs-fix-guide.md) for detailed AWS S3 setup instructions.
 
 ---
 
@@ -150,11 +150,11 @@ After completing setup:
 
 ## 📚 Documentation Files
 
-- **`QUICK_FIX.md`** - Fastest solution (start here!)
-- **`GIT_LFS_FIX_GUIDE.md`** - Complete troubleshooting guide
+- **[quick-fix.md](./quick-fix.md)** - Fastest solution (start here!)
+- **[git-lfs-fix-guide.md](./git-lfs-fix-guide.md)** - Complete troubleshooting guide
 - **`diagnose-git-lfs.sh`** - Run this to check your setup
-- **`VIDEO_HOSTING_OPTIONS.md`** - Alternative hosting options
-- **`GIT_LFS_ANALYSIS.md`** - Original analysis (for reference)
+- **[video-hosting-options.md](../ops/video-hosting-options.md)** - Alternative hosting options
+- **[git-lfs-analysis.md](./git-lfs-analysis.md)** - Original analysis (for reference)
 
 ---
 
@@ -183,7 +183,7 @@ Your videos are large (1.5GB) and GitHub's free tier only allows 1GB of LFS stor
 ## 🆘 Still Need Help?
 
 1. Run: `./diagnose-git-lfs.sh` - See what's wrong
-2. Read: `QUICK_FIX.md` - Step-by-step solution
+2. Read: [quick-fix.md](./quick-fix.md) - Step-by-step solution
 3. Check: Vercel build logs for specific errors
 4. Verify: GitHub LFS usage at https://github.com/settings/billing
 
