@@ -153,4 +153,9 @@
       opacity: 0.9;
     }
   }
+
+  .cf-turnstile-wrap,
+  .cf-turnstile-wrap iframe {
+    max-width: 100%;
+  }
 }

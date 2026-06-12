@@ -345,7 +345,7 @@ export const HomePage = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className="text-base sm:text-lg font-semibold uppercase tracking-wide text-white/60 transition-colors duration-200 hover:text-white/90 min-h-[44px] flex items-center justify-center md:text-[clamp(1.125rem,2.8vw,2rem)] md:font-semibold md:tracking-wider lg:text-3xl"
+                className="text-2xl sm:text-3xl font-semibold uppercase tracking-wide text-white/60 transition-colors duration-200 hover:text-white/90 min-h-[56px] flex items-center justify-center md:text-[clamp(1.125rem,2.8vw,2rem)] md:font-semibold md:tracking-wider lg:text-3xl"
               >
                 {item.label}
               </Link>

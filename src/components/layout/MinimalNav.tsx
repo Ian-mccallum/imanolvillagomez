@@ -267,7 +267,7 @@ export const MinimalNav = () => {
                     setIsMobileMenuOpen(false);
                   }}
                   className={cn(
-                    'block px-4 py-3 text-base font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px] flex items-center',
+                    'block px-4 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px] flex items-center',
                     isOnHome ? 'text-white font-bold bg-white/10' : 'text-white/70'
                   )}
                 >
@@ -283,7 +283,7 @@ export const MinimalNav = () => {
                       setIsMobileWorkDropdownOpen(!isMobileWorkDropdownOpen);
                     }}
                     className={cn(
-                      'w-full flex items-center justify-between px-4 py-3 text-base font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px]',
+                      'w-full flex items-center justify-between px-4 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px]',
                       isOnWork ? 'text-white font-bold bg-white/10' : 'text-white/70'
                     )}
                   >
@@ -316,7 +316,7 @@ export const MinimalNav = () => {
                             setIsMobileWorkDropdownOpen(false);
                           }}
                           className={cn(
-                            'block px-6 py-3 text-base font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px] flex items-center',
+                            'block px-6 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px] flex items-center',
                             location.pathname === ROUTES.WORK_VIDEOS
                               ? 'text-white font-bold bg-white/10'
                               : 'text-white/70'
@@ -332,7 +332,7 @@ export const MinimalNav = () => {
                             setIsMobileWorkDropdownOpen(false);
                           }}
                           className={cn(
-                            'block px-6 py-3 text-base font-medium uppercase tracking-wider transition-colors duration-200 border-t border-zinc-800/50 min-h-[44px] flex items-center',
+                            'block px-6 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-200 border-t border-zinc-800/50 min-h-[44px] flex items-center',
                             location.pathname === ROUTES.WORK_PHOTOS
                               ? 'text-white font-bold bg-white/10'
                               : 'text-white/70'
@@ -355,7 +355,7 @@ export const MinimalNav = () => {
                       setIsMobileMenuOpen(false);
                     }}
                     className={cn(
-                      'block px-4 py-3 text-base font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px] flex items-center',
+                      'block px-4 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-200 min-h-[44px] flex items-center',
                       item.isActive ? 'text-white font-bold bg-white/10' : 'text-white/70'
                     )}
                   >
@@ -371,7 +371,7 @@ export const MinimalNav = () => {
                     setIsMobileMenuOpen(false);
                   }}
                   className={cn(
-                    'block px-4 py-3 text-base font-bold uppercase tracking-wider transition-all duration-200 border-2 border-white min-h-[44px] flex items-center justify-center',
+                    'block px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-200 border-2 border-white min-h-[44px] flex items-center justify-center',
                     isOnContact 
                       ? 'bg-white text-black' 
                       : 'text-white'

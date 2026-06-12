@@ -86,19 +86,14 @@ export const ProtectedEmailReveal = () => {
 
   return (
     <motion.div
-      className="relative border-2 border-white/20 bg-black/40 p-6 md:p-10"
+      className="relative border-2 border-white/20 bg-black/40 p-4 sm:p-6 md:p-10"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.25 }}
     >
-      <p className="text-zinc-300 text-sm md:text-base uppercase tracking-wider leading-relaxed mb-8">
-        Email is not published as plain text. Complete the steps below if you’re reaching out about a
-        real project or collaboration.
-      </p>
-
       {/* Honeypot — must stay empty */}
       <div
-        className="absolute -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0"
+        className="sr-only"
         aria-hidden="true"
       >
         <label htmlFor="contact-company">Company</label>
@@ -113,7 +108,7 @@ export const ProtectedEmailReveal = () => {
         />
       </div>
 
-      <div className="space-y-6 md:space-y-8">
+      <div className="space-y-5 md:space-y-8">
         <label className="flex items-start gap-3 cursor-pointer group">
           <input
             type="checkbox"
@@ -178,12 +173,6 @@ export const ProtectedEmailReveal = () => {
                 </div>
               ) : (
                 <>
-                  <p className="text-amber-200/90 text-xs uppercase tracking-wider border border-amber-500/40 bg-amber-500/5 p-3">
-                    Set a production{' '}
-                    <code className="text-white">VITE_TURNSTILE_SITE_KEY</code> from Cloudflare
-                    Turnstile for stronger bot resistance. Without it, this fallback confirmation runs
-                    instead.
-                  </p>
                   <div>
                     <label
                       htmlFor="contact-slide"
