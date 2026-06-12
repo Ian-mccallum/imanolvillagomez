@@ -57,6 +57,11 @@
 }
 
 @layer utilities {
+  .font-logo {
+    font-family: 'Archivo Black', 'Arial Black', 'Helvetica Neue', Helvetica, sans-serif;
+    font-weight: 400;
+  }
+
   /* Grain texture utility */
   .grain-texture {
     position: relative;

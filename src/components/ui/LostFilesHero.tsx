@@ -103,7 +103,7 @@ export const LostFilesHero = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundColor: '#C9C8C7', // Match body background
+        backgroundColor: '#18181b', // Match page dark canvas — avoids gray strip above video grid
       }}
     >
       {/* Dark overlay to darken the background image */}

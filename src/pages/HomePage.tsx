@@ -19,8 +19,8 @@ import { StructuredData, createPersonSchema, createProfessionalServiceSchema, cr
  * 
  * Features:
  * - Full-screen osamason video background
- * - Centered "IMANOL VILLAGOMEZ" hero text (same font as nav)
- * - Centered bold navigation buttons (VIDEOS, PHOTOS, OTHER, CONTACT)
+ * - Industrial wordmark (Barlow Condensed) + nav under lockup width on desktop
+ * - Centered lowkey nav links under the brand lockup
  * - No traditional nav bar (homepage-specific design)
  */
 
@@ -316,57 +316,41 @@ export const HomePage = () => {
       {/* Centered hero content - West's minimalist perfectionism - fits viewport with fixed footer */}
       {/* Mobile: Account for smaller footer height */}
       <div className="relative z-20 h-[calc(100vh-24px)] md:h-[calc(100vh-30px)] flex items-center justify-center px-4 md:px-6">
-        <div className="text-center">
-          {/* Hero name - IMANOL VILLAGOMEZ - same font as nav, smaller size */}
-          {/* Mobile: text-2xl (24px) for very small screens, maintaining boldness */}
+        <div className="inline-block max-w-full text-center">
+          {/* Hero lockup — width sets the nav row below on desktop */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-medium uppercase tracking-tighter text-white mb-4 md:mb-8 lg:mb-12 leading-tight"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="font-logo text-balance whitespace-nowrap uppercase leading-[0.82] tracking-[0.01em] text-white"
             style={{
-              textShadow: '0 4px 20px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6)',
+              fontSize: 'clamp(1.75rem, 9vw, 5.25rem)',
+              textShadow:
+                '0 1px 0 rgba(0, 0, 0, 0.95), 0 6px 32px rgba(0, 0, 0, 0.85)',
+              WebkitFontSmoothing: 'antialiased',
             }}
           >
             IMANOL VILLAGOMEZ
           </motion.h1>
 
-          {/* Centered navigation buttons - bold, clean */}
-          {/* Mobile: Touch-friendly padding, 44x44px minimum touch targets */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+          {/* Nav spans full name width on md+; stacked on mobile */}
+          <motion.nav
+            aria-label="Site sections"
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-            className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-8 lg:gap-12"
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-6 flex w-full flex-col items-center gap-2.5 sm:mt-8 md:mt-10 md:flex-row md:justify-between md:gap-0 lg:mt-12"
           >
-            {navItems.map((item, index) => (
-              <motion.div
+            {navItems.map((item) => (
+              <Link
                 key={item.path}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 + index * 0.1, ease: 'easeOut' }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                to={item.path}
+                className="text-base sm:text-lg font-semibold uppercase tracking-wide text-white/60 transition-colors duration-200 hover:text-white/90 min-h-[44px] flex items-center justify-center md:text-[clamp(1.125rem,2.8vw,2rem)] md:font-semibold md:tracking-wider lg:text-3xl"
               >
-                <Link
-                  to={item.path}
-                  className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold uppercase tracking-wider transition-all duration-200 block px-4 py-3 md:px-0 md:py-0 min-h-[44px] flex items-center justify-center"
-                  style={{
-                    color: '#F2F0EF', // Off-white color
-                    textShadow: '0 2px 12px rgba(0, 0, 0, 0.8), 0 1px 4px rgba(0, 0, 0, 0.6)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#E8E6E4'; // Slightly darker on hover
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = '#F2F0EF'; // Back to off-white
-                  }}
-                >
-                  {item.label}
-                </Link>
-              </motion.div>
+                {item.label}
+              </Link>
             ))}
-          </motion.div>
+          </motion.nav>
         </div>
       </div>
 

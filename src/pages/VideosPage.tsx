@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { FullscreenModal, VideoGrid } from '@/components/video';
 import { VideoFilterBar } from '@/components/video/VideoFilterBar';
 import { VideoFormatLegend } from '@/components/video/VideoFormatLegend';
+import { SubpageHeader, subpageHeaderShellClass } from '@/components/layout/SubpageHeader';
 import { videos } from '@/constants/videos';
 import { Video } from '@/types';
 import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
@@ -135,24 +136,17 @@ export const VideosPage = () => {
         />
       ))}
 
-      {/* Minimal header */}
-      {/* Mobile: Stack elements, reduce typography size */}
-      <header className="container mx-auto px-4 md:px-6 pt-24 md:pt-20 lg:pt-24 pb-4 relative z-10">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter transform rotate-neg05">
-              VIDEOS
-            </h1>
-            <p className="mt-2 md:mt-4 text-zinc-50 text-xs sm:text-sm md:text-sm uppercase tracking-wider">
-              {videos.length} PROJECTS
-            </p>
-          </div>
-          {/* Formatting legend - positioned on right side, aligned with header */}
-          <div className="hidden md:block">
-            <VideoFormatLegend darkBackground={true} />
-          </div>
-        </div>
-        {/* Formatting legend - mobile version below header */}
+      <header className={subpageHeaderShellClass}>
+        <SubpageHeader
+          title="VIDEOS"
+          parent="WORK"
+          subtitle={`${videos.length} PROJECTS`}
+          aside={
+            <div className="hidden md:block">
+              <VideoFormatLegend darkBackground={true} />
+            </div>
+          }
+        />
         <div className="md:hidden mt-4">
           <VideoFormatLegend darkBackground={true} />
         </div>

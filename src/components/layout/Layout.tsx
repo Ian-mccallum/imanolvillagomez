@@ -1,7 +1,14 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { MinimalNav } from './MinimalNav';
 import { Footer } from './Footer';
+import { InstagramPromoStrip } from './InstagramPromoStrip';
 import { ROUTES } from '@/constants';
+
+const INSTAGRAM_STRIP_ROUTES: readonly string[] = [
+  ROUTES.WORK_VIDEOS,
+  ROUTES.WORK_PHOTOS,
+  ROUTES.CONTACT,
+];
 
 /**
  * Layout
@@ -14,6 +21,7 @@ import { ROUTES } from '@/constants';
 export const Layout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === ROUTES.HOME || location.pathname === '/';
+  const showInstagramStrip = INSTAGRAM_STRIP_ROUTES.includes(location.pathname);
 
   return (
     <div className="min-h-screen text-text-dark relative overflow-x-hidden flex flex-col" style={{ backgroundColor: '#C9C8C7' }}>
@@ -23,6 +31,7 @@ export const Layout = () => {
         <Outlet />
       </main>
       {/* Hide footer on homepage for full immersive experience */}
+      {!isHomePage && showInstagramStrip && <InstagramPromoStrip />}
       {!isHomePage && <Footer />}
     </div>
   );

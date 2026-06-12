@@ -6,6 +6,7 @@ import { photos } from '@/constants/photos';
 import { Photo } from '@/types';
 import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
 import { cn } from '@/utils';
+import { SubpageHeader, subpageHeaderShellClass } from '@/components/layout/SubpageHeader';
 import {
   generatePhotoFilterOptions,
   applyPhotoFilters,
@@ -123,32 +124,17 @@ export const PhotosPage = () => {
         />
       ))}
 
-      <header className="container mx-auto px-4 md:px-6 pt-24 md:pt-20 lg:pt-24 pb-4 relative z-10">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-6">
-          <div>
-            <motion.h1
-              className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-            >
-              PHOTOS
-            </motion.h1>
-            <motion.p
-              className="mt-2 text-zinc-400 text-xs sm:text-sm md:text-base uppercase tracking-wider"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {filteredAndSortedPhotos.length}{' '}
-              {filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}
-              {filtersActive && ' • FILTERED'}
-            </motion.p>
-          </div>
-          <div className="hidden md:block">
-            <VideoFormatLegend darkBackground variant="photo" />
-          </div>
-        </div>
+      <header className={subpageHeaderShellClass}>
+        <SubpageHeader
+          title="PHOTOS"
+          parent="WORK"
+          subtitle={`${filteredAndSortedPhotos.length} ${filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}${filtersActive ? ' · FILTERED' : ''}`}
+          aside={
+            <div className="hidden md:block">
+              <VideoFormatLegend darkBackground variant="photo" />
+            </div>
+          }
+        />
         <div className="md:hidden mt-4">
           <VideoFormatLegend darkBackground variant="photo" />
         </div>

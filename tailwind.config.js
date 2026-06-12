@@ -54,6 +54,8 @@ export default {
         'text-tertiary': '#a1a1aa',   // Muted (tertiary text)
       },
       fontFamily: {
+        /** Uppercase wordmark — homepage + nav brand only */
+        logo: ['Archivo Black', 'Arial Black', 'Helvetica Neue', 'Helvetica', 'sans-serif'],
         // Experimental typography fonts
         'handwritten': ['var(--font-handwritten)', 'cursive'],
         'gothic': ['var(--font-gothic)', 'serif'],

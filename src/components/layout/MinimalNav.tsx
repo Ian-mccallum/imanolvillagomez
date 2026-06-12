@@ -70,7 +70,7 @@ export const MinimalNav = () => {
         >
           <Link 
             to={ROUTES.HOME} 
-            className="text-sm md:text-base lg:text-lg font-medium uppercase tracking-tighter block leading-tight text-white transition-all duration-200 min-h-[44px] flex items-center"
+            className="font-logo text-sm md:text-base lg:text-lg uppercase tracking-[0.02em] block leading-none text-white transition-all duration-200 min-h-[44px] flex items-center"
           >
             IMANOL VILLAGOMEZ
           </Link>

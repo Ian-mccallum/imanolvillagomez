@@ -160,11 +160,7 @@ export const ProtectedEmailReveal = () => {
               className="space-y-6 overflow-hidden"
             >
               {useTurnstile ? (
-                <>
-                  <p className="text-zinc-400 text-xs uppercase tracking-wider">
-                    Cloudflare Turnstile — helps block automated harvesting.
-                  </p>
-                  <div className="cf-turnstile-wrap">
+                <div className="cf-turnstile-wrap">
                     <Turnstile
                       key={turnstileKey}
                       siteKey={siteKey}
@@ -179,8 +175,7 @@ export const ProtectedEmailReveal = () => {
                       }}
                       options={{ theme: 'dark' }}
                     />
-                  </div>
-                </>
+                </div>
               ) : (
                 <>
                   <p className="text-amber-200/90 text-xs uppercase tracking-wider border border-amber-500/40 bg-amber-500/5 p-3">

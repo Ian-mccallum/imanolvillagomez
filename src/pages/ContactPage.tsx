@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion';
-import { GlitchText } from '@/components/ui/GlitchText';
 import { ProtectedEmailReveal } from '@/components/contact/ProtectedEmailReveal';
+import { SubpageHeader } from '@/components/layout/SubpageHeader';
 import { usePageTitle, useMetaTags } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
 import { PAGE_FILM_GRAIN_OPACITY, PAGE_FILM_GRAIN_SVG } from '@/constants/pageFilmGrain';
@@ -66,29 +65,9 @@ export const ContactPage = () => {
 
         <div className="container mx-auto px-4 md:px-6 pt-20 md:pt-24 pb-8 md:pb-12 lg:pb-16 relative z-10">
           <div className="max-w-3xl mx-auto">
-            <motion.div
-              className="mb-12 md:mb-16 text-center md:text-left"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-            >
-              <motion.h1
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-black text-white uppercase tracking-tighter mb-4"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-              >
-                <GlitchText intensity="medium">CONTACT</GlitchText>
-              </motion.h1>
-              <motion.p
-                className="text-zinc-300 text-sm md:text-base uppercase tracking-wider"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                LETS CREATE ART
-              </motion.p>
-            </motion.div>
+            <header className="mb-12 md:mb-16">
+              <SubpageHeader title="CONTACT" subtitle="LETS CREATE ART" align="center" />
+            </header>
 
             <ProtectedEmailReveal />
           </div>
