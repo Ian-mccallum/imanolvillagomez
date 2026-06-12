@@ -120,4 +120,37 @@
     pointer-events: none;
     z-index: 1;
   }
+
+  .footer-signal-dot {
+    animation: footer-signal-flash 3.2s ease-in-out infinite;
+  }
+
+  @keyframes footer-signal-flash {
+    0%,
+    72%,
+    100% {
+      opacity: 0.45;
+      transform: scale(0.82);
+      box-shadow: 0 0 8px rgba(220, 38, 38, 0.45);
+    }
+
+    78% {
+      opacity: 1;
+      transform: scale(1.25);
+      box-shadow: 0 0 22px rgba(220, 38, 38, 0.95);
+    }
+
+    84% {
+      opacity: 0.7;
+      transform: scale(0.95);
+      box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-signal-dot {
+      animation: none;
+      opacity: 0.9;
+    }
+  }
 }

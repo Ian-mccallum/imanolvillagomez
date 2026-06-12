@@ -21,7 +21,7 @@ export const Footer = () => {
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between md:py-6">
           <div className="flex items-center gap-3">
-            <span className="h-2 w-2 shrink-0 bg-red-primary shadow-[0_0_18px_rgba(220,38,38,0.85)]" />
+            <span className="footer-signal-dot h-2 w-2 shrink-0 bg-red-primary shadow-[0_0_18px_rgba(220,38,38,0.85)]" />
             <p className="max-w-[42rem] text-[11px] font-black uppercase leading-relaxed tracking-[0.16em] text-[#F2F0EF] sm:text-xs">
               © 2026 IMANOL VILLAGOMEZ. All rights reserved.
             </p>
