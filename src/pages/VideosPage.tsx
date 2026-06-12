@@ -139,7 +139,6 @@ export const VideosPage = () => {
       <header className={subpageHeaderShellClass}>
         <SubpageHeader
           title="VIDEOS"
-          parent="WORK"
           subtitle={`${videos.length} PROJECTS`}
           aside={
             <div className="hidden md:block">

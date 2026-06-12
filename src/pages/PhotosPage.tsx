@@ -127,7 +127,6 @@ export const PhotosPage = () => {
       <header className={subpageHeaderShellClass}>
         <SubpageHeader
           title="PHOTOS"
-          parent="WORK"
           subtitle={`${filteredAndSortedPhotos.length} ${filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}${filtersActive ? ' · FILTERED' : ''}`}
           aside={
             <div className="hidden md:block">

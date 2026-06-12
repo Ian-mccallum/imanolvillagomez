@@ -3,7 +3,7 @@ import { cn } from '@/utils';
 
 /** Shared type scale — bold, wide tracking, off-white (subpage chapter titles). */
 export const subpageTitleClass =
-  'text-balance font-bold uppercase tracking-wider text-[#F2F0EF] text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-tight';
+  'text-balance font-black uppercase tracking-tighter text-[#F2F0EF] text-xl sm:text-2xl md:text-3xl lg:text-4xl leading-tight';
 
 export const subpageSectionTitleClass =
   'text-balance font-bold uppercase tracking-wider text-[#F2F0EF] text-lg sm:text-xl md:text-2xl leading-tight';
