@@ -21,6 +21,7 @@ const INSTAGRAM_STRIP_ROUTES: readonly string[] = [
 export const Layout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === ROUTES.HOME || location.pathname === '/';
+  const isOtherPage = location.pathname === ROUTES.OTHER;
   const showInstagramStrip = INSTAGRAM_STRIP_ROUTES.includes(location.pathname);
 
   return (
@@ -32,7 +33,7 @@ export const Layout = () => {
       </main>
       {/* Hide footer on homepage for full immersive experience */}
       {!isHomePage && showInstagramStrip && <InstagramPromoStrip />}
-      {!isHomePage && <Footer />}
+      {!isHomePage && !isOtherPage && <Footer />}
     </div>
   );
 };
