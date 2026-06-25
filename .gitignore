@@ -41,3 +41,7 @@ public/videos/*.mp4
 newWork/*
 !newWork/README.md
 !newWork/upload-batch.txt
+
+# Ad-hoc raw client delivery staging — same reasoning as newWork/, too large for Git
+UPDATED WORk/
+UPDATED WORk.zip

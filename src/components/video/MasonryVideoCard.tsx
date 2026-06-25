@@ -101,22 +101,31 @@ export const MasonryVideoCard = ({
                   video.rotation === 270 ? cssTransformRotation270() : 'none',
                 transformOrigin: 'center center',
               }}
-              onMouseEnter={(e) => {
-                const video = e.currentTarget;
-                if (isFinite(video.duration) && video.duration > 0) {
-                  video.currentTime = Math.min(1, video.duration / 2);
-                } else {
-                  video.currentTime = 1;
+              onLoadedMetadata={(e) => {
+                if (video.thumbnailTime != null) {
+                  e.currentTarget.currentTime = video.thumbnailTime;
                 }
-                video.play().catch(() => {});
+              }}
+              onMouseEnter={(e) => {
+                const videoEl = e.currentTarget;
+                if (video.thumbnailTime != null) {
+                  videoEl.currentTime = video.thumbnailTime;
+                } else if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+                  videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+                } else {
+                  videoEl.currentTime = 1;
+                }
+                videoEl.play().catch(() => {});
               }}
               onMouseLeave={(e) => {
-                const video = e.currentTarget;
-                video.pause();
-                if (isFinite(video.duration) && video.duration > 0) {
-                  video.currentTime = Math.min(1, video.duration / 2);
+                const videoEl = e.currentTarget;
+                videoEl.pause();
+                if (video.thumbnailTime != null) {
+                  videoEl.currentTime = video.thumbnailTime;
+                } else if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+                  videoEl.currentTime = Math.min(1, videoEl.duration / 2);
                 } else {
-                  video.currentTime = 1;
+                  videoEl.currentTime = 1;
                 }
               }}
             />

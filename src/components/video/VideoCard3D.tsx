@@ -146,14 +146,19 @@ export const VideoCard3D = ({
               style={{
                 transform: isHovered ? 'scale(1.1) translateZ(20px)' : 'scale(1) translateZ(0)',
               }}
+              onLoadedMetadata={(e) => {
+                if (video.thumbnailTime != null) {
+                  e.currentTarget.currentTime = video.thumbnailTime;
+                }
+              }}
               onMouseEnter={(e) => {
-                const video = e.currentTarget;
-                video.currentTime = 1; // Seek to 1 second for thumbnail
-                video.play().catch(() => {}); // Try to play on hover
+                const videoEl = e.currentTarget;
+                videoEl.currentTime = video.thumbnailTime ?? 1; // Seek for thumbnail
+                videoEl.play().catch(() => {}); // Try to play on hover
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.pause();
-                e.currentTarget.currentTime = 1;
+                e.currentTarget.currentTime = video.thumbnailTime ?? 1;
               }}
             />
             

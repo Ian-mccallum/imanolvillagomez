@@ -1,5 +1,6 @@
 import { Photo } from '@/types';
 import shootFeb2026 from '@/constants/data/photos-shoot-20260228.json';
+import shootJune2026 from '@/constants/data/photos-shoot-20260612.json';
 
 /**
  * Photo portfolio data for Imanol Villagomez
@@ -22,6 +23,19 @@ const PHOTO_TOUR = {
 
 /** The Hellp is not on the main tour list; keeps a distinct filter bucket. */
 const PHOTO_TOUR_HELLP = 'THE HELLP - US TOUR';
+
+function tourForJune2026Shoot(client: string | undefined): string {
+  switch (client) {
+    case 'Sofaygo':
+      return 'SOFAYGO - OCTANE TOUR';
+    case 'SahBabii':
+      return 'SAHBABII - OCTANE TOUR';
+    case 'Don Toliver':
+      return 'DON TOLIVER - OCTANE TOUR';
+    default:
+      return 'OCTANE TOUR';
+  }
+}
 
 function tourForFeb2026Shoot(client: string | undefined): string {
   switch (client) {
@@ -180,7 +194,11 @@ const photosArchive: Photo[] = [
 ];
 
 /** Feb 2026 shoot + archive; detail views sort by year. */
-export const photos: Photo[] = [
+const photosChronological: Photo[] = [
+  ...(shootJune2026 as Photo[]).map((p) => ({
+    ...p,
+    tour: p.tour ?? tourForJune2026Shoot(p.client),
+  })),
   ...(shootFeb2026 as Photo[]).map((p) => ({
     ...p,
     tour: p.tour ?? tourForFeb2026Shoot(p.client),
@@ -190,3 +208,8 @@ export const photos: Photo[] = [
     tour: p.tour ?? tourForArchiveClient(p.client),
   })),
 ];
+
+/** Most recent year first; stable sort keeps each year's existing relative order. */
+export const photos: Photo[] = [...photosChronological].sort(
+  (a, b) => (b.year ?? 0) - (a.year ?? 0)
+);

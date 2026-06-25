@@ -18,6 +18,7 @@ export interface Video {
   featured?: boolean; // For featured videos in grid
   rotation?: number; // Custom rotation in degrees (for specific videos)
   isEdit?: boolean; // Mark as an edit (separate from artist work)
+  thumbnailTime?: number; // Seconds into the video to seek for the static thumbnail frame (overrides default)
 }
 
 export interface Photo {

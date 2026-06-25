@@ -86,6 +86,7 @@ export const PaperCutoutCard = ({
   const imageUrl = isPhoto ? (item as Photo).imageUrl : (item as Video).thumbnail;
   const title = isPhoto ? (item as Photo).title : (item as Video).title;
   const client = item.client;
+  const thumbnailTime = isPhoto ? undefined : (item as Video).thumbnailTime;
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -207,25 +208,33 @@ export const PaperCutoutCard = ({
                   videoRotation === 270 ? cssTransformRotation270() : 'none',
                 transformOrigin: 'center center',
               }}
+              onLoadedMetadata={(e) => {
+                // Static thumbnail frame before any hover; only overrides
+                // when a custom thumbnailTime is set (e.g. clip opens black)
+                if (thumbnailTime != null) {
+                  e.currentTarget.currentTime = thumbnailTime;
+                }
+              }}
               onMouseEnter={(e) => {
                 const video = e.currentTarget;
-                // Seek to 1 second for better thumbnail
-                if (video.readyState >= 2) {
-                  if (isFinite(video.duration) && video.duration > 0) {
+                const seekTo = () => {
+                  if (thumbnailTime != null) {
+                    video.currentTime = thumbnailTime;
+                  } else if (isFinite(video.duration) && video.duration > 0) {
                     video.currentTime = Math.min(1, video.duration / 2);
                   } else {
                     video.currentTime = 1;
                   }
+                };
+                // Seek to thumbnail time for better thumbnail
+                if (video.readyState >= 2) {
+                  seekTo();
                   video.play().catch(() => {
                     // Autoplay prevented, that's okay
                   });
                 } else {
                   video.addEventListener('loadedmetadata', () => {
-                    if (isFinite(video.duration) && video.duration > 0) {
-                      video.currentTime = Math.min(1, video.duration / 2);
-                    } else {
-                      video.currentTime = 1;
-                    }
+                    seekTo();
                     video.play().catch(() => {});
                   }, { once: true });
                 }
@@ -233,7 +242,9 @@ export const PaperCutoutCard = ({
               onMouseLeave={(e) => {
                 const video = e.currentTarget;
                 video.pause();
-                if (isFinite(video.duration) && video.duration > 0) {
+                if (thumbnailTime != null) {
+                  video.currentTime = thumbnailTime;
+                } else if (isFinite(video.duration) && video.duration > 0) {
                   video.currentTime = Math.min(1, video.duration / 2);
                 } else {
                   video.currentTime = 1;

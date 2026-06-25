@@ -34,7 +34,48 @@ function videoTourFilterLabel(artist: string, tourName: string): string {
   return `${artist.trim().toUpperCase()} - ${tourName.trim().toUpperCase()}`;
 }
 
-export const videos: Video[] = [
+const videosChronological: Video[] = [
+  {
+    id: 'sofaygo-mm3',
+    title: 'Sofaygo MM3',
+    client: 'Sofaygo',
+    artist: 'Sofaygo',
+    song: 'MM3',
+    tour: videoTourFilterLabel('Sofaygo', 'Octane Tour'),
+    year: 2026,
+    location: 'CHICAGO',
+    category: 'music-video',
+    videoUrl: getVideoUrl('MM3.mp4'),
+    thumbnail: getVideoUrl('MM3.mp4'),
+    featured: true,
+  },
+  {
+    id: 'sahbabii-viking',
+    title: 'SahBabii Viking',
+    client: 'SahBabii',
+    artist: 'SahBabii',
+    song: 'Viking',
+    tour: videoTourFilterLabel('SahBabii', 'Octane Tour'),
+    year: 2026,
+    location: 'CHICAGO',
+    category: 'music-video',
+    videoUrl: getVideoUrl('VIKING.mp4'),
+    thumbnail: getVideoUrl('VIKING.mp4'),
+    featured: true,
+  },
+  {
+    id: 'thehellp-promo',
+    title: 'The Hellp Promo',
+    client: 'The Hellp',
+    artist: 'The Hellp',
+    song: 'PROMO | THE HELLP',
+    location: 'LOS ANGELES',
+    year: 2026,
+    category: 'music-video',
+    videoUrl: getVideoUrl('TheHellpPromo.mp4'),
+    thumbnail: getVideoUrl('TheHellpPromo.mp4'),
+    featured: true,
+  },
   {
     id: 'osamason3',
     title: 'Osamason 3',
@@ -251,8 +292,14 @@ export const videos: Video[] = [
     category: 'music-video',
     videoUrl: getVideoUrl('reel1776903207924937.mp4'),
     thumbnail: getVideoUrl('reel1776903207924937.mp4'),
+    thumbnailTime: 3, // Clip opens on a black screen; use the frame at 3s instead
   },
 ];
+
+/** Most recent year first; stable sort keeps each year's existing relative order. */
+export const videos: Video[] = [...videosChronological].sort(
+  (a, b) => (b.year ?? 0) - (a.year ?? 0)
+);
 
 /**
  * Lost Files - Videos without new format (artist/song/tour/date)

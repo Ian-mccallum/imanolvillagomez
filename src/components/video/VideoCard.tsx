@@ -136,9 +136,11 @@ export const VideoCard = ({
               transformOrigin: 'center center',
             }}
             onLoadedMetadata={(e) => {
-              // Seek to middle of video for better thumbnail display
+              // Seek to a fixed thumbnail time if set, otherwise middle of video
               const videoEl = e.currentTarget;
-              if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+              if (video.thumbnailTime != null) {
+                videoEl.currentTime = video.thumbnailTime;
+              } else if (isFinite(videoEl.duration) && videoEl.duration > 0) {
                 videoEl.currentTime = Math.min(1, videoEl.duration / 2);
               }
             }}
@@ -155,7 +157,9 @@ export const VideoCard = ({
               const videoEl = e.currentTarget;
               videoEl.pause();
               // Reset to thumbnail frame
-              if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+              if (video.thumbnailTime != null) {
+                videoEl.currentTime = video.thumbnailTime;
+              } else if (isFinite(videoEl.duration) && videoEl.duration > 0) {
                 videoEl.currentTime = Math.min(1, videoEl.duration / 2);
               }
             }}

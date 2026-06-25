@@ -66,20 +66,12 @@ export const VideosPage = () => {
   // Generate filter options from all videos
   const filterOptions = useMemo(() => generateFilterOptions(videos), []);
 
-  // Apply filters to videos and sort by year, featured, artist — hellp-full follows mgna-crrrta
+  // Apply filters to videos and sort most recent to oldest — hellp-full follows mgna-crrrta
   const filteredVideos = useMemo(() => {
     const filtered = applyFilters(videos, sanitizeVideoBarFilterState(filterState));
-    const sorted = [...filtered].sort((a, b) => {
-      const yearA = a.year ?? 0;
-      const yearB = b.year ?? 0;
-      if (yearA !== yearB) return yearB - yearA;
-      const featA = a.featured ? 1 : 0;
-      const featB = b.featured ? 1 : 0;
-      if (featA !== featB) return featB - featA;
-      const artistA = (a.artist || a.client || '').toLowerCase();
-      const artistB = (b.artist || b.client || '').toLowerCase();
-      return artistA.localeCompare(artistB);
-    });
+    // Stable sort: only year breaks ties go by year; equal years keep the
+    // upload/insertion order already established in constants/videos.ts.
+    const sorted = [...filtered].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
 
     const mgnaIndex = sorted.findIndex((v) => v.id === 'mgna-crrrta');
     const hellpIndex = sorted.findIndex((v) => v.id === 'hellp-full');

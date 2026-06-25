@@ -65,15 +65,9 @@ export const PhotosPage = () => {
 
   const filteredAndSortedPhotos = useMemo(() => {
     const filtered = applyPhotoFilters(photos, sanitizeVideoBarFilterState(filterState));
-    return [...filtered].sort((a, b) => {
-      const yearA = a.year ?? 0;
-      const yearB = b.year ?? 0;
-      if (yearA !== yearB) return yearB - yearA;
-      const artistA = a.client || 'Unknown';
-      const artistB = b.client || 'Unknown';
-      if (artistA !== artistB) return artistA.localeCompare(artistB);
-      return a.id.localeCompare(b.id);
-    });
+    // Stable sort: only year breaks ties; equal years keep the shoot/insertion
+    // order already established in constants/photos.ts (most recent shoot first).
+    return [...filtered].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   }, [filterState]);
 
   const handlePhotoSelect = (
