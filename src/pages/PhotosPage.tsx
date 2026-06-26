@@ -61,6 +61,24 @@ export const PhotosPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickPosition, setClickPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
+  // Tracks the Tailwind columns-* breakpoint so we can distribute photos
+  // round-robin (item i -> column i % columnCount). CSS multi-column layout
+  // fills one column at a time top-to-bottom, so the most recent/pinned
+  // photos would all stack in column 1 instead of forming the top row.
+  const [columnCount, setColumnCount] = useState(1);
+  useEffect(() => {
+    const updateColumnCount = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) setColumnCount(4);
+      else if (width >= 1024) setColumnCount(3);
+      else if (width >= 640) setColumnCount(2);
+      else setColumnCount(1);
+    };
+    updateColumnCount();
+    window.addEventListener('resize', updateColumnCount);
+    return () => window.removeEventListener('resize', updateColumnCount);
+  }, []);
+
   const filterOptions = useMemo(() => generatePhotoFilterOptions(photos), []);
 
   const filteredAndSortedPhotos = useMemo(() => {
@@ -69,6 +87,16 @@ export const PhotosPage = () => {
     // order already established in constants/photos.ts (most recent shoot first).
     return [...filtered].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   }, [filterState]);
+
+  // Round-robin into columns (item i -> column i % columnCount) so the first
+  // N photos in sort order form the actual top row, not just the top of column 1.
+  const photoColumns = useMemo(() => {
+    const columns: Photo[][] = Array.from({ length: columnCount }, () => []);
+    filteredAndSortedPhotos.forEach((photo, index) => {
+      columns[index % columnCount].push(photo);
+    });
+    return columns;
+  }, [filteredAndSortedPhotos, columnCount]);
 
   const handlePhotoSelect = (
     photo: Photo,
@@ -173,14 +201,17 @@ export const PhotosPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className={cn(
-                'mx-auto',
-                'columns-1 sm:columns-2 lg:columns-3 xl:columns-4',
-                'gap-1.5 sm:gap-2 md:gap-4 space-y-1.5 sm:space-y-2 md:space-y-4'
-              )}
+              className="mx-auto flex gap-1.5 sm:gap-2 md:gap-4"
             >
-              {filteredAndSortedPhotos.map((photo) => (
-                <PhotoMasonryCard key={photo.id} photo={photo} onSelect={handlePhotoSelect} />
+              {photoColumns.map((column, columnIndex) => (
+                <div
+                  key={columnIndex}
+                  className="flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2 md:gap-4"
+                >
+                  {column.map((photo) => (
+                    <PhotoMasonryCard key={photo.id} photo={photo} onSelect={handlePhotoSelect} />
+                  ))}
+                </div>
               ))}
             </motion.div>
           </AnimatePresence>
@@ -216,7 +247,6 @@ function PhotoMasonryCard({
 
   return (
     <motion.div
-      className="break-inside-avoid mb-1.5 sm:mb-2 md:mb-4"
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}

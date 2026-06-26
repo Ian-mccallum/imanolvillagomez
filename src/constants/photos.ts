@@ -210,6 +210,14 @@ const photosChronological: Photo[] = [
 ];
 
 /** Most recent year first; stable sort keeps each year's existing relative order. */
-export const photos: Photo[] = [...photosChronological].sort(
+const photosByRecency: Photo[] = [...photosChronological].sort(
   (a, b) => (b.year ?? 0) - (a.year ?? 0)
 );
+
+/** Pinned above the recency sort, regardless of year. */
+const PINNED_PHOTO_CLIENT = 'Don Toliver';
+
+export const photos: Photo[] = [
+  ...photosByRecency.filter((p) => p.client === PINNED_PHOTO_CLIENT),
+  ...photosByRecency.filter((p) => p.client !== PINNED_PHOTO_CLIENT),
+];

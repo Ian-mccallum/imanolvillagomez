@@ -297,9 +297,19 @@ const videosChronological: Video[] = [
 ];
 
 /** Most recent year first; stable sort keeps each year's existing relative order. */
-export const videos: Video[] = [...videosChronological].sort(
+const videosByRecency: Video[] = [...videosChronological].sort(
   (a, b) => (b.year ?? 0) - (a.year ?? 0)
 );
+
+/** Pinned above the recency sort, regardless of year. */
+const PINNED_VIDEO_IDS = ['thehellp-promo'];
+
+export const videos: Video[] = [
+  ...PINNED_VIDEO_IDS.map((id) => videosByRecency.find((v) => v.id === id)).filter(
+    (v): v is Video => v !== undefined
+  ),
+  ...videosByRecency.filter((v) => !PINNED_VIDEO_IDS.includes(v.id)),
+];
 
 /**
  * Lost Files - Videos without new format (artist/song/tour/date)
