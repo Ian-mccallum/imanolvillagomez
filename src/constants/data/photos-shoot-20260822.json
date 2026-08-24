@@ -1,5 +1,11 @@
 [
   {
+    "id": "photo-2026-064",
+    "imageUrl": "/images/shoot-20260820-rommulas-05.jpg",
+    "year": 2026,
+    "client": "ROMMULAS"
+  },
+  {
     "id": "photo-2026-060",
     "imageUrl": "/images/shoot-20260820-rommulas-01.jpg",
     "year": 2026,
@@ -24,12 +30,6 @@
     "client": "ROMMULAS"
   },
   {
-    "id": "photo-2026-064",
-    "imageUrl": "/images/shoot-20260820-rommulas-05.jpg",
-    "year": 2026,
-    "client": "ROMMULAS"
-  },
-  {
     "id": "photo-2026-065",
     "imageUrl": "/images/shoot-20260820-rommulas-06.jpg",
     "year": 2026,
@@ -40,6 +40,12 @@
     "imageUrl": "/images/shoot-20260820-rommulas-07.jpg",
     "year": 2026,
     "client": "ROMMULAS"
+  },
+  {
+    "id": "photo-2026-078",
+    "imageUrl": "/images/shoot-20260814-dgnr8-12.jpg",
+    "year": 2026,
+    "client": "DGNR8"
   },
   {
     "id": "photo-2026-067",
@@ -104,12 +110,6 @@
   {
     "id": "photo-2026-077",
     "imageUrl": "/images/shoot-20260814-dgnr8-11.jpg",
-    "year": 2026,
-    "client": "DGNR8"
-  },
-  {
-    "id": "photo-2026-078",
-    "imageUrl": "/images/shoot-20260814-dgnr8-12.jpg",
     "year": 2026,
     "client": "DGNR8"
   },

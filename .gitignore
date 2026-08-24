@@ -42,7 +42,34 @@ newWork/*
 !newWork/README.md
 !newWork/upload-batch.txt
 
-# Ad-hoc raw client delivery staging — same reasoning as newWork/, too large for Git.
-# Glob covers dated/renamed drops (e.g. "UPDATED WORK 8.22.26/", "UPDATED WORk2.zip").
-UPDATED WOR[Kk]*/
-UPDATED WOR[Kk]*.zip
+# ── Raw client deliveries at the repo root ──────────────────────────────────
+#
+# Client drops land here under names nobody can predict ("UPDATED WORK 8.22.26/",
+# "NINE VICIOUS/", whatever the next artist is called), each carrying zips and
+# camera masters in the hundreds of megabytes. Naming them one by one meant the
+# next drop was always unprotected, and a single >100MB file caught in a commit
+# makes GitHub reject the entire push — which then needs the commit rewritten.
+#
+# So this inverts the default: every root-level directory is ignored, and only the
+# project's own directories are allowed back in. A new client folder is invisible
+# to git the moment it appears, without anyone having to remember to add it.
+#
+# Adding a real new top-level directory to the project? Add a matching !/name/ line.
+/*/
+!/.claude/
+!/.cursor/
+!/documentation/
+!/features/
+!/intelligence/
+!/newWork/
+!/public/
+!/scripts/
+!/src/
+!/template/
+
+# Same reasoning for loose media dropped at the root rather than in a folder.
+/*.zip
+/*.mp4
+/*.MP4
+/*.mov
+/*.MOV

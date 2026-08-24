@@ -2,6 +2,15 @@ import { cn } from '@/utils';
 
 /**
  * Legend for caption format on Videos (song | location + year) or Photos (artist only + year).
+ *
+ * INTENTIONALLY NOT RENDERED. The Videos and Photos pages deliberately stopped
+ * displaying this — the captions read clearly enough on their own and the legend
+ * was taking up space above the grid. The component is kept, working and ready to
+ * drop back into either page's header, so please don't remove it as dead code.
+ *
+ * To show it again, pass it to SubpageHeader's `aside` prop:
+ *   aside={<VideoFormatLegend darkBackground />}            // Videos
+ *   aside={<VideoFormatLegend darkBackground variant="photo" />}  // Photos
  */
 
 interface VideoFormatLegendProps {

@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FullscreenModal, VideoGrid } from '@/components/video';
 import { VideoFilterBar } from '@/components/video/VideoFilterBar';
-import { VideoFormatLegend } from '@/components/video/VideoFormatLegend';
-import { SubpageHeader, subpageHeaderShellClass } from '@/components/layout/SubpageHeader';
+import { SubpageHeader } from '@/components/layout/SubpageHeader';
+import { cn } from '@/utils';
 import { videos } from '@/constants/videos';
 import { Video } from '@/types';
 import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
@@ -22,6 +22,9 @@ import { StructuredData, createBreadcrumbSchema } from '@/components/seo/Structu
  * Carson: Experimental typography
  * West: Minimal, clean
  */
+
+/** Width/padding shared by the header, filter bar and grid so they align on the left. */
+const videosShellClass = 'w-full max-w-[98vw] mx-auto px-4 md:px-6 lg:px-8';
 
 export const VideosPage = () => {
   const seoConfig = SEO_CONFIG.videos;
@@ -128,23 +131,17 @@ export const VideosPage = () => {
         />
       ))}
 
-      <header className={subpageHeaderShellClass}>
+      {/* Header and filter bar share the grid's width below so the title lines up
+          with the first column instead of sitting inside a narrower centered container. */}
+      <header className={cn(videosShellClass, 'pt-20 md:pt-24 pb-4 relative z-10')}>
         <SubpageHeader
           title="VIDEOS"
           subtitle={`${videos.length} PROJECTS`}
-          aside={
-            <div className="hidden md:block">
-              <VideoFormatLegend darkBackground={true} />
-            </div>
-          }
         />
-        <div className="md:hidden mt-4">
-          <VideoFormatLegend darkBackground={true} />
-        </div>
       </header>
 
       {/* Filter Bar - 5% visual weight, minimal */}
-      <div className="container mx-auto px-4 md:px-6 relative z-20">
+      <div className={cn(videosShellClass, 'relative z-20')}>
         <VideoFilterBar
           videos={videos}
           filterState={filterState}
@@ -176,7 +173,7 @@ export const VideosPage = () => {
           </div>
         </div>
       ) : (
-        <main className="w-full max-w-[98vw] mx-auto px-4 md:px-6 lg:px-8 pb-12 md:pb-20 relative z-10">
+        <main className={cn(videosShellClass, 'pb-12 md:pb-20 relative z-10')}>
           <VideoGrid
             videos={filteredVideos}
             layout="masonry"

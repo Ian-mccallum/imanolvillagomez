@@ -2,6 +2,7 @@ import { Photo } from '@/types';
 import shootFeb2026 from '@/constants/data/photos-shoot-20260228.json';
 import shootJune2026 from '@/constants/data/photos-shoot-20260612.json';
 import shootAug2026 from '@/constants/data/photos-shoot-20260822.json';
+import shootJuly2026 from '@/constants/data/photos-shoot-20260724.json';
 
 /**
  * Photo portfolio data for Imanol Villagomez
@@ -31,11 +32,13 @@ function tourForAug2026Shoot(client: string | undefined): string {
       return 'ROMMULAS - RHEA SILVIA TOUR';
     case 'DGNR8':
       return 'DGNR8 - US TOUR';
-    case 'NINE VICIOUS':
-      return 'NINE VICIOUS - EMOTIONS TOUR';
     default:
       return 'ROMMULAS - RHEA SILVIA TOUR';
   }
+}
+
+function tourForJuly2026Shoot(_client: string | undefined): string {
+  return 'NINE VICIOUS - EMOTIONS TOUR';
 }
 
 function tourForJune2026Shoot(client: string | undefined): string {
@@ -207,11 +210,21 @@ const photosArchive: Photo[] = [
   },
 ];
 
-/** Feb 2026 shoot + archive; detail views sort by year. */
+/**
+ * Newest shoot first. The export below sorts by year only, and that sort is
+ * stable, so within a year this array order is what the site shows — keep
+ * shoots listed most-recent-first.
+ */
 const photosChronological: Photo[] = [
+  // Aug 2026 delivery: ROMMULAS (shot Aug 20) then DGNR8 (Aug 14)
   ...(shootAug2026 as Photo[]).map((p) => ({
     ...p,
     tour: p.tour ?? tourForAug2026Shoot(p.client),
+  })),
+  // NINE VICIOUS (shot Jul 24)
+  ...(shootJuly2026 as Photo[]).map((p) => ({
+    ...p,
+    tour: p.tour ?? tourForJuly2026Shoot(p.client),
   })),
   ...(shootJune2026 as Photo[]).map((p) => ({
     ...p,
@@ -227,21 +240,10 @@ const photosChronological: Photo[] = [
   })),
 ];
 
-/** Most recent year first; stable sort keeps each year's existing relative order. */
-const photosByRecency: Photo[] = [...photosChronological].sort(
+/**
+ * Newest first, no pinning — order comes purely from recency. The sort is stable,
+ * so shoots within the same year keep the order they have in photosChronological.
+ */
+export const photos: Photo[] = [...photosChronological].sort(
   (a, b) => (b.year ?? 0) - (a.year ?? 0)
 );
-
-/**
- * Pinned above the recency sort, regardless of year — top to bottom in this
- * order. Within each client, the shoot's own order (ascending frame number)
- * is preserved. Add 'NINE VICIOUS' after DGNR8 once that footage lands.
- */
-const PINNED_PHOTO_CLIENTS = ['Don Toliver', 'ROMMULAS', 'DGNR8'];
-
-export const photos: Photo[] = [
-  ...PINNED_PHOTO_CLIENTS.flatMap((client) =>
-    photosByRecency.filter((p) => p.client === client)
-  ),
-  ...photosByRecency.filter((p) => !PINNED_PHOTO_CLIENTS.includes(p.client ?? '')),
-];

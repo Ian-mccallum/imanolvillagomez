@@ -21,12 +21,20 @@ Note this returns UTC. A show shot at 9pm Chicago time reports as the following 
 use the local date of the shoot.
 
 `<artist>` is lowercase, no spaces (`dontoliver`, `rommulas`, `dgnr8`). `<NN>` is
-zero-padded and defines display order.
+zero-padded and reflects the order the photos were ingested — normally ascending
+camera frame number.
 
-**Order is almost always ascending camera frame number** — the first frame the client
-listed is the first photo shown. Camera filenames (`DSC04274`, `DSC04276`, …) already
-sort correctly, so map them in ascending order. Watch for variants like
-`DSC04274-2.jpg`, which sorts after `DSC04274` and before `DSC04276`.
+**Display order is the JSON array order, not the filename.** `NN` is a stable
+identifier assigned once at ingest; the site renders whatever sequence the shoot's
+JSON array holds. They start out matching, and then diverge the moment the client
+asks for a specific photo to lead — reordering the array is the right move there,
+because renaming files would churn every entry and break nothing usefully.
+
+So: **ingest** in ascending camera frame number (`DSC04274`, `DSC04276`, …; watch for
+variants like `DSC04274-2.jpg`, which sorts after `DSC04274` and before `DSC04276`),
+then **reorder the JSON** if the client wants a different lead image. Always confirm
+the result against real data rather than reading the filenames — see the ordering
+check in `SKILL.md`.
 
 Copy them in one deliberate pass so the mapping is explicit and reviewable:
 

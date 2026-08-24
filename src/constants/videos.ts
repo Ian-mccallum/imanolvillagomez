@@ -50,6 +50,20 @@ const videosChronological: Video[] = [
     featured: true,
   },
   {
+    id: 'ninevicious-saywhat',
+    title: 'Nine Vicious Say What',
+    client: 'NINE VICIOUS',
+    artist: 'NINE VICIOUS',
+    song: 'SAY WHAT?',
+    tour: videoTourFilterLabel('NINE VICIOUS', 'Emotions Tour'),
+    year: 2026,
+    location: 'CHICAGO',
+    category: 'music-video',
+    videoUrl: getVideoUrl('SAYWHAT.mp4'),
+    thumbnail: getVideoUrl('SAYWHAT.mp4'),
+    featured: true,
+  },
+  {
     id: 'sofaygo-mm3',
     title: 'Sofaygo MM3',
     client: 'Sofaygo',
@@ -310,23 +324,13 @@ const videosChronological: Video[] = [
   },
 ];
 
-/** Most recent year first; stable sort keeps each year's existing relative order. */
-const videosByRecency: Video[] = [...videosChronological].sort(
+/**
+ * Newest first, no pinning — order comes purely from recency. The sort is stable,
+ * so entries sharing a year keep the order they have in videosChronological.
+ */
+export const videos: Video[] = [...videosChronological].sort(
   (a, b) => (b.year ?? 0) - (a.year ?? 0)
 );
-
-/**
- * Pinned above the recency sort, regardless of year — top to bottom in this
- * order. Add the Nine Vicious video ("SAY WHAT?") after Rommulas once it lands.
- */
-const PINNED_VIDEO_IDS = ['thehellp-promo', 'rommulas-problema'];
-
-export const videos: Video[] = [
-  ...PINNED_VIDEO_IDS.map((id) => videosByRecency.find((v) => v.id === id)).filter(
-    (v): v is Video => v !== undefined
-  ),
-  ...videosByRecency.filter((v) => !PINNED_VIDEO_IDS.includes(v.id)),
-];
 
 /**
  * Lost Files - Videos without new format (artist/song/tour/date)

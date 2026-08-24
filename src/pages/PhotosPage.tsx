@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FullscreenModal, VideoFilterBar, VideoFormatLegend } from '@/components/video';
+import { FullscreenModal, VideoFilterBar } from '@/components/video';
 import { photos } from '@/constants/photos';
 import { Photo } from '@/types';
 import { FilterState, EMPTY_FILTER_STATE } from '@/types/filters';
 import { cn } from '@/utils';
-import { SubpageHeader, subpageHeaderShellClass } from '@/components/layout/SubpageHeader';
+import { SubpageHeader } from '@/components/layout/SubpageHeader';
 import {
   generatePhotoFilterOptions,
   applyPhotoFilters,
@@ -24,6 +24,9 @@ import { StructuredData, createBreadcrumbSchema } from '@/components/seo/Structu
 /**
  * PhotosPage — same filter bar as Videos: ALL + ARTIST / YEAR / TOUR (artist ↔ photo client).
  */
+/** Width/padding shared by the header, filter bar and grid so they align on the left. */
+const photosShellClass = 'w-full max-w-[100vw] mx-auto px-2 sm:px-4 md:px-6';
+
 export const PhotosPage = () => {
   const seoConfig = SEO_CONFIG.photos;
   usePageTitle('Photos');
@@ -146,23 +149,17 @@ export const PhotosPage = () => {
         />
       ))}
 
-      <header className={subpageHeaderShellClass}>
+      {/* Header and filter bar share the grid's width below so the title lines up
+          with the first column instead of sitting inside a narrower centered container. */}
+      <header className={cn(photosShellClass, 'pt-20 md:pt-24 pb-4 relative z-10')}>
         <SubpageHeader
           title="PHOTOS"
           subtitle={`${filteredAndSortedPhotos.length} ${filteredAndSortedPhotos.length === 1 ? 'PHOTO' : 'PHOTOS'}${filtersActive ? ' · FILTERED' : ''}`}
-          aside={
-            <div className="hidden md:block">
-              <VideoFormatLegend darkBackground variant="photo" />
-            </div>
-          }
         />
-        <div className="md:hidden mt-4">
-          <VideoFormatLegend darkBackground variant="photo" />
-        </div>
       </header>
 
       {/* z-20 sibling so filter dropdowns stack above main (also z-10); same pattern as VideosPage */}
-      <div className="container mx-auto px-4 md:px-6 relative z-20">
+      <div className={cn(photosShellClass, 'relative z-20')}>
         <VideoFilterBar
           filterState={filterState}
           filterOptions={filterOptions}
@@ -173,7 +170,7 @@ export const PhotosPage = () => {
         />
       </div>
 
-      <main className="w-full max-w-[100vw] mx-auto px-2 sm:px-4 md:px-6 pb-12 md:pb-20 relative z-10">
+      <main className={cn(photosShellClass, 'pb-12 md:pb-20 relative z-10')}>
         {filteredAndSortedPhotos.length === 0 ? (
           <motion.div
             className="min-h-[60vh] flex items-center justify-center"
