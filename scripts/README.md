@@ -2,8 +2,8 @@
 
 This directory contains utility scripts for the project.
 
-For **new videos → R2 → site**, use the **`publish-work` skill**
-(`.claude/skills/publish-work/`) — `publish-video.sh` wraps the scripts below into one
+For **new videos → R2 → site**, use the **`imanol-publish` skill**
+(`.claude/skills/imanol-publish/`) — `publish-video.sh` wraps the scripts below into one
 verified step. `documentation/upload-new-work.md` has the longhand background.
 
 ## Active Scripts

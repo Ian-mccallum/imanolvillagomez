@@ -1,6 +1,6 @@
 # Upload new work — atomic playbook
 
-> **Start with the `publish-work` skill instead** (`.claude/skills/publish-work/`).
+> **Start with the `imanol-publish` skill instead** (`.claude/skills/imanol-publish/`).
 > It supersedes this document: one command handles codec, faststart, upload and
 > verification, and it blocks the two mistakes this playbook can't catch — shipping a
 > video without faststart, and shipping an untouched 35–40Mbps camera master that

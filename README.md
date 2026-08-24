@@ -84,12 +84,12 @@ See **`.env.example`** for **`VITE_R2_PUBLIC_URL`** (public URL for video assets
 
 ## Portfolio media — adding new videos & photos
 
-**Start here — the `publish-work` skill** (`.claude/skills/publish-work/`). One command
+**Start here — the `imanol-publish` skill** (`.claude/skills/imanol-publish/`). One command
 takes a video from the client folder to live on R2, with faststart and bitrate checks
 that prevent the two ways a video ships broken:
 
 ```bash
-.claude/skills/publish-work/scripts/publish-video.sh "<source>" "<Name.mp4>"
+.claude/skills/imanol-publish/scripts/publish-video.sh "<source>" "<Name.mp4>"
 ```
 
 **Longhand background:**

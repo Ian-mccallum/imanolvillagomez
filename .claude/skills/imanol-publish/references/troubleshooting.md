@@ -38,7 +38,7 @@ problem, bitrate is.
 Fix by re-encoding with a ceiling, then republishing:
 
 ```bash
-.claude/skills/publish-work/scripts/publish-video.sh <source> NAME.mp4 --web-encode
+.claude/skills/imanol-publish/scripts/publish-video.sh <source> NAME.mp4 --web-encode
 ```
 
 `--web-encode` caps at 16Mbps and keeps the original resolution. To cut further for

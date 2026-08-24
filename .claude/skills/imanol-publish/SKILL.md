@@ -1,5 +1,5 @@
 ---
-name: publish-work
+name: imanol-publish
 description: Publish new client work to the NOL portfolio site — upload videos to Cloudflare R2, add photos, register everything in videos.ts/photos.ts with the right names, tour tags and ordering, then deploy. Use this whenever new work needs to go on the site: a client delivery or staging folder has landed, videos need uploading to R2, photos need adding to the grid, or someone asks where to put new footage. Also use it when a published video won't load or stalls partway, when a video URL 404s on the custom domain but works on r2.dev, or when the order of photos/videos on the site needs changing.
 ---
 
@@ -64,7 +64,7 @@ needed, faststart, copy into `public/videos/`, upload to R2, and verification th
 the URL actually streams:
 
 ```bash
-.claude/skills/publish-work/scripts/publish-video.sh "<source file>" "<Name.mp4>"
+.claude/skills/imanol-publish/scripts/publish-video.sh "<source file>" "<Name.mp4>"
 ```
 
 Add `--dry-run` to see what it would do without writing or uploading anything.
