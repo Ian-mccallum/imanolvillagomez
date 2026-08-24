@@ -6,7 +6,8 @@ Documentation for the NOL (Imanol) videography portfolio site.
 
 | Doc | Purpose |
 |-----|---------|
-| [Upload new work](./upload-new-work.md) | **Primary playbook** — videos (R2), photos, git policy, scripts |
+| `publish-work` skill (`.claude/skills/publish-work/`) | **Start here for new work** — one command for video → R2, plus photos, ordering, deploy |
+| [Upload new work](./upload-new-work.md) | Longhand background behind the skill — videos (R2), photos, git policy, scripts |
 | [Getting started](./getting-started.md) | Dev environment and first run |
 | [Project structure](./project-structure.md) | Repo layout |
 | [Architecture](./architecture.md) | System design |

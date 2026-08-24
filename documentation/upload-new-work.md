@@ -1,5 +1,12 @@
 # Upload new work — atomic playbook
 
+> **Start with the `publish-work` skill instead** (`.claude/skills/publish-work/`).
+> It supersedes this document: one command handles codec, faststart, upload and
+> verification, and it blocks the two mistakes this playbook can't catch — shipping a
+> video without faststart, and shipping an untouched 35–40Mbps camera master that
+> stalls for viewers. This file is kept for background and for the raw commands the
+> script wraps.
+
 This document is for **humans and AI coding agents** who need to add new **videos** and **photos** to the NOL site safely. Follow steps **in order**. Skipping steps (especially codec or basename matching) causes playback or deploy issues.
 
 **Related docs:** [Cloudflare R2 setup](./ops/cloudflare-r2-setup.md) (one-time bucket + DNS + CORS), [Scripts README](../scripts/README.md).
