@@ -36,6 +36,20 @@ function videoTourFilterLabel(artist: string, tourName: string): string {
 
 const videosChronological: Video[] = [
   {
+    id: 'rommulas-problema',
+    title: 'Rommulas Problema',
+    client: 'ROMMULAS',
+    artist: 'ROMMULAS',
+    song: 'PROBLEMA',
+    tour: videoTourFilterLabel('ROMMULAS', 'Rhea Silvia Tour'),
+    year: 2026,
+    location: 'CHICAGO',
+    category: 'music-video',
+    videoUrl: getVideoUrl('PROBLEMA.mp4'),
+    thumbnail: getVideoUrl('PROBLEMA.mp4'),
+    featured: true,
+  },
+  {
     id: 'sofaygo-mm3',
     title: 'Sofaygo MM3',
     client: 'Sofaygo',
@@ -301,8 +315,11 @@ const videosByRecency: Video[] = [...videosChronological].sort(
   (a, b) => (b.year ?? 0) - (a.year ?? 0)
 );
 
-/** Pinned above the recency sort, regardless of year. */
-const PINNED_VIDEO_IDS = ['thehellp-promo'];
+/**
+ * Pinned above the recency sort, regardless of year — top to bottom in this
+ * order. Add the Nine Vicious video ("SAY WHAT?") after Rommulas once it lands.
+ */
+const PINNED_VIDEO_IDS = ['thehellp-promo', 'rommulas-problema'];
 
 export const videos: Video[] = [
   ...PINNED_VIDEO_IDS.map((id) => videosByRecency.find((v) => v.id === id)).filter(

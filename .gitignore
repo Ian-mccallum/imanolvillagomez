@@ -42,6 +42,7 @@ newWork/*
 !newWork/README.md
 !newWork/upload-batch.txt
 
-# Ad-hoc raw client delivery staging — same reasoning as newWork/, too large for Git
-UPDATED WORk/
-UPDATED WORk.zip
+# Ad-hoc raw client delivery staging — same reasoning as newWork/, too large for Git.
+# Glob covers dated/renamed drops (e.g. "UPDATED WORK 8.22.26/", "UPDATED WORk2.zip").
+UPDATED WOR[Kk]*/
+UPDATED WOR[Kk]*.zip

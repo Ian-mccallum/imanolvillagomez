@@ -1,6 +1,7 @@
 import { Photo } from '@/types';
 import shootFeb2026 from '@/constants/data/photos-shoot-20260228.json';
 import shootJune2026 from '@/constants/data/photos-shoot-20260612.json';
+import shootAug2026 from '@/constants/data/photos-shoot-20260822.json';
 
 /**
  * Photo portfolio data for Imanol Villagomez
@@ -23,6 +24,19 @@ const PHOTO_TOUR = {
 
 /** The Hellp is not on the main tour list; keeps a distinct filter bucket. */
 const PHOTO_TOUR_HELLP = 'THE HELLP - US TOUR';
+
+function tourForAug2026Shoot(client: string | undefined): string {
+  switch (client) {
+    case 'ROMMULAS':
+      return 'ROMMULAS - RHEA SILVIA TOUR';
+    case 'DGNR8':
+      return 'DGNR8 - US TOUR';
+    case 'NINE VICIOUS':
+      return 'NINE VICIOUS - EMOTIONS TOUR';
+    default:
+      return 'ROMMULAS - RHEA SILVIA TOUR';
+  }
+}
 
 function tourForJune2026Shoot(client: string | undefined): string {
   switch (client) {
@@ -195,6 +209,10 @@ const photosArchive: Photo[] = [
 
 /** Feb 2026 shoot + archive; detail views sort by year. */
 const photosChronological: Photo[] = [
+  ...(shootAug2026 as Photo[]).map((p) => ({
+    ...p,
+    tour: p.tour ?? tourForAug2026Shoot(p.client),
+  })),
   ...(shootJune2026 as Photo[]).map((p) => ({
     ...p,
     tour: p.tour ?? tourForJune2026Shoot(p.client),
@@ -214,10 +232,16 @@ const photosByRecency: Photo[] = [...photosChronological].sort(
   (a, b) => (b.year ?? 0) - (a.year ?? 0)
 );
 
-/** Pinned above the recency sort, regardless of year. */
-const PINNED_PHOTO_CLIENT = 'Don Toliver';
+/**
+ * Pinned above the recency sort, regardless of year — top to bottom in this
+ * order. Within each client, the shoot's own order (ascending frame number)
+ * is preserved. Add 'NINE VICIOUS' after DGNR8 once that footage lands.
+ */
+const PINNED_PHOTO_CLIENTS = ['Don Toliver', 'ROMMULAS', 'DGNR8'];
 
 export const photos: Photo[] = [
-  ...photosByRecency.filter((p) => p.client === PINNED_PHOTO_CLIENT),
-  ...photosByRecency.filter((p) => p.client !== PINNED_PHOTO_CLIENT),
+  ...PINNED_PHOTO_CLIENTS.flatMap((client) =>
+    photosByRecency.filter((p) => p.client === client)
+  ),
+  ...photosByRecency.filter((p) => !PINNED_PHOTO_CLIENTS.includes(p.client ?? '')),
 ];
