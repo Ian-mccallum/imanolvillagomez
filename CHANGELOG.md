@@ -44,6 +44,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **SEO pointed at a domain that doesn't exist.** `BASE_URL` was
+  `https://nolvideography.com`, which does not resolve — so canonical tags, Open
+  Graph metadata, structured data, `sitemap.xml` and `robots.txt` were all sending
+  search engines and link previews to a dead host. Now `https://www.imanolvillagomez.com`
+  (the site 307-redirects the apex to `www`, so `www` is canonical).
+  `useMetaTags` kept its own second copy of `BASE_URL`, meaning a domain change in
+  one place would silently leave canonical tags on the old host — it now imports the
+  single definition from `constants/seo.ts`.
 - **Videos stalling for viewers on large clips.** `VIKING`, `MM3` and `PROBLEMA` were
   published as untouched 4K camera masters at 37–41 Mbps — more sustained throughput
   than an ordinary connection can hold, so playback started and then hung. Re-encoded

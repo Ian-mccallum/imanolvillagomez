@@ -40,7 +40,7 @@ export const PrivacyPage = () => {
     {
       id: 'introduction',
       title: 'INTRODUCTION',
-      content: `This Privacy Policy ("Policy") describes how IMANOL VILLAGOMEZ, a sole proprietorship operating from Aurora, Illinois ("we," "our," or "us"), collects, uses, discloses, and protects your personal information when you visit our website at nolvideography.com (the "Website"). This Policy applies to all visitors and users of our Website. By using our Website, you agree to the collection and use of information in accordance with this Policy. If you do not agree with this Policy, please do not use our Website.`
+      content: `This Privacy Policy ("Policy") describes how IMANOL VILLAGOMEZ, a sole proprietorship operating from Aurora, Illinois ("we," "our," or "us"), collects, uses, discloses, and protects your personal information when you visit our website at www.imanolvillagomez.com (the "Website"). This Policy applies to all visitors and users of our Website. By using our Website, you agree to the collection and use of information in accordance with this Policy. If you do not agree with this Policy, please do not use our Website.`
     },
     {
       id: 'information-collection',

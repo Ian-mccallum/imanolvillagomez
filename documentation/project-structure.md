@@ -116,8 +116,8 @@ SEO components for search engine optimization:
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
 
 const schema = createBreadcrumbSchema([
-  { name: 'Home', url: 'https://nolvideography.com' },
-  { name: 'Videos', url: 'https://nolvideography.com/work/videos' },
+  { name: 'Home', url: 'https://www.imanolvillagomez.com' },
+  { name: 'Videos', url: 'https://www.imanolvillagomez.com/work/videos' },
 ]);
 
 <StructuredData data={schema} />

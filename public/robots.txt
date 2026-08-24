@@ -3,5 +3,5 @@ Allow: /
 Disallow: /thank-you
 Disallow: /api/
 
-Sitemap: https://nolvideography.com/sitemap.xml
+Sitemap: https://www.imanolvillagomez.com/sitemap.xml
 

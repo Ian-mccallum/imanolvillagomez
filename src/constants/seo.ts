@@ -1,6 +1,6 @@
 import { ROUTES } from './routes';
 
-const BASE_URL = 'https://nolvideography.com';
+const BASE_URL = 'https://www.imanolvillagomez.com';
 const DEFAULT_KEYWORDS = 'music videographer, concert videography, music video production, tour videography, music photographer, IMANOL VILLAGOMEZ';
 
 export interface PageSEOConfig {

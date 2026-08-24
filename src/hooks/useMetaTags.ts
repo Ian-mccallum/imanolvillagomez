@@ -1,4 +1,8 @@
 import { useEffect } from 'react';
+// Imported rather than redeclared: this hook used to keep its own copy of the site
+// URL, so changing the domain in one place silently left canonical tags on the old
+// host. One definition, in constants/seo.ts.
+import { BASE_URL } from '@/constants';
 
 interface MetaTagsConfig {
   title?: string;
@@ -11,7 +15,6 @@ interface MetaTagsConfig {
   author?: string;
 }
 
-const BASE_URL = 'https://nolvideography.com';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/I.V..png`;
 const DEFAULT_AUTHOR = 'IMANOL VILLAGOMEZ';
 
