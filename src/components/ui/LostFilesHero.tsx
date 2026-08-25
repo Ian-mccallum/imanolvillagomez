@@ -159,8 +159,15 @@ export const LostFilesHero = () => {
           LOST FILES
         </motion.h1>
 
+        {/* Layers two and three are the same words repeated purely for the offset
+            visual. They are divs, not headings, and hidden from assistive tech —
+            three <h1>s of identical text made the page read "LOST FILES" three
+            times to screen readers and split its main heading signal for search.
+            Styling and animation are unchanged, so the effect looks identical. */}
+
         {/* Second layer - offset to the right, fades in second */}
-        <motion.h1
+        <motion.div
+          aria-hidden="true"
           className="w-full text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem] 2xl:text-[14rem] font-black text-white uppercase tracking-tighter leading-[0.9] text-center"
           variants={fadeIn2}
           initial="initial"
@@ -168,10 +175,11 @@ export const LostFilesHero = () => {
           style={{ transform: 'translateX(4%)' }}
         >
           LOST FILES
-        </motion.h1>
+        </motion.div>
 
         {/* Third layer - offset even more to the right, fades in third */}
-        <motion.h1
+        <motion.div
+          aria-hidden="true"
           className="w-full text-8xl md:text-9xl lg:text-[10rem] xl:text-[12rem] 2xl:text-[14rem] font-black text-white uppercase tracking-tighter leading-[0.9] text-center"
           variants={fadeIn3}
           initial="initial"
@@ -179,7 +187,7 @@ export const LostFilesHero = () => {
           style={{ transform: 'translateX(12%)' }}
         >
           LOST FILES
-        </motion.h1>
+        </motion.div>
 
         {/* Flash photography overlay - subtle, top left corner (indie sleaze) */}
         <motion.div

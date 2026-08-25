@@ -25,6 +25,9 @@ export const NotFoundPage = () => {
   useMetaTags({
     title: '404 - Page Not Found | IMANOL VILLAGOMEZ',
     description: 'The page you are looking for does not exist.',
+    // Every mistyped or stale URL renders this page, so without noindex the site
+    // offers search engines an unlimited supply of indexable dead ends.
+    noindex: true,
   });
 
   return (

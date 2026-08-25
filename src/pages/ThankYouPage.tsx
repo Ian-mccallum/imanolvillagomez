@@ -27,6 +27,10 @@ export const ThankYouPage = () => {
     title: seoConfig.title,
     description: seoConfig.description,
     keywords: seoConfig.keywords,
+    // Post-submit confirmation: no search value, and ranking it would land people
+    // here instead of on the contact form. Already disallowed in robots.txt; this
+    // covers the case where it gets linked and crawled anyway.
+    noindex: true,
   });
 
   // Breadcrumb schema

@@ -1,5 +1,8 @@
 import { GlitchText } from '@/components/ui/GlitchText';
 import { GrainTexture } from '@/components/ui/GrainTexture';
+import { usePageTitle, useMetaTags } from '@/hooks';
+import { SEO_CONFIG, BASE_URL } from '@/constants';
+import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
 
 /**
  * AboutPage
@@ -14,18 +17,38 @@ import { GrainTexture } from '@/components/ui/GrainTexture';
  */
 
 export const AboutPage = () => {
+  const seoConfig = SEO_CONFIG.about;
+  usePageTitle('About');
+  useMetaTags({
+    title: seoConfig.title,
+    description: seoConfig.description,
+    keywords: seoConfig.keywords,
+  });
+
+  const breadcrumbSchema = createBreadcrumbSchema([
+    { name: 'Home', url: BASE_URL },
+    { name: 'About', url: `${BASE_URL}${seoConfig.path}` },
+  ]);
+
   return (
+    <>
+    <StructuredData data={breadcrumbSchema} />
     <div className="min-h-screen bg-zinc-darkest relative">
       <div className="container mx-auto px-4 md:px-6 py-12 md:py-20">
         {/* Carson: Experimental typography layout - Asymmetrical */}
         <div className="max-w-6xl mx-auto">
           {/* Main headline - Asymmetrical, experimental typography */}
           <div className="mb-8 md:mb-12">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter mb-4 transform rotate-neg05">
-              <GlitchText intensity="medium">IMANOL</GlitchText>
-            </h1>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter ml-8 md:ml-16 transform rotate-05">
-              VILLAGOMEZ
+            {/* One h1 spanning both lines: the name is a single heading, and two
+                h1s split the page's main heading signal for no visual gain. The
+                inner spans keep the original stacked/rotated typography. */}
+            <h1>
+              <span className="block text-5xl md:text-7xl lg:text-8xl font-black text-white uppercase tracking-tighter mb-4 transform rotate-neg05">
+                <GlitchText intensity="medium">IMANOL</GlitchText>
+              </span>
+              <span className="block text-4xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter ml-8 md:ml-16 transform rotate-05">
+                VILLAGOMEZ
+              </span>
             </h1>
           </div>
 
@@ -90,5 +113,6 @@ export const AboutPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };

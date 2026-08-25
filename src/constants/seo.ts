@@ -35,6 +35,12 @@ export const SEO_CONFIG: Record<string, PageSEOConfig> = {
     path: ROUTES.WORK_PHOTOS,
     keywords: `${DEFAULT_KEYWORDS}, concert photography, music photography`,
   },
+  about: {
+    title: 'IMANOL VILLAGOMEZ | About',
+    description: 'About IMANOL VILLAGOMEZ — music videographer and photographer based in Aurora, Illinois, working with touring artists on concert footage, music videos and tour documentation.',
+    path: ROUTES.ABOUT,
+    keywords: `${DEFAULT_KEYWORDS}, about, music videographer biography`,
+  },
   other: {
     title: 'IMANOL VILLAGOMEZ | Other',
     description: 'Additional videography work and creative projects by IMANOL VILLAGOMEZ. Explore more visual content and behind-the-scenes footage.',

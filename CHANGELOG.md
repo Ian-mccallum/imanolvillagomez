@@ -44,6 +44,22 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **404 pages advertised themselves as indexable.** `useMetaTags` hardcoded
+  `robots: index, follow` on every route, so every mistyped or stale URL — all of
+  which render the 404 — invited itself into the search index. Added a `noindex`
+  option, applied to the 404 and the thank-you page. The tag is still written on
+  every page rather than skipped, so a noindex page can't leak its setting onto the
+  next route in this single-page app.
+- **`/about` had no SEO at all** — no title, description, canonical or breadcrumb
+  data, and it was missing from `sitemap.xml`. In a single-page app that means it
+  silently inherited whatever metadata the previously-viewed page had left behind.
+  Now wired up like every other route and listed in the sitemap.
+- **Duplicate `<h1>` elements** on `/about` (2) and `/other` (3). The Lost Files hero
+  stacks the same words three times for its offset visual; the repeats are now
+  decorative `div`s hidden from assistive tech, leaving one real heading. Styling and
+  animation are untouched, so the effect is unchanged.
+- **Stale sitemap.** Every `lastmod` read `2025-01-15`, which tells crawlers nothing
+  has changed on pages that update most often.
 - **SEO pointed at a domain that doesn't exist.** `BASE_URL` was
   `https://nolvideography.com`, which does not resolve — so canonical tags, Open
   Graph metadata, structured data, `sitemap.xml` and `robots.txt` were all sending

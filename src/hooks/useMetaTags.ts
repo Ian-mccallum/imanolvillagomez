@@ -13,6 +13,13 @@ interface MetaTagsConfig {
   twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player';
   keywords?: string;
   author?: string;
+  /**
+   * Keep the page out of search results. Needed for pages that exist but should
+   * never rank — the 404 and the post-submit thank-you. Left off, every route
+   * (including every mistyped URL that renders the 404) advertises itself as
+   * indexable, which invites an unbounded set of junk URLs into the index.
+   */
+  noindex?: boolean;
 }
 
 const DEFAULT_OG_IMAGE = `${BASE_URL}/I.V..png`;
@@ -35,6 +42,7 @@ export const useMetaTags = (config: MetaTagsConfig) => {
       twitterCard = 'summary_large_image',
       keywords,
       author = DEFAULT_AUTHOR,
+      noindex = false,
     } = config;
 
     // Get current path for canonical URL if not provided
@@ -101,7 +109,11 @@ export const useMetaTags = (config: MetaTagsConfig) => {
     // Additional Meta Tags
     const additionalTags = [
       { name: 'author', content: author },
-      { name: 'robots', content: 'index, follow' },
+      // Always written, never conditionally skipped: this is a single-page app, so
+      // the tag persists across navigation. If a noindex page left it untouched on
+      // the way out, the next page would inherit noindex and silently drop out of
+      // search.
+      { name: 'robots', content: noindex ? 'noindex, follow' : 'index, follow' },
       { name: 'language', content: 'English' },
       { name: 'revisit-after', content: '7 days' },
     ];
