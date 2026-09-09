@@ -17,14 +17,37 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   show (globe stage), tagged `YE LIVE IN CHICAGO`. First YE work on the site, and
   the first tour label that is not in the `ARTIST - TOUR NAME` form — the client's
   wording was used verbatim.
-  - Files `shoot-20260903-ye-01..06.jpg` and `-07.png`; data in
+  - Files `shoot-20260903-ye-01..06.jpg` and `-08.png`; data in
     `src/constants/data/photos-shoot-20260903.json`.
+  - **`-07` is intentionally skipped, not a lost file.** That URL was requested
+    while the deploy was still building, and because `vercel.json` applies
+    `max-age=31536000, immutable` to everything under `/images/`, Cloudflare
+    cached the resulting 404 for a year. The asset was renamed to `-08.png` to
+    get an uncached URL. See Known issues.
   - Photos only — this delivery contained no video.
   - The shoot leads the grid on recency alone (2026, first entry in
     `photosChronological`); no pin list was reintroduced.
   - Lead frame is the black-and-white masked portrait (`-07.png`) per client
     direction, so the JSON array order diverges from the `NN` ingest suffix — as
     with the August deliveries.
+
+### Known issues
+
+- **A 404 under `/images/` is cached for a year.** The `vercel.json` header rule
+  `source: "/images/(.*)"` matches on the request path, so Vercel stamps
+  `cache-control: public, max-age=31536000, immutable` onto *error* responses as
+  well as real files. If anything requests an image URL before that image is
+  deployed — a crawler, a preview, or a deploy-verification script — Cloudflare
+  caches the 404 and keeps serving it long after the file exists. Confirmed on
+  `shoot-20260903-ye-07.png`: origin returned 200 on every cache-busted request
+  while the plain URL kept returning a cached `x-vercel-error: NOT_FOUND`.
+
+  Not fixed here, because the sensible remedies trade off against each other and
+  the choice is worth making deliberately: shortening or dropping `immutable`
+  weakens caching for genuinely immutable, content-named assets; Vercel's
+  `headers` config cannot condition on status code. **Until it is fixed, never
+  request a new image URL until the deploy has finished** — verify the deploy is
+  live via an already-published asset first, then check the new ones.
 
 ---
 

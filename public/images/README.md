@@ -26,8 +26,8 @@ shoot-<YYYYMMDD>-<artist>-<NN>.jpg
 - `<artist>` — lowercase, no spaces (`rommulas`, `dgnr8`, `ninevicious`, `ye`).
 - `<NN>` — zero-padded, assigned once at ingest in ascending camera frame order.
 
-Examples: `shoot-20260903-ye-01.jpg`, `shoot-20260822-dgnr8-03.jpg`.
-`.png` is fine where the source was a PNG (e.g. `shoot-20260903-ye-07.png`) —
+Examples: `shoot-20260903-ye-01.jpg`, `shoot-20260814-dgnr8-03.jpg`.
+`.png` is fine where the source was a PNG (e.g. `shoot-20260903-ye-08.png`) —
 deliverables are not re-encoded.
 
 > **`NN` is an identifier, not a position.** Display order is the shoot JSON's
