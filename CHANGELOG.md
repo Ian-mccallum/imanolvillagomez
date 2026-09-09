@@ -9,6 +9,25 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-09-09
+
+### Added
+
+- **YE** work from the September delivery: 7 photos from the September 3 stadium
+  show (globe stage), tagged `YE LIVE IN CHICAGO`. First YE work on the site, and
+  the first tour label that is not in the `ARTIST - TOUR NAME` form — the client's
+  wording was used verbatim.
+  - Files `shoot-20260903-ye-01..06.jpg` and `-07.png`; data in
+    `src/constants/data/photos-shoot-20260903.json`.
+  - Photos only — this delivery contained no video.
+  - The shoot leads the grid on recency alone (2026, first entry in
+    `photosChronological`); no pin list was reintroduced.
+  - Lead frame is the black-and-white masked portrait (`-07.png`) per client
+    direction, so the JSON array order diverges from the `NN` ingest suffix — as
+    with the August deliveries.
+
+---
+
 ## 2026-08-24
 
 ### Added

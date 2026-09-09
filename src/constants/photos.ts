@@ -1,5 +1,6 @@
 import { Photo } from '@/types';
 import shootFeb2026 from '@/constants/data/photos-shoot-20260228.json';
+import shootSept2026 from '@/constants/data/photos-shoot-20260903.json';
 import shootJune2026 from '@/constants/data/photos-shoot-20260612.json';
 import shootAug2026 from '@/constants/data/photos-shoot-20260822.json';
 import shootJuly2026 from '@/constants/data/photos-shoot-20260724.json';
@@ -25,6 +26,10 @@ const PHOTO_TOUR = {
 
 /** The Hellp is not on the main tour list; keeps a distinct filter bucket. */
 const PHOTO_TOUR_HELLP = 'THE HELLP - US TOUR';
+
+function tourForSept2026Shoot(_client: string | undefined): string {
+  return 'YE LIVE IN CHICAGO';
+}
 
 function tourForAug2026Shoot(client: string | undefined): string {
   switch (client) {
@@ -216,6 +221,11 @@ const photosArchive: Photo[] = [
  * shoots listed most-recent-first.
  */
 const photosChronological: Photo[] = [
+  // YE (shot Sep 3) — array order leads with the B&W masked portrait, not frame number
+  ...(shootSept2026 as Photo[]).map((p) => ({
+    ...p,
+    tour: p.tour ?? tourForSept2026Shoot(p.client),
+  })),
   // Aug 2026 delivery: ROMMULAS (shot Aug 20) then DGNR8 (Aug 14)
   ...(shootAug2026 as Photo[]).map((p) => ({
     ...p,
