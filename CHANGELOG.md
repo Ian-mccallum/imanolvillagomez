@@ -31,23 +31,41 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     direction, so the JSON array order diverges from the `NN` ingest suffix — as
     with the August deliveries.
 
-### Known issues
+### Fixed
 
-- **A 404 under `/images/` is cached for a year.** The `vercel.json` header rule
-  `source: "/images/(.*)"` matches on the request path, so Vercel stamps
+- **A 404 under `/images/` was cached for a year.** The `vercel.json` header rule
+  `source: "/images/(.*)"` matches on the request path, so Vercel stamped
   `cache-control: public, max-age=31536000, immutable` onto *error* responses as
-  well as real files. If anything requests an image URL before that image is
-  deployed — a crawler, a preview, or a deploy-verification script — Cloudflare
-  caches the 404 and keeps serving it long after the file exists. Confirmed on
+  well as real files. Anything that requested an image URL before that image was
+  deployed — a crawler, a preview, or a deploy-verification script — got a 404
+  that Cloudflare then served for a year. Confirmed on
   `shoot-20260903-ye-07.png`: origin returned 200 on every cache-busted request
   while the plain URL kept returning a cached `x-vercel-error: NOT_FOUND`.
 
-  Not fixed here, because the sensible remedies trade off against each other and
-  the choice is worth making deliberately: shortening or dropping `immutable`
-  weakens caching for genuinely immutable, content-named assets; Vercel's
-  `headers` config cannot condition on status code. **Until it is fixed, never
-  request a new image URL until the deploy has finished** — verify the deploy is
-  live via an already-published asset first, then check the new ones.
+  Vercel's `headers` config cannot condition on response status, so a 404 cannot
+  be exempted directly and the only lever is the TTL. Images are now served
+  `public, max-age=86400, stale-while-revalidate=2592000`:
+
+  - Real images stay fast. `stale-while-revalidate` serves from cache
+    instantly for 30 days and refreshes in the background, so a visitor never
+    waits on revalidation — the practical difference from `immutable` is
+    negligible, since these files are content-named and never change in place.
+  - A poisoned 404 now self-heals in about a day instead of persisting for a
+    year.
+
+  The rule is also scoped to real image extensions, so any other path under
+  `/images/` falls back to Vercel's conservative default rather than inheriting a
+  long TTL.
+
+  **The process rule still stands regardless:** don't request a new asset URL
+  until the deploy is live. Confirm via an already-published asset or the built
+  JS bundle hash, then check the new ones. The TTL fix bounds the damage; it
+  doesn't make probing ahead of a deploy free.
+
+  Note the `/videos/osamasonpreview.mp4` rule deliberately keeps
+  `max-age=31536000, immutable`. It names one exact, long-committed file rather
+  than a wildcard, so it carries none of the same exposure, and a video benefits
+  more from the long TTL.
 
 ---
 
