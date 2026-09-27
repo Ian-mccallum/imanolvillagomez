@@ -315,9 +315,27 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
+/**
+ * Cmd/Ctrl+0 opens the add menu. It shadows the browser's reset-zoom, but only
+ * while /art is open — the rest of the site keeps the normal shortcut.
+ */
+const useAddShortcut = (toggle: () => void) => {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && (e.key === '0' || e.code === 'Digit0')) {
+        e.preventDefault();
+        toggle();
+      }
+    };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [toggle]);
+};
+
 /** One + for everything: tap it, pick files or a whole folder. */
 const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void }) => {
   const [open, setOpen] = useState(false);
+  useAddShortcut(useCallback(() => setOpen((o) => !o), []));
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -384,6 +402,7 @@ const DropWord = ({
   onFolder: () => void;
 }) => {
   const [open, setOpen] = useState(false);
+  useAddShortcut(useCallback(() => setOpen((o) => !o), []));
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;

@@ -17,7 +17,7 @@ Imanol ──/art──▶ R2 inbox/<id>/ ──runner (laptop)──▶ claude 
 
 1. Open `/art`, enter the password. After the first login, save Face ID / Touch ID
    when the pill offers it — later visits just need the face button.
-2. Tap **DROP** → **files** or **folder**. Each folder becomes a group; name it and
+2. Tap **DROP** (or press **Cmd/Ctrl+0**) → **files** or **folder**. Each folder becomes a group; name it and
    add instructions per folder or per file. The **+** under the grid adds more.
 3. **details →** opens title, city, placement (top / any) and instructions. Recent
    values show as chips; **↺ same as last** refills the previous drop.
