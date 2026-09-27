@@ -8,10 +8,10 @@ import { TRAIL, type Field } from './heat';
  * scrolling through in alternating rows — nearly invisible in the dark, lit
  * where the light passes. Rendered into a texture.
  *
- * Glitch: at rest the scene is shown in grey ink only. Color, band tearing
- * and RGB split live along the cursor's recent trail (bigger and hotter the
- * faster it moved). Sustained fast movement pushes energy past 1 into
- * overdrive: the whole frame tears, blocks jump, and it flashes red negative.
+ * Color: at rest the scene is shown in grey ink only. Saturated color, a
+ * warm glow and a soft fringe bloom along the cursor's recent trail (bigger
+ * the faster it moved), and sustained fast movement floods the whole frame
+ * with color. Everything eases in and out — no tearing or shake.
  * Renders below device resolution; the grain hides it.
  */
 
@@ -75,47 +75,32 @@ void main(){
   float asp=R.x/R.y;
   vec2 pa=vec2(uv.x*asp,uv.y);
 
-  // how hard the cursor went through here — hotter strokes reach further
+  // how hard the cursor went through here — faster strokes paint wider
   float L=0.;
   for(int i=0;i<${TRAIL};i++){
     vec3 p=P[i];
     vec2 d=pa-vec2(p.x*asp,p.y);
-    L+=p.z*exp(-dot(d,d)*mix(120.,14.,clamp(p.z,0.,1.)));
+    L+=p.z*exp(-dot(d,d)*mix(45.,9.,clamp(p.z,0.,1.)));
   }
   L=clamp(L,0.,1.5);
-  float over=smoothstep(.95,1.35,H);       // overdrive: the whole frame goes
-  float g=clamp(L+over*1.1,0.,1.8);
+  // moving fast floods the whole frame with color — no tearing, no shake
+  float flood=smoothstep(.6,1.3,H);
+  float g=clamp(L+flood*.8,0.,1.4);
 
-  // horizontal bands jump sideways
-  float bands=mix(12.,90.,h(vec2(floor(T*12.),3.)));
-  float b=floor(uv.y*bands);
-  float on=step(1.-min(g*.55,.9),h(vec2(b,floor(T*30.))));
-  vec2 st=uv;
-  st.x+=on*(h(vec2(b,floor(T*40.)))-.5)*.2*g;
+  // soft color fringe, smooth in space and time
+  vec2 dir=(uv-.5)*vec2(asp,1.);
+  vec2 ca=dir*g*.012;
+  vec3 col=vec3(texture2D(S,uv+ca).r,texture2D(S,uv).g,texture2D(S,uv-ca).b);
 
-  // overdrive: block displacement + vertical roll
-  vec2 blk=floor(uv*vec2(6.,11.)*(1.+over*2.5));
-  float bo=step(1.-over*.4,h(blk+floor(T*22.)));
-  st+=bo*(vec2(h(blk+1.7),h(blk+9.1))-.5)*.3*over;
-  st.y+=over*(h(vec2(floor(T*26.),7.))-.5)*.08;
-
-  float ca=g*.02+over*.035;
-  vec3 col=vec3(
-    texture2D(S,st+vec2(ca,ca*.25)).r,
-    texture2D(S,st).g,
-    texture2D(S,st-vec2(ca,-ca*.4)).b);
-
-  // grey ink at rest; color only where the cursor has torn through
+  // grey ink at rest; saturated color wherever the cursor has been
   float lum=dot(col,vec3(.3,.59,.11));
-  float tint=smoothstep(.03,.45,g);
-  col=mix(INK*lum*1.15,col*(1.+g*.35),tint);
+  vec3 vivid=max(mix(vec3(lum),col,1.+g*.9),0.)*(1.+g*.4);
+  // warm glow along the stroke so color shows even over the dark
+  vivid+=mix(vec3(.86,.12,.16),vec3(1.,.5,.3),clamp(L-.5,0.,1.))*min(L,1.)*.32;
+  col=mix(INK*lum*1.15,vivid,smoothstep(0.,.35,g));
 
-  // overdrive: red negative flashes
-  float flash=step(1.-over*.22,h(vec2(floor(T*15.),1.)));
-  col=mix(col,vec3(.86,.12,.12)*(1.-lum)*.9,flash*.75);
-
-  col*=.94+.06*sin(gl_FragCoord.y*1.7)-g*.05*step(.5,fract(gl_FragCoord.y*.5));
-  col+=(h(gl_FragCoord.xy+fract(T)*97.)-.5)*(.07+g*.08);
+  col*=.94+.06*sin(gl_FragCoord.y*1.7);
+  col+=(h(gl_FragCoord.xy+fract(T)*97.)-.5)*.07;
   vec2 v=uv-.5;col*=1.-dot(v,v)*1.1;
   gl_FragColor=vec4(col,1.);
 }`;
