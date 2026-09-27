@@ -18,6 +18,7 @@ import * as api from '@/components/art/artApi';
 import { Backdrop } from '@/components/art/Backdrop';
 import { Star } from '@/components/art/Star';
 import { DetailsModal } from '@/components/art/Details';
+import { loadDraft, saveDraft, clearDraft } from '@/components/art/draft';
 import { usePointerHeat } from '@/components/art/heat';
 import { fromDrop, fromList, type Incoming } from '@/components/art/files';
 
@@ -544,6 +545,38 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
   const busy = phase === 'sending';
   const locked = busy || phase === 'sent';
 
+  // ── draft: survive a refresh ──
+  const restored = useRef(false);
+  useEffect(() => {
+    loadDraft().then((d) => {
+      if (d?.items.length) {
+        setGroups(d.groups);
+        setItems(d.items.map((i) => ({ ...i, url: URL.createObjectURL(i.file), loaded: 0 })));
+        setTitle(d.title);
+        setCity(d.city);
+        setPlacement(d.placement);
+        setNote(d.note);
+      }
+      restored.current = true;
+    });
+  }, []);
+  useEffect(() => {
+    if (!restored.current || phase === 'sending') return;
+    const t = setTimeout(() => {
+      if (!items.length) clearDraft();
+      else
+        saveDraft({
+          items: items.map(({ id, file, rot, group, label, note: n }) => ({ id, file, rot, group, label, note: n })),
+          groups,
+          title,
+          city,
+          placement,
+          note,
+        });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [items, groups, title, city, placement, note, phase]);
+
   const total = items.reduce((s, i) => s + i.file.size, 0);
   const loaded = items.reduce((s, i) => s + i.loaded, 0);
   const pct = useSpring(0, { stiffness: 60, damping: 20 });
@@ -748,6 +781,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
         setNote('');
         setPlacement('anywhere');
         setPhase('idle');
+        clearDraft();
       }, 1900);
     } catch {
       setPhase('error');
@@ -764,7 +798,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
   const selGroups = new Set(items.filter((i) => selected.has(i.id)).map((i) => i.group));
 
   const AddTiles = () => (
-    <motion.div layout className="flex justify-center py-6">
+    <motion.div layout className="flex justify-center pb-6 pt-10">
       <Add onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
     </motion.div>
   );
@@ -820,7 +854,6 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
               const columns = Array.from({ length: cols }, (_, c) =>
                 list.filter((_, i) => i % cols === c)
               );
-              const last = si === sections.length - 1;
               return (
                 <motion.section
                   key={g?.id ?? 'loose'}
@@ -893,13 +926,13 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
                             />
                           ))}
                         </AnimatePresence>
-                        {last && c === cols - 1 && !locked && <AddTiles />}
                       </div>
                     ))}
                   </div>
                 </motion.section>
               );
             })}
+            {!locked && <AddTiles />}
           </motion.div>
         )}
       </AnimatePresence>
