@@ -6,7 +6,7 @@ import { useMotionValue, type MotionValue } from 'framer-motion';
  * and tearing on the page comes from the cursor.
  *
  * `energy` climbs with pointer speed and keeps climbing past 1 while you
- * scribble fast (overdrive, up to MAX), then bleeds off within a few hundred
+ * scribble fast (a color flood, up to MAX), then bleeds off within a few hundred
  * ms of stopping. `heat` is the same thing clamped to 0..1 for the DOM.
  * `trail` is the recent path in uv space (y up) so the backdrop can glitch
  * where the cursor actually went.
@@ -47,9 +47,9 @@ export function usePointerHeat(): {
         const dt = Math.max(t - last.t, 8);
         const d = Math.hypot(cx - last.x, cy - last.y);
         speed = speed * 0.45 + (d / dt) * 0.55; // px/ms, smoothed
-        // ~0.4 px/ms is a lazy drift, ~3 px/ms is a flick
-        const kick = Math.min(Math.max(speed - 0.35, 0) / 2.4, 1);
-        // hold the peak, and stack a little on top so sustained speed tips into overdrive
+        // ~0.2 px/ms is a lazy drift, ~2 px/ms is a flick
+        const kick = Math.min(Math.max(speed - 0.15, 0) / 1.7, 1);
+        // hold the peak, and stack a little on top so sustained speed floods the frame
         f.energy = Math.min(cap, Math.max(f.energy, kick) + kick * kick * 0.09);
         if (Math.hypot(cx - lastPush.x, cy - lastPush.y) > 14 && kick > 0) {
           f.trail[head * 3] = f.x;
@@ -74,13 +74,16 @@ export function usePointerHeat(): {
       raf = requestAnimationFrame(tick);
       const k = Math.min((now - prev) / 16.7, 4);
       prev = now;
-      // overdrive bleeds off slower than normal heat, so a burst lingers
+      // the flood bleeds off slower than normal heat, so a burst lingers
       f.energy *= Math.pow(f.energy > 1 ? 0.95 : 0.9, k);
       if (f.energy < 0.002) f.energy = 0;
       const fade = Math.pow(0.93, k);
       for (let i = 2; i < f.trail.length; i += 3) f.trail[i] *= fade;
-      const h = Math.min(f.energy, 1);
-      if (Math.abs(h - heat.get()) > 0.002 || (h === 0 && heat.get() !== 0)) heat.set(h);
+      // ease toward the target so color swells and fades instead of snapping
+      const cur = heat.get();
+      const h = cur + (Math.min(f.energy, 1) - cur) * (1 - Math.pow(0.8, k));
+      if (Math.abs(h - cur) > 0.001) heat.set(h);
+      else if (h < 0.005 && cur !== 0) heat.set(0);
     };
     raf = requestAnimationFrame(tick);
 
