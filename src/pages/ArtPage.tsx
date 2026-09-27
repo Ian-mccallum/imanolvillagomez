@@ -7,6 +7,7 @@ import {
   useSpring,
   useTransform,
   animate,
+  motionValue,
   type MotionValue,
 } from 'framer-motion';
 import { useMetaTags } from '@/hooks/useMetaTags';
@@ -27,6 +28,8 @@ import { fromDrop, fromList, type Incoming } from '@/components/art/files';
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+/** DROP stays clean — the cursor glitch lives in the backdrop only. */
+const STILL = motionValue(0);
 const INK = '#C9C8C7';
 
 const GRAIN =
@@ -373,11 +376,9 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
 
 /** The empty state: DROP is the button, and tapping it offers files or a folder. */
 const DropWord = ({
-  heat,
   onFiles,
   onFolder,
 }: {
-  heat: MotionValue<number>;
   onFiles: () => void;
   onFolder: () => void;
 }) => {
@@ -403,7 +404,7 @@ const DropWord = ({
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
         className="text-[#C9C8C7] outline-none focus-visible:text-white"
       >
-        <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
+        <Glitch text="DROP" heat={STILL} className="text-[31vw] md:text-[24vw]" delay={0.35} />
       </motion.button>
       <div className="absolute top-[calc(50%+min(13vw,11rem))] flex gap-3">
         <AnimatePresence>
@@ -805,7 +806,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
             }}
             className="relative"
           >
-<DropWord heat={heat} onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
+<DropWord onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
 
           </motion.div>
         ) : (
@@ -919,7 +920,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 260, damping: 18 }}
             />
-            <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" />
+            <Glitch text="DROP" heat={STILL} className="text-[31vw] md:text-[24vw]" />
           </motion.div>
         )}
       </AnimatePresence>

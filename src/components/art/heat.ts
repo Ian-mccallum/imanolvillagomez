@@ -13,7 +13,7 @@ import { useMotionValue, type MotionValue } from 'framer-motion';
  */
 
 export const TRAIL = 16;
-const MAX = 1.2;
+const MAX = 0.7;
 
 export interface Field {
   /** x, y (uv, y up), e — TRAIL points, oldest first in ring order */
@@ -48,13 +48,13 @@ export function usePointerHeat(): {
         const d = Math.hypot(cx - last.x, cy - last.y);
         speed = speed * 0.45 + (d / dt) * 0.55; // px/ms, smoothed
         // ~0.2 px/ms is a lazy drift, ~2 px/ms is a flick
-        const kick = Math.min(Math.max(speed - 0.2, 0) / 2, 1);
+        const kick = Math.min(Math.max(speed - 0.35, 0) / 3.2, 0.7);
         // hold the peak, and stack a little on top so sustained speed floods the frame
-        f.energy = Math.min(cap, Math.max(f.energy, kick) + kick * kick * 0.09);
+        f.energy = Math.min(cap, Math.max(f.energy, kick) + kick * kick * 0.04);
         if (Math.hypot(cx - lastPush.x, cy - lastPush.y) > 14 && kick > 0) {
           f.trail[head * 3] = f.x;
           f.trail[head * 3 + 1] = f.y;
-          f.trail[head * 3 + 2] = Math.min(kick * 1.2, 1.2);
+          f.trail[head * 3 + 2] = Math.min(kick * 0.8, 0.8);
           head = (head + 1) % TRAIL;
           lastPush = { x: cx, y: cy };
         }
