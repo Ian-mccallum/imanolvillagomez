@@ -11,6 +11,7 @@ import { ContactPage } from '@/pages/ContactPage';
 import { ThankYouPage } from '@/pages/ThankYouPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ArtPage } from '@/pages/ArtPage';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
     <ErrorBoundary>
       <ScrollToTop />
       <Routes>
+        <Route path="art" element={<ArtPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="work" element={<WorkHubPage />} />

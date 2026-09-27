@@ -291,12 +291,12 @@ export const HomePage = () => {
 
       {/* Black grainy overlay - reduces video visibility with heavy grain */}
       {/* Mobile: Reduced opacity for performance, but maintain grain aesthetic */}
+      {/* Grain is a pre-rendered tile (.home-grain); a live feTurbulence filter left most of the screen black on Linux Chromium/Brave */}
       <div 
-        className="fixed inset-0 pointer-events-none opacity-70 md:opacity-90 lg:opacity-100"
+        className="home-grain fixed inset-0 pointer-events-none opacity-70 md:opacity-90 lg:opacity-100"
         style={{
           zIndex: 5,
           backgroundColor: 'rgba(0, 0, 0, 0.98)',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4.0' numOctaves='10' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`,
           mixBlendMode: 'multiply',
           willChange: 'opacity',
         }}

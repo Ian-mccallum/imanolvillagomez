@@ -57,6 +57,7 @@ newWork/*
 # Adding a real new top-level directory to the project? Add a matching !/name/ line.
 /*/
 !/.claude/
+!/api/
 !/.cursor/
 !/documentation/
 !/features/
@@ -73,3 +74,6 @@ newWork/*
 /*.MP4
 /*.mov
 /*.MOV
+
+# /art drop runner (downloads, worktrees, logs)
+.art-inbox/

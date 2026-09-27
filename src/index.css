@@ -159,3 +159,13 @@
     max-width: 100%;
   }
 }
+
+/* Homepage grain overlay — pre-rendered from the original feTurbulence SVG.
+   Each declaration is a fallback for browsers that don't parse the next one. */
+.home-grain {
+  background-image: url('/textures/home-grain-1x.png');
+  background-image: -webkit-image-set(url('/textures/home-grain-1x.png') 1x, url('/textures/home-grain-2x.png') 2x);
+  background-image: image-set(url('/textures/home-grain-1x.png') 1x, url('/textures/home-grain-2x.png') 2x);
+  background-size: 256px 256px;
+  background-repeat: repeat;
+}
