@@ -1,3 +1,5 @@
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+
 /**
  * Client for /api/art — Imanol's drop box. Files PUT straight to R2 via
  * presigned URLs; everything else is small JSON.
@@ -90,29 +92,51 @@ export const unlock = (key: string) =>
     return r.token;
   });
 
-/** Save this device's Face ID / Touch ID. Needs a session. */
-export async function savePasskey(): Promise<string> {
-  const { startRegistration } = await import('@simplewebauthn/browser');
-  const { options, challenge } = await call<{ options: never; challenge: string }>(
-    'passkey-register-options',
-    {}
-  );
-  const response = await startRegistration({ optionsJSON: options });
-  return call<{ id: string }>('passkey-register', { response, challenge }).then((r) => r.id);
+/*
+ * Face ID / Touch ID. Safari only lets a page call WebAuthn straight from a tap,
+ * so the options (a network round trip) and the library are fetched *before*
+ * the tap — `prepare…` — and the tap itself goes directly to the OS prompt.
+ * The library is a static import for the same reason: no await before it.
+ */
+
+type Prepared = { options: never; challenge: string };
+
+/** Fetch registration options ahead of the tap. Needs a session. */
+export async function prepareSave(): Promise<Prepared> {
+  return call<Prepared>('passkey-register-options', {});
 }
 
-/** Face ID / Touch ID → session token. */
-export async function passkeyUnlock(): Promise<string> {
-  const { startAuthentication } = await import('@simplewebauthn/browser');
-  const { options, challenge } = await call<{ options: never; challenge: string }>(
-    'passkey-login-options',
-    {}
-  );
-  const response = await startAuthentication({ optionsJSON: options });
-  const { token: t } = await call<{ token: string }>('passkey-login', { response, challenge });
+/** Run from the tap handler with options from prepareSave(). Returns the passkey id. */
+export async function savePasskey(p: Prepared): Promise<string> {
+  const response = await startRegistration({ optionsJSON: p.options });
+  return call<{ id: string }>('passkey-register', { response, challenge: p.challenge }).then((r) => r.id);
+}
+
+/** Fetch login options ahead of the tap. Null when no passkey is saved on the server. */
+export async function prepareUnlock(): Promise<Prepared | null> {
+  try {
+    return await call<Prepared>('passkey-login-options', {});
+  } catch {
+    return null;
+  }
+}
+
+/** Run from the tap handler with options from prepareUnlock(). Returns a session token. */
+export async function passkeyUnlock(p: Prepared): Promise<string> {
+  const response = await startAuthentication({ optionsJSON: p.options });
+  const { token: t } = await call<{ token: string }>('passkey-login', { response, challenge: p.challenge });
   setToken(t);
   return t;
 }
+
+/** A short, human reason for a failed passkey attempt. */
+export const passkeyError = (e: unknown) => {
+  const n = e instanceof Error ? e.name : '';
+  if (n === 'NotAllowedError') return 'cancelled';
+  if (n === 'InvalidStateError') return 'already saved';
+  if (n === 'SecurityError') return 'wrong site';
+  return 'didn’t work';
+};
 
 export async function canPasskey(): Promise<boolean> {
   try {

@@ -156,13 +156,25 @@ const Lock = ({
     }
   };
 
+  // fetch the Face ID challenge before the tap — Safari needs the tap to call it directly
+  const [prepared, setPrepared] = useState<Awaited<ReturnType<typeof api.prepareUnlock>>>(null);
+  const [bioErr, setBioErr] = useState('');
+  const prepare = useCallback(() => {
+    if (bio) api.prepareUnlock().then(setPrepared);
+  }, [bio]);
+  useEffect(prepare, [prepare]);
+
   const face = async () => {
-    if (scanning) return;
+    if (scanning || !prepared) return;
     setScanning(true);
+    setBioErr('');
     try {
-      sess.set(TOKEN, await api.passkeyUnlock());
+      sess.set(TOKEN, await api.passkeyUnlock(prepared));
       onOpen('bio');
-    } catch {
+    } catch (e) {
+      setBioErr(api.passkeyError(e));
+      setPrepared(null);
+      prepare(); // challenges are single-use
       input.current?.focus();
     } finally {
       setScanning(false);
@@ -223,7 +235,7 @@ const Lock = ({
         )}
       </AnimatePresence>
 
-      {bio && (
+      {bio && prepared && (
         <motion.button
           type="button"
           aria-label={api.bioName()}
@@ -247,6 +259,18 @@ const Lock = ({
           <BioGlyph scanning={scanning} />
         </motion.button>
       )}
+      <AnimatePresence>
+        {bioErr && (
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#C9C8C7]/50"
+          >
+            {bioErr} · type the key
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       <div className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2">
         <Star heat={heat} className="h-9 w-9 md:h-10 md:w-10" />
@@ -258,15 +282,27 @@ const Lock = ({
 /** One-time offer after a password unlock: save this device's biometric. */
 const SaveBio = ({ onDone }: { onDone: () => void }) => {
   const [state, setState] = useState<'ask' | 'busy' | 'saved'>('ask');
+  const [err, setErr] = useState('');
+  const [prepared, setPrepared] = useState<Awaited<ReturnType<typeof api.prepareSave>> | null>(null);
   const name = api.bioName();
+  const prepare = useCallback(() => {
+    api.prepareSave().then(setPrepared, () => setErr('offline'));
+  }, []);
+  useEffect(prepare, [prepare]);
+
   const save = async () => {
+    if (!prepared) return;
     setState('busy');
+    setErr('');
     try {
-      local.set(BIO, await api.savePasskey());
+      local.set(BIO, await api.savePasskey(prepared));
       setState('saved');
       setTimeout(onDone, 1400);
-    } catch {
+    } catch (e) {
+      setErr(api.passkeyError(e));
       setState('ask');
+      setPrepared(null);
+      prepare();
     }
   };
   return (
@@ -280,7 +316,7 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
       <button
         type="button"
         onClick={save}
-        disabled={state !== 'ask'}
+        disabled={state !== 'ask' || !prepared}
         className="group flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-[#dc2626] hover:text-black"
       >
         <span className="h-4 w-4">
@@ -294,7 +330,7 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
             exit={{ y: -8, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {state === 'saved' ? 'saved' : `save ${name}`}
+            {state === 'saved' ? 'saved' : err ? `${err} — retry` : prepared ? `save ${name}` : '…'}
           </motion.span>
         </AnimatePresence>
       </button>
@@ -1149,6 +1185,10 @@ export const ArtPage = () => {
   const { heat, field } = usePointerHeat();
   const [open, setOpen] = useState(false);
   const [offerBio, setOfferBio] = useState(false);
+  const [canBio, setCanBio] = useState(false);
+  useEffect(() => {
+    api.canPasskey().then(setCanBio);
+  }, []);
   const [dim, setDim] = useState(false);
 
   // a live session in this tab skips the lock
@@ -1186,6 +1226,22 @@ export const ArtPage = () => {
         <AnimatePresence>
           {offerBio && <SaveBio onDone={() => setOfferBio(false)} />}
         </AnimatePresence>
+        {open && canBio && !offerBio && !local.get(BIO) && (
+          <motion.button
+            type="button"
+            onClick={() => setOfferBio(true)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            aria-label={`set up ${api.bioName()}`}
+            className="fixed left-4 top-4 z-40 flex items-center gap-2 rounded-full border border-[#C9C8C7]/15 bg-black/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-[#C9C8C7]/60 backdrop-blur-md transition-colors hover:text-[#C9C8C7] md:left-8"
+          >
+            <span className="h-3.5 w-3.5">
+              <BioGlyph scanning={false} />
+            </span>
+            {api.bioName()}
+          </motion.button>
+        )}
         {/* film grain */}
         <motion.div
           aria-hidden

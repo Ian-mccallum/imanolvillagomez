@@ -15,8 +15,9 @@ Imanol ──/art──▶ R2 inbox/<id>/ ──runner (laptop)──▶ claude 
 
 ## For Imanol
 
-1. Open `/art`, enter the password. After the first login, save Face ID / Touch ID
-   when the pill offers it — later visits just need the face button.
+1. Open `/art`, enter the password, then save Face ID / Touch ID — from the pill
+   that drops in after login, or the **face id** button top-left any time. Later
+   visits just need the face button. Must be on `imanolvillagomez.com`.
 2. Tap **DROP** (or press **Cmd/Ctrl+0**) → **files** or **folder**. Each folder becomes a group; name it and
    add instructions per folder or per file. The **+** under the grid adds more.
 3. **details →** opens title, city, placement (top / any) and instructions. Recent
@@ -44,6 +45,9 @@ keeps the files but restarts the upload.
 - Password (`ART_KEY`) or a saved passkey is traded for a 12h HMAC-signed session
   token, kept in `sessionStorage`. The password itself is never stored client-side.
 - 8 wrong passwords lock password entry for 15 minutes; passkeys still work.
+- Safari only allows WebAuthn straight from a tap, so the page fetches the passkey
+  challenge *before* the tap (`prepareSave` / `prepareUnlock` in `artApi.ts`) and
+  the tap calls the OS prompt with nothing awaited first. Keep it that way.
 - Passkeys are bound to `imanolvillagomez.com` — they won't work on `*.vercel.app`
   previews or localhost.
 
