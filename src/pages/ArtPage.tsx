@@ -16,6 +16,7 @@ import { Queue } from '@/components/art/Queue';
 import * as api from '@/components/art/artApi';
 import { Backdrop } from '@/components/art/Backdrop';
 import { Star } from '@/components/art/Star';
+import { DetailsModal } from '@/components/art/Details';
 import { usePointerHeat } from '@/components/art/heat';
 import { fromDrop, fromList, type Incoming } from '@/components/art/files';
 
@@ -370,6 +371,70 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
   );
 };
 
+/** The empty state: DROP is the button, and tapping it offers files or a folder. */
+const DropWord = ({
+  heat,
+  onFiles,
+  onFolder,
+}: {
+  heat: MotionValue<number>;
+  onFiles: () => void;
+  onFolder: () => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  return (
+    <div ref={ref} className="relative flex h-[88svh] w-full flex-col items-center justify-center">
+      <motion.button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        animate={{ scale: open ? 0.92 : 1, opacity: open ? 0.55 : 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+        className="text-[#C9C8C7] outline-none focus-visible:text-white"
+      >
+        <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
+      </motion.button>
+      <div className="absolute top-[calc(50%+min(13vw,11rem))] flex gap-3">
+        <AnimatePresence>
+          {open &&
+            (
+              [
+                ['files', onFiles],
+                ['folder', onFolder],
+              ] as const
+            ).map(([label, fn], i) => (
+              <motion.button
+                key={label}
+                type="button"
+                onClick={pick(fn)}
+                initial={{ opacity: 0, y: -16, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.8, transition: { duration: 0.15 } }}
+                transition={{ type: 'spring', stiffness: 420, damping: 26, delay: i * 0.05 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="rounded-full bg-[#C9C8C7] px-6 py-3 font-mono text-xs uppercase tracking-[0.25em] text-black shadow-[0_0_40px_rgba(201,200,199,.3)] hover:bg-white"
+              >
+                {label}
+              </motion.button>
+            ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
 // ─── room ──────────────────────────────────────────────────────────────────
 
 type Phase = 'idle' | 'sending' | 'sent' | 'error';
@@ -468,6 +533,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
   const [city, setCity] = useState('');
   const [placement, setPlacement] = useState<'top' | 'anywhere'>('anywhere');
   const [note, setNote] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [requests, setRequests] = useState<api.ArtRequest[]>([]);
   const picker = useRef<HTMLInputElement>(null);
   const folderPicker = useRef<HTMLInputElement>(null);
@@ -739,13 +805,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
             }}
             className="relative"
           >
-            <button
-              type="button"
-              onClick={() => picker.current?.click()}
-              className="flex h-[88svh] w-full items-center justify-center text-[#C9C8C7] outline-none focus-visible:text-white"
-            >
-              <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
-            </button>
+<DropWord heat={heat} onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
 
           </motion.div>
         ) : (
@@ -946,53 +1006,56 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
                 </motion.div>
               ) : (
                 <motion.div
-                  key="form"
+                  key="dock"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="grid grid-cols-2 items-end gap-x-5 gap-y-3 md:grid-cols-[1.2fr_1fr_auto_2fr_auto]"
+                  className="flex items-center gap-4"
                 >
-                  <Field value={title} onChange={setTitle} placeholder="title" />
-                  <Field value={city} onChange={setCity} placeholder="city" />
-                  <div className="flex gap-4 pb-2 font-mono text-[11px] uppercase tracking-[0.2em]">
-                    {(['top', 'anywhere'] as const).map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setPlacement(p)}
-                        className={`relative pb-1 transition-colors ${placement === p ? 'text-[#C9C8C7]' : 'text-[#C9C8C7]/30 hover:text-[#C9C8C7]/60'}`}
-                      >
-                        {p === 'anywhere' ? 'any' : p}
-                        {placement === p && (
-                          <motion.span
-                            layoutId="place"
-                            className="absolute inset-x-0 -bottom-px h-px bg-[#dc2626]"
-                            transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-                          />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  <Field
-                    value={note}
-                    onChange={setNote}
-                    placeholder="instructions — everything"
-                    className="col-span-2 md:col-span-1"
-                  />
+                  <span className="font-logo text-4xl leading-none tabular-nums text-[#C9C8C7]">
+                    {String(items.length).padStart(2, '0')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setDetailsOpen(true)}
+                    className="min-w-0 flex-1 truncate text-left font-mono text-[12px] uppercase tracking-[0.15em] text-[#C9C8C7]/50 transition-colors hover:text-[#C9C8C7]"
+                  >
+                    {title ? `${title}${city ? ` · ${city}` : ''}` : 'no title yet'}
+                  </button>
                   <motion.button
                     type="button"
-                    onClick={send}
+                    onClick={() => setDetailsOpen(true)}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.95 }}
-                    className="group relative col-span-2 overflow-hidden bg-[#C9C8C7] px-8 py-3 font-logo text-xl uppercase tracking-tight text-black md:col-span-1"
+                    className="rounded-full bg-[#C9C8C7] px-7 py-3 font-logo text-lg uppercase tracking-tight text-black hover:bg-white"
                   >
-                    <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#dc2626] transition-transform duration-300 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-y-100" />
-                    <span className="relative">{phase === 'error' ? 'retry' : 'send'}</span>
+                    {phase === 'error' ? 'retry' : 'details →'}
                   </motion.button>
                 </motion.div>
               )}
             </AnimatePresence>
           </motion.section>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {detailsOpen && !busy && (
+          <DetailsModal
+            value={{ title, city, placement, note }}
+            onChange={(d) => {
+              if (d.title !== undefined) setTitle(d.title);
+              if (d.city !== undefined) setCity(d.city);
+              if (d.placement !== undefined) setPlacement(d.placement);
+              if (d.note !== undefined) setNote(d.note);
+            }}
+            count={items.length}
+            error={phase === 'error'}
+            onClose={() => setDetailsOpen(false)}
+            onSend={() => {
+              setDetailsOpen(false);
+              send();
+            }}
+          />
         )}
       </AnimatePresence>
 
