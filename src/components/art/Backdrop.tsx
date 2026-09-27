@@ -1,26 +1,31 @@
 import { useEffect, useRef } from 'react';
-import type { MotionValue } from 'framer-motion';
+import { TRAIL, type Field } from './heat';
 
 /**
- * Full-screen WebGL light field for /art.
+ * Full-screen WebGL light field for /art, in two passes.
  *
- * Domain-warped fbm makes slow red/white light ribbons; an anamorphic flare
- * trails the pointer. Oversized type scrolls through it in alternating rows —
- * nearly invisible in the dark, lit where the light passes. `heat` (shared
- * with the foreground Glitch words) tears it: band displacement, RGB split,
- * slight RGB split. Renders below device resolution; the grain hides it.
+ * Scene: domain-warped fbm makes slow light ribbons, with oversized type
+ * scrolling through in alternating rows — nearly invisible in the dark, lit
+ * where the light passes. Rendered into a texture.
+ *
+ * Glitch: at rest the scene is shown in grey ink only. Color, band tearing
+ * and RGB split live along the cursor's recent trail (bigger and hotter the
+ * faster it moved). Sustained fast movement pushes energy past 1 into
+ * overdrive: the whole frame tears, blocks jump, and it flashes red negative.
+ * Renders below device resolution; the grain hides it.
  */
 
 const VERT = `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
 
-const FRAG = `
-precision highp float;
-uniform vec2 R;
-uniform float T, H, I;
-uniform vec2 M;
-uniform sampler2D TX;
+const HASH = `
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}`;
 
-float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+const SCENE = `
+precision highp float;
+uniform vec2 R, M;
+uniform float T, I, F;
+uniform sampler2D TX;
+${HASH}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
@@ -33,42 +38,86 @@ vec3 field(vec2 p){
   vec3 c=vec3(.86,.12,.12)*pow(rib,2.2)*1.35;
   c+=vec3(.95,.93,.9)*pow(smoothstep(.7,1.,f),3.)*1.6;
   c+=vec3(.35,.05,.08)*smoothstep(.3,.7,w.x)*.35;
+  // anamorphic flare on the cursor — only while it's moving
   vec2 d=p-M;
-  c+=vec3(1.,.28,.22)*exp(-abs(d.y)*38.)*exp(-abs(d.x)*1.2)*.55;
-  c+=vec3(1.,.9,.85)*exp(-length(d)*5.5)*.22;
+  c+=vec3(1.,.28,.22)*exp(-abs(d.y)*38.)*exp(-abs(d.x)*1.2)*.75*F;
+  c+=vec3(1.,.9,.85)*exp(-length(d)*5.5)*.3*F;
   return c;
 }
 
-float type(vec2 uv, float ca, float asp){
+float type(vec2 uv, float asp){
   float N=asp<1.?6.:3.;           // more, smaller rows on a phone
   float row=floor(uv.y*N);
   float dir=mod(row,2.)*2.-1.;
-  vec2 t=vec2(uv.x*asp*N/16.+dir*T*.012+ca, (mod(row,4.)+fract(uv.y*N))/4.);
+  vec2 t=vec2(uv.x*asp*N/16.+dir*T*.012, (mod(row,4.)+fract(uv.y*N))/4.);
   return texture2D(TX,t).r;
 }
 
 void main(){
   vec2 uv=gl_FragCoord.xy/R;
   float asp=R.x/R.y;
-  float g=clamp(H,0.,1.);
-
-  // tear: horizontal bands jump sideways while hot
-  float bands=mix(10.,70.,h(vec2(floor(T*9.),3.)));
-  float b=floor(uv.y*bands);
-  float on=step(1.-g*.45,h(vec2(b,floor(T*16.))));
-  uv.x+=on*(h(vec2(b,floor(T*24.)))-.5)*.1*g;
-
-  vec2 p=(uv-.5)*vec2(asp,1.);
-  vec3 c=field(p)*I;
-
-  float ca=.002+g*.012;
-  vec3 ty=vec3(type(uv,ca,asp),type(uv,0.,asp),type(uv,-ca,asp));
-  c+=ty*(.035+c*1.6);
-
-  c*=.94+.06*sin(gl_FragCoord.y*1.7);
-  c+=(h(gl_FragCoord.xy+fract(T)*97.)-.5)*.07;
-  vec2 v=uv-.5;c*=1.-dot(v,v)*1.1;
+  vec3 c=field((uv-.5)*vec2(asp,1.))*I;
+  c+=type(uv,asp)*(.035+c*1.6);
   gl_FragColor=vec4(c/(1.+c*.6),1.);
+}`;
+
+const GLITCH = `
+precision highp float;
+uniform vec2 R;
+uniform float T, H;
+uniform vec3 P[${TRAIL}];
+uniform sampler2D S;
+${HASH}
+const vec3 INK=vec3(.79,.78,.78);
+
+void main(){
+  vec2 uv=gl_FragCoord.xy/R;
+  float asp=R.x/R.y;
+  vec2 pa=vec2(uv.x*asp,uv.y);
+
+  // how hard the cursor went through here — hotter strokes reach further
+  float L=0.;
+  for(int i=0;i<${TRAIL};i++){
+    vec3 p=P[i];
+    vec2 d=pa-vec2(p.x*asp,p.y);
+    L+=p.z*exp(-dot(d,d)*mix(120.,14.,clamp(p.z,0.,1.)));
+  }
+  L=clamp(L,0.,1.5);
+  float over=smoothstep(.95,1.35,H);       // overdrive: the whole frame goes
+  float g=clamp(L+over*1.1,0.,1.8);
+
+  // horizontal bands jump sideways
+  float bands=mix(12.,90.,h(vec2(floor(T*12.),3.)));
+  float b=floor(uv.y*bands);
+  float on=step(1.-min(g*.55,.9),h(vec2(b,floor(T*30.))));
+  vec2 st=uv;
+  st.x+=on*(h(vec2(b,floor(T*40.)))-.5)*.2*g;
+
+  // overdrive: block displacement + vertical roll
+  vec2 blk=floor(uv*vec2(6.,11.)*(1.+over*2.5));
+  float bo=step(1.-over*.4,h(blk+floor(T*22.)));
+  st+=bo*(vec2(h(blk+1.7),h(blk+9.1))-.5)*.3*over;
+  st.y+=over*(h(vec2(floor(T*26.),7.))-.5)*.08;
+
+  float ca=g*.02+over*.035;
+  vec3 col=vec3(
+    texture2D(S,st+vec2(ca,ca*.25)).r,
+    texture2D(S,st).g,
+    texture2D(S,st-vec2(ca,-ca*.4)).b);
+
+  // grey ink at rest; color only where the cursor has torn through
+  float lum=dot(col,vec3(.3,.59,.11));
+  float tint=smoothstep(.03,.45,g);
+  col=mix(INK*lum*1.15,col*(1.+g*.35),tint);
+
+  // overdrive: red negative flashes
+  float flash=step(1.-over*.22,h(vec2(floor(T*15.),1.)));
+  col=mix(col,vec3(.86,.12,.12)*(1.-lum)*.9,flash*.75);
+
+  col*=.94+.06*sin(gl_FragCoord.y*1.7)-g*.05*step(.5,fract(gl_FragCoord.y*.5));
+  col+=(h(gl_FragCoord.xy+fract(T)*97.)-.5)*(.07+g*.08);
+  vec2 v=uv-.5;col*=1.-dot(v,v)*1.1;
+  gl_FragColor=vec4(col,1.);
 }`;
 
 /** Four bands of IMANOL VILLAGOMEZ, the I.V. mark between repeats. */
@@ -112,14 +161,24 @@ function typeTexture(logo: HTMLImageElement | null): HTMLCanvasElement {
   return cv;
 }
 
-export const Backdrop = ({ heat, intensity = 1 }: { heat: MotionValue<number>; intensity?: number }) => {
+export const Backdrop = ({
+  field,
+  intensity = 1,
+}: {
+  field: React.MutableRefObject<Field>;
+  intensity?: number;
+}) => {
   const ref = useRef<HTMLCanvasElement>(null);
   const inten = useRef(intensity);
   inten.current = intensity;
 
   useEffect(() => {
     const cv = ref.current!;
-    const gl = cv.getContext('webgl', { antialias: false, premultipliedAlpha: false, powerPreference: 'low-power' });
+    const gl = cv.getContext('webgl', {
+      antialias: false,
+      premultipliedAlpha: false,
+      powerPreference: 'low-power',
+    });
     if (!gl || gl.isContextLost()) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -129,29 +188,41 @@ export const Backdrop = ({ heat, intensity = 1 }: { heat: MotionValue<number>; i
       gl.compileShader(s);
       return s;
     };
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-    gl.useProgram(prog);
+    const program = (frag: string) => {
+      const pr = gl.createProgram()!;
+      gl.attachShader(pr, sh(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, frag));
+      gl.linkProgram(pr);
+      return gl.getProgramParameter(pr, gl.LINK_STATUS) ? pr : null;
+    };
+    const scene = program(SCENE);
+    const glitch = program(GLITCH);
+    if (!scene || !glitch) return;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const loc = gl.getAttribLocation(prog, 'p');
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    for (const pr of [scene, glitch]) {
+      const loc = gl.getAttribLocation(pr, 'p');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    }
 
+    const texParams = (wrap: number) => {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    };
+
+    // type texture on unit 1
     const tex = gl.createTexture();
     let logo: HTMLImageElement | null = null;
     const upload = () => {
+      gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, tex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, typeTexture(logo));
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      texParams(gl.REPEAT);
     };
     upload();
     // Archivo Black and the mark may land after first paint
@@ -163,45 +234,86 @@ export const Backdrop = ({ heat, intensity = 1 }: { heat: MotionValue<number>; i
     };
     img.src = '/I.V..png';
 
-    const u = (k: string) => gl.getUniformLocation(prog, k);
-    const uR = u('R'), uT = u('T'), uH = u('H'), uI = u('I'), uM = u('M');
+    // scene render target on unit 0 (NPOT, so clamp + no mips)
+    const rt = gl.createTexture();
+    const fb = gl.createFramebuffer();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, rt);
+    texParams(gl.CLAMP_TO_EDGE);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rt, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    const u = (pr: WebGLProgram, k: string) => gl.getUniformLocation(pr, k);
+    const s = {
+      R: u(scene, 'R'),
+      M: u(scene, 'M'),
+      T: u(scene, 'T'),
+      I: u(scene, 'I'),
+      F: u(scene, 'F'),
+    };
+    const g = { R: u(glitch, 'R'), T: u(glitch, 'T'), H: u(glitch, 'H'), P: u(glitch, 'P[0]') };
+    gl.useProgram(scene);
+    gl.uniform1i(u(scene, 'TX'), 1);
+    gl.useProgram(glitch);
+    gl.uniform1i(u(glitch, 'S'), 0);
 
     const scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
     const size = () => {
       cv.width = Math.round(cv.clientWidth * scale);
       cv.height = Math.round(cv.clientHeight * scale);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, rt);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        cv.width,
+        cv.height,
+        0,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        null
+      );
       gl.viewport(0, 0, cv.width, cv.height);
     };
     size();
     window.addEventListener('resize', size);
 
-    const target = { x: 0.25, y: 0.1 };
-    const m = { x: 0.25, y: 0.1 };
-    const move = (e: PointerEvent) => {
-      const a = window.innerWidth / window.innerHeight;
-      target.x = (e.clientX / window.innerWidth - 0.5) * a;
-      target.y = 0.5 - e.clientY / window.innerHeight;
-    };
-    window.addEventListener('pointermove', move);
-
+    const m = { x: 0, y: 0 };
+    const trail = new Float32Array(TRAIL * 3);
     let raf = 0;
     let i = inten.current;
+    let flare = 0;
     const t0 = performance.now();
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       if (document.hidden) return;
+      const f = field.current;
       const t = ((now - t0) / 1000) * (reduce ? 0.15 : 1);
-      // idle drift so the flare wanders when nobody's touching
-      const ix = target.x + Math.sin(t * 0.21) * 0.25;
-      const iy = target.y + Math.cos(t * 0.17) * 0.18;
-      m.x += (ix - m.x) * 0.06;
-      m.y += (iy - m.y) * 0.06;
+      const a = cv.width / cv.height;
+      m.x += ((f.x - 0.5) * a - m.x) * 0.2;
+      m.y += (f.y - 0.5 - m.y) * 0.2;
       i += (inten.current - i) * 0.05;
-      gl.uniform2f(uR, cv.width, cv.height);
-      gl.uniform1f(uT, t);
-      gl.uniform1f(uH, reduce ? 0 : heat.get());
-      gl.uniform1f(uI, i);
-      gl.uniform2f(uM, m.x, m.y);
+      const e = reduce ? 0 : f.energy;
+      flare += (Math.min(e, 1) - flare) * 0.25;
+      if (!reduce) trail.set(f.trail);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.useProgram(scene);
+      gl.uniform2f(s.R, cv.width, cv.height);
+      gl.uniform2f(s.M, m.x, m.y);
+      gl.uniform1f(s.T, t);
+      gl.uniform1f(s.I, i);
+      gl.uniform1f(s.F, flare);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.useProgram(glitch);
+      gl.uniform2f(g.R, cv.width, cv.height);
+      gl.uniform1f(g.T, t);
+      gl.uniform1f(g.H, e);
+      gl.uniform3fv(g.P, trail);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     raf = requestAnimationFrame(frame);
@@ -209,12 +321,16 @@ export const Backdrop = ({ heat, intensity = 1 }: { heat: MotionValue<number>; i
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', size);
-      window.removeEventListener('pointermove', move);
       // don't lose the context: StrictMode re-runs this effect on the same canvas
-      gl.deleteProgram(prog);
+      gl.deleteProgram(scene);
+      gl.deleteProgram(glitch);
       gl.deleteTexture(tex);
+      gl.deleteTexture(rt);
+      gl.deleteFramebuffer(fb);
     };
-  }, [heat]);
+  }, [field]);
 
-  return <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 z-0 h-full w-full" />;
+  return (
+    <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 z-0 h-full w-full" />
+  );
 };
