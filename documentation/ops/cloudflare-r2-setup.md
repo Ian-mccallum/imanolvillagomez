@@ -205,7 +205,7 @@ This will:
          "http://127.0.0.1:5175",
          "http://127.0.0.1:3000"
        ],
-       "AllowedMethods": ["GET", "HEAD"],
+       "AllowedMethods": ["GET", "HEAD", "PUT"],
        "AllowedHeaders": ["*"],
        "ExposeHeaders": ["ETag", "Content-Length", "Content-Type", "Accept-Ranges", "Content-Range"],
        "MaxAgeSeconds": 3600
@@ -216,7 +216,7 @@ This will:
    - ✅ `AllowedOrigins` must be exact matches: `scheme://host[:port]` (NO trailing slash, NO path)
    - ✅ Valid: `https://www.imanolvillagomez.com` or `http://localhost:5173`
    - ❌ Invalid: `https://www.imanolvillagomez.com/` or `https://www.imanolvillagomez.com/videos`
-   - ✅ `AllowedMethods`: Use `["GET", "HEAD"]` for read-only (browsers handle OPTIONS preflight automatically)
+   - ✅ `AllowedMethods`: `["GET", "HEAD", "PUT"]` — `PUT` is for the [/art drop page](./art-drop.md), which uploads straight from the browser via presigned URLs (browsers handle OPTIONS preflight automatically)
    - ⏱️ CORS rule propagation can take up to 30 seconds
    
 6. Click **Save**

@@ -9,6 +9,23 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-09-28
+
+### Added
+
+- **`/art` drop page** — Imanol uploads new work himself (files or whole folders,
+  per-folder and per-file names/instructions, title/city/placement with one-tap
+  repeats). Password or Face ID / Touch ID; files go straight to R2.
+- **Laptop runner** (`scripts/art-inbox/`) — picks drops up every 10 minutes, runs
+  the `imanol-publish` skill headless on an `art/<id>` branch, posts questions or a
+  Vercel preview link back to the page; **hold to ship** pushes it to `main`.
+- Dev-only `/api` middleware so `npm run dev` serves the API locally.
+- Runbook: `documentation/ops/art-drop.md`.
+
+### Changed
+
+- R2 CORS now allows `PUT` from the site origins (for `/art` uploads).
+
 ## 2026-09-09
 
 ### Added
