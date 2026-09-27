@@ -746,14 +746,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
             >
               <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
             </button>
-<motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1, duration: 0.6, ease: EASE }}
-              className="absolute bottom-[8svh] left-1/2 -translate-x-1/2"
-            >
-              <Add onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
-            </motion.div>
+
           </motion.div>
         ) : (
           <motion.div
