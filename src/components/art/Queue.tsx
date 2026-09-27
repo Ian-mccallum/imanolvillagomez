@@ -113,7 +113,7 @@ const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRe
       <div className="flex items-baseline gap-4">
         <span className="w-10 shrink-0 font-mono text-[11px] tabular-nums text-[#C9C8C7]/35">{date(r.createdAt)}</span>
         <span className="min-w-0 flex-1 truncate font-logo text-lg uppercase leading-none tracking-tight text-[#C9C8C7] md:text-2xl">
-          {r.title || r.files[0]?.name || r.id}
+          {r.title || r.groups?.map((g) => g.name).filter(Boolean).join(' · ') || r.files[0]?.name || r.id}
         </span>
         <span className="hidden font-mono text-[11px] tabular-nums text-[#C9C8C7]/35 sm:inline">{r.files.length}</span>
         <Status s={r.status} />

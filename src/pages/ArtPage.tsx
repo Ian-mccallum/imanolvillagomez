@@ -16,6 +16,8 @@ import { Queue } from '@/components/art/Queue';
 import * as api from '@/components/art/artApi';
 import { Backdrop } from '@/components/art/Backdrop';
 import { Star } from '@/components/art/Star';
+import { usePointerHeat } from '@/components/art/heat';
+import { fromDrop, fromList, type Incoming } from '@/components/art/files';
 
 /**
  * /art — Imanol's drop box. Unlisted, noindex, key-gated.
@@ -53,42 +55,6 @@ const TOKEN = 'art-token';
 const BIO = 'art-bio';
 const BIO_NO = 'art-bio-no';
 
-/** Pointer speed → 0..1 heat, decaying back to rest. */
-function useHeat() {
-  const raw = useMotionValue(0);
-  const heat = useSpring(raw, { stiffness: 380, damping: 24 });
-  useEffect(() => {
-    let last = { x: 0, y: 0, t: 0 };
-    let tm = 0;
-    const move = (e: PointerEvent) => {
-      const t = performance.now();
-      const v = Math.hypot(e.clientX - last.x, e.clientY - last.y) / Math.max(t - last.t, 1);
-      last = { x: e.clientX, y: e.clientY, t };
-      raw.set(Math.min(Math.max(v - 1, 0) / 5, 0.7));
-      clearTimeout(tm);
-      tm = window.setTimeout(() => raw.set(0), 90);
-    };
-    window.addEventListener('pointermove', move);
-
-    // ambient bursts — the page glitches on its own, in sync with the backdrop
-    let bt = 0;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const burst = () => {
-      raw.set(0.3 + Math.random() * 0.35);
-      setTimeout(() => raw.set(0), 60 + Math.random() * 90);
-      bt = window.setTimeout(burst, 3500 + Math.random() * 5000);
-    };
-    if (!reduce) bt = window.setTimeout(burst, 1400);
-
-    return () => {
-      window.removeEventListener('pointermove', move);
-      clearTimeout(tm);
-      clearTimeout(bt);
-    };
-  }, [raw]);
-  return { heat, raw };
-}
-
 /** Camera-shutter wipe between the lock and the room. */
 const Shutter = ({ children, k }: { children: ReactNode; k: string }) => (
   <motion.div
@@ -107,7 +73,14 @@ const Shutter = ({ children, k }: { children: ReactNode; k: string }) => (
 
 /** Face-ID-style glyph: corner brackets that close in while scanning. */
 const BioGlyph = ({ scanning }: { scanning: boolean }) => (
-  <svg viewBox="0 0 48 48" className="h-full w-full" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+  <svg
+    viewBox="0 0 48 48"
+    className="h-full w-full"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+  >
     {[
       'M4 15V8a4 4 0 0 1 4-4h7',
       'M33 4h7a4 4 0 0 1 4 4v7',
@@ -127,11 +100,9 @@ const BioGlyph = ({ scanning }: { scanning: boolean }) => (
 
 const Lock = ({
   heat,
-  raw,
   onOpen,
 }: {
   heat: MotionValue<number>;
-  raw: MotionValue<number>;
   onOpen: (via: 'key' | 'bio') => void;
 }) => {
   const [v, setV] = useState('');
@@ -146,7 +117,13 @@ const Lock = ({
   // typing always goes to the key, even when the face button is the focus
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
-      if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && document.activeElement !== input.current) input.current?.focus();
+      if (
+        e.key.length === 1 &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        document.activeElement !== input.current
+      )
+        input.current?.focus();
     };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
@@ -154,8 +131,6 @@ const Lock = ({
 
   const reject = async () => {
     setBad(true);
-    raw.set(0.7);
-    setTimeout(() => raw.set(0), 260);
     navigator.vibrate?.([20, 40, 20]);
     await animate(x, [0, -26, 22, -14, 9, -4, 0], { duration: 0.5, ease: 'easeOut' });
     setV('');
@@ -183,8 +158,6 @@ const Lock = ({
       sess.set(TOKEN, await api.passkeyUnlock());
       onOpen('bio');
     } catch {
-      raw.set(0.8);
-      setTimeout(() => raw.set(0), 200);
       input.current?.focus();
     } finally {
       setScanning(false);
@@ -224,7 +197,11 @@ const Lock = ({
           aria-hidden
           className="ml-[1vw] block h-[14vw] max-h-[120px] w-[0.9vw] min-w-[4px] max-w-[8px] bg-[#dc2626] shadow-[0_0_30px_4px_rgba(220,38,38,.6)] md:h-[8vw]"
           animate={{ opacity: busy ? [1, 0.2, 1] : [1, 1, 0, 0] }}
-          transition={{ duration: busy ? 0.4 : 1.05, repeat: Infinity, times: busy ? undefined : [0, 0.5, 0.5, 1] }}
+          transition={{
+            duration: busy ? 0.4 : 1.05,
+            repeat: Infinity,
+            times: busy ? undefined : [0, 0.5, 0.5, 1],
+          }}
         />
       </motion.div>
 
@@ -337,8 +314,34 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
 
 type Phase = 'idle' | 'sending' | 'sent' | 'error';
 
+/** A folder in the drop — usually one artist/client. */
+interface Group {
+  id: string;
+  name: string;
+  note: string;
+}
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+/** Same alphabet the server allows for a folder, so what he sees is what lands. */
+const folderName = (n: string) =>
+  n
+    .normalize('NFKD')
+    .replace(/[^\w.\- ]+/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[.\s]+/, '')
+    .trim()
+    .slice(0, 80);
+
 const useCols = () => {
-  const get = () => (typeof window === 'undefined' ? 4 : window.innerWidth < 640 ? 2 : window.innerWidth < 1100 ? 3 : 4);
+  const get = () =>
+    typeof window === 'undefined'
+      ? 4
+      : window.innerWidth < 640
+        ? 2
+        : window.innerWidth < 1100
+          ? 3
+          : 4;
   const [c, setC] = useState(get);
   useEffect(() => {
     const on = () => setC(get());
@@ -353,30 +356,52 @@ const Field = ({
   onChange,
   placeholder,
   className = '',
+  disabled,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   className?: string;
+  disabled?: boolean;
 }) => (
   <input
     value={value}
     onChange={(e) => onChange(e.target.value)}
     placeholder={placeholder}
-    className={`min-w-0 border-b border-[#C9C8C7]/15 bg-transparent py-2 font-mono text-[13px] text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/30 focus:border-[#dc2626] ${className}`}
+    aria-label={placeholder}
+    disabled={disabled}
+    className={`min-w-0 border-b border-[#C9C8C7]/15 bg-transparent py-2 font-mono text-[13px] text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/30 focus:border-[#dc2626] disabled:opacity-50 ${className}`}
   />
 );
 
-const Room = ({
-  heat,
-  raw,
-  onDim,
+const Chip = ({
+  children,
+  onClick,
+  hot,
 }: {
-  heat: MotionValue<number>;
-  raw: MotionValue<number>;
-  onDim: (d: boolean) => void;
-}) => {
+  children: ReactNode;
+  onClick: () => void;
+  hot?: boolean;
+}) => (
+  <motion.button
+    type="button"
+    onClick={onClick}
+    whileTap={{ scale: 0.94 }}
+    className={`max-w-[14rem] truncate border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${
+      hot
+        ? 'border-[#dc2626] bg-[#dc2626] text-black'
+        : 'border-[#C9C8C7]/25 text-[#C9C8C7] hover:border-[#dc2626] hover:bg-[#dc2626] hover:text-black'
+    }`}
+  >
+    {children}
+  </motion.button>
+);
+
+const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) => void }) => {
   const [items, setItems] = useState<Item[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [newFolder, setNewFolder] = useState('');
   const [drag, setDrag] = useState(false);
   const [phase, setPhase] = useState<Phase>('idle');
   const [title, setTitle] = useState('');
@@ -385,8 +410,12 @@ const Room = ({
   const [note, setNote] = useState('');
   const [requests, setRequests] = useState<api.ArtRequest[]>([]);
   const picker = useRef<HTMLInputElement>(null);
+  const folderPicker = useRef<HTMLInputElement>(null);
+  const groupsRef = useRef(groups);
+  groupsRef.current = groups;
   const cols = useCols();
   const busy = phase === 'sending';
+  const locked = busy || phase === 'sent';
 
   const total = items.reduce((s, i) => s + i.file.size, 0);
   const loaded = items.reduce((s, i) => s + i.loaded, 0);
@@ -394,48 +423,75 @@ const Room = ({
   const pctText = useTransform(pct, (p) => String(Math.floor(p)).padStart(2, '0'));
   useEffect(() => pct.set(total ? (loaded / total) * 100 : 0), [loaded, total, pct]);
 
-  const refresh = useCallback(() => api.list().then(setRequests).catch(() => {}), []);
+  const refresh = useCallback(
+    () =>
+      api
+        .list()
+        .then(setRequests)
+        .catch(() => {}),
+    []
+  );
   useEffect(() => {
     refresh();
     const t = setInterval(() => document.visibilityState === 'visible' && refresh(), 20000);
     return () => clearInterval(t);
   }, [refresh]);
 
+  useEffect(() => {
+    folderPicker.current?.setAttribute('webkitdirectory', '');
+  }, []);
+
+  /** Files from a folder join the group of that name (made if new); loose files stay loose. */
   const add = useCallback(
-    (files: FileList | File[] | null) => {
-      if (!files || busy) return;
-      const next = [...files].map((file) => ({
-        id: `${file.name}-${file.size}-${Math.random().toString(36).slice(2, 7)}`,
+    (incoming: Incoming[]) => {
+      if (!incoming.length || busy) return;
+      const gs = [...groupsRef.current];
+      const groupFor = (folder: string) => {
+        if (!folder) return null;
+        let g = gs.find((x) => x.name.toLowerCase() === folder.toLowerCase());
+        if (!g) gs.push((g = { id: uid(), name: folder, note: '' }));
+        return g.id;
+      };
+      const next: Item[] = incoming.map(({ file, folder }) => ({
+        id: `${file.name}-${file.size}-${uid()}`,
         file,
         url: URL.createObjectURL(file),
         rot: (Math.random() - 0.5) * 3,
         loaded: 0,
+        group: groupFor(folder),
+        label: '',
+        note: '',
       }));
+      setGroups(gs);
       setItems((cur) => [...cur, ...next]);
-      raw.set(0.8);
-      setTimeout(() => raw.set(0), 180);
     },
-    [busy, raw],
+    [busy]
   );
 
-  // whole window is the drop target
+  // folders with nothing left in them disappear
+  useEffect(() => {
+    setGroups((gs) => {
+      const kept = gs.filter((g) => items.some((i) => i.group === g.id));
+      return kept.length === gs.length ? gs : kept;
+    });
+    setSelected((sel) => {
+      const kept = new Set([...sel].filter((id) => items.some((i) => i.id === id)));
+      return kept.size === sel.size ? sel : kept;
+    });
+  }, [items]);
+
+  // whole window is the drop target — files or whole folders
   useEffect(() => {
     let depth = 0;
-    let jitter = 0;
     const enter = (e: DragEvent) => {
       if (!e.dataTransfer?.types.includes('Files')) return;
       e.preventDefault();
-      if (depth++ === 0) {
-        setDrag(true);
-        jitter = window.setInterval(() => raw.set(0.2 + Math.random() * 0.35), 90);
-      }
+      if (depth++ === 0) setDrag(true);
     };
     const leave = () => {
       if (--depth <= 0) {
         depth = 0;
         setDrag(false);
-        clearInterval(jitter);
-        raw.set(0);
       }
     };
     const over = (e: DragEvent) => e.preventDefault();
@@ -443,7 +499,7 @@ const Room = ({
       e.preventDefault();
       depth = 1;
       leave();
-      add(e.dataTransfer?.files ?? null);
+      fromDrop(e.dataTransfer).then(add);
     };
     window.addEventListener('dragenter', enter);
     window.addEventListener('dragleave', leave);
@@ -454,9 +510,15 @@ const Room = ({
       window.removeEventListener('dragleave', leave);
       window.removeEventListener('dragover', over);
       window.removeEventListener('drop', drop);
-      clearInterval(jitter);
     };
-  }, [add, raw]);
+  }, [add]);
+
+  // esc lets go of the selection
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === 'Escape' && setSelected(new Set());
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, []);
 
   const remove = (id: string) =>
     setItems((cur) => {
@@ -465,19 +527,65 @@ const Room = ({
       return cur.filter((i) => i.id !== id);
     });
 
+  const patchItem = (id: string, patch: Partial<Item>) =>
+    setItems((cur) => cur.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  const patchGroup = (id: string, patch: Partial<Group>) =>
+    setGroups((cur) => cur.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+
+  const toggle = (id: string) =>
+    setSelected((cur) => {
+      const n = new Set(cur);
+      if (!n.delete(id)) n.add(id);
+      return n;
+    });
+
+  /** Put the selection into a folder (null = loose). */
+  const moveTo = (group: string | null) => {
+    setItems((cur) => cur.map((i) => (selected.has(i.id) ? { ...i, group } : i)));
+    setSelected(new Set());
+  };
+
+  const makeFolder = () => {
+    const name = newFolder.trim();
+    const existing = groups.find((g) => name && g.name.toLowerCase() === name.toLowerCase());
+    if (existing) return (moveTo(existing.id), setNewFolder(''));
+    const g = { id: uid(), name, note: '' };
+    setGroups((cur) => [...cur, g]);
+    moveTo(g.id);
+    setNewFolder('');
+  };
+
+  const ungroup = (id: string) =>
+    setItems((cur) => cur.map((i) => (i.group === id ? { ...i, group: null } : i)));
+
   const send = async () => {
     if (!items.length || busy) return;
     setPhase('sending');
+    setSelected(new Set());
     setItems((cur) => cur.map((i) => ({ ...i, loaded: 0 })));
     try {
-      const { id, uploads } = await api.start(items.map((i) => i.file));
+      // each group gets its own folder in the drop; names kept unique
+      const used = new Set<string>();
+      const folderOf = new Map<string, string>();
+      groups.forEach((g, n) => {
+        const base = folderName(g.name) || `folder ${n + 1}`;
+        let f = base;
+        for (let k = 2; used.has(f.toLowerCase()); k++) f = `${base} ${k}`;
+        used.add(f.toLowerCase());
+        folderOf.set(g.id, f);
+      });
+      const folderFor = (i: Item) => (i.group ? (folderOf.get(i.group) ?? '') : '');
+
+      const { id, uploads } = await api.start(
+        items.map((i) => ({ file: i.file, folder: folderFor(i) }))
+      );
       let next = 0;
       const worker = async () => {
         while (next < items.length) {
           const n = next++;
           const it = items[n];
           await api.put(uploads[n], it.file, (b) =>
-            setItems((cur) => cur.map((c) => (c.id === it.id ? { ...c, loaded: b } : c))),
+            setItems((cur) => cur.map((c) => (c.id === it.id ? { ...c, loaded: b } : c)))
           );
         }
       };
@@ -488,15 +596,26 @@ const Room = ({
         city,
         placement,
         note,
-        files: uploads.map(({ url: _url, ...f }) => f),
+        files: uploads.map(({ url: _url, ...f }, n) => ({
+          ...f,
+          label: items[n].label.trim(),
+          note: items[n].note.trim(),
+        })),
+        groups: groups
+          .map((g) => ({ g, n: items.findIndex((i) => i.group === g.id) }))
+          .filter(({ n }) => n >= 0)
+          .map(({ g, n }) => ({
+            folder: uploads[n].folder ?? '',
+            name: g.name.trim(),
+            note: g.note.trim(),
+          })),
       });
       setRequests((r) => [req, ...r]);
       setPhase('sent');
-      raw.set(0.6);
-      setTimeout(() => raw.set(0), 300);
       setTimeout(() => {
         items.forEach((i) => URL.revokeObjectURL(i.url));
         setItems([]);
+        setGroups([]);
         setTitle('');
         setCity('');
         setNote('');
@@ -510,7 +629,35 @@ const Room = ({
 
   useEffect(() => onDim(items.length > 0), [items.length, onDim]);
 
-  const columns = Array.from({ length: cols }, (_, c) => items.filter((_, i) => i % cols === c));
+  const sections = [
+    ...groups.map((g) => ({ g, list: items.filter((i) => i.group === g.id) })),
+    { g: null, list: items.filter((i) => !i.group) },
+  ].filter((s) => s.list.length);
+  const selecting = selected.size > 0;
+  const selGroups = new Set(items.filter((i) => selected.has(i.id)).map((i) => i.group));
+
+  const AddTiles = () => (
+    <motion.div layout className="flex flex-col gap-2">
+      <motion.button
+        type="button"
+        onClick={() => picker.current?.click()}
+        whileHover={{ scale: 0.98 }}
+        whileTap={{ scale: 0.94 }}
+        className="flex aspect-square w-full items-center justify-center border border-dashed border-[#C9C8C7]/15 font-logo text-5xl text-[#C9C8C7]/30 transition-colors hover:border-[#C9C8C7]/40 hover:text-[#C9C8C7]"
+        aria-label="add files"
+      >
+        +
+      </motion.button>
+      <motion.button
+        type="button"
+        onClick={() => folderPicker.current?.click()}
+        whileTap={{ scale: 0.96 }}
+        className="border border-dashed border-[#C9C8C7]/15 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40 transition-colors hover:border-[#C9C8C7]/40 hover:text-[#C9C8C7]"
+      >
+        + folder
+      </motion.button>
+    </motion.div>
+  );
 
   return (
     <div className="relative z-10">
@@ -521,74 +668,143 @@ const Room = ({
         accept="video/*,image/*,.zip,.mov,.mp4,.heic"
         className="hidden"
         onChange={(e) => {
-          add(e.target.files);
+          add(fromList(e.target.files));
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={folderPicker}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          add(fromList(e.target.files));
           e.target.value = '';
         }}
       />
 
-      {/* chrome */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4 py-4 font-mono text-[11px] uppercase tracking-[0.25em] text-[#C9C8C7]/50 mix-blend-difference md:px-8">
-        <span>nol</span>
-        <AnimatePresence mode="popLayout">
-          <motion.span
-            key={items.length}
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 10, opacity: 0 }}
-            className="tabular-nums"
-          >
-            {items.length ? String(items.length).padStart(2, '0') : 'art'}
-          </motion.span>
-        </AnimatePresence>
-      </header>
-
       {/* empty: the word is the button */}
       <AnimatePresence mode="wait">
         {!items.length ? (
-          <motion.button
+          <motion.div
             key="empty"
-            type="button"
-            onClick={() => picker.current?.click()}
-            exit={{ opacity: 0, scale: 0.94, filter: 'blur(14px)', transition: { duration: 0.45, ease: EASE } }}
-            className="flex h-[88svh] w-full items-center justify-center text-[#C9C8C7] outline-none focus-visible:text-white"
+            exit={{
+              opacity: 0,
+              scale: 0.94,
+              filter: 'blur(14px)',
+              transition: { duration: 0.45, ease: EASE },
+            }}
+            className="relative"
           >
-            <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
-          </motion.button>
+            <button
+              type="button"
+              onClick={() => picker.current?.click()}
+              className="flex h-[88svh] w-full items-center justify-center text-[#C9C8C7] outline-none focus-visible:text-white"
+            >
+              <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
+            </button>
+            <motion.button
+              type="button"
+              onClick={() => folderPicker.current?.click()}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1, duration: 0.6, ease: EASE }}
+              className="absolute bottom-[10svh] left-1/2 -translate-x-1/2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#C9C8C7]/40 transition-colors hover:text-[#C9C8C7]"
+            >
+              or a folder
+            </motion.button>
+          </motion.div>
         ) : (
           <motion.div
             key="grid"
-            className="flex gap-3 px-3 pb-72 pt-16 md:gap-4 md:px-6 md:pb-60"
+            className="px-3 pb-80 pt-10 md:px-6 md:pb-64 md:pt-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            {columns.map((col, c) => (
-              <div key={c} className="min-w-0 flex-1" style={{ marginTop: c % 2 ? '2.5rem' : 0 }}>
-                <AnimatePresence mode="popLayout">
-                  {col.map((it) => (
-                    <Tile
-                      key={it.id}
-                      item={it}
-                      index={items.indexOf(it)}
-                      busy={busy || phase === 'sent'}
-                      onRemove={() => remove(it.id)}
-                    />
-                  ))}
-                </AnimatePresence>
-                {c === cols - 1 && !busy && phase !== 'sent' && (
-                  <motion.button
-                    layout
-                    type="button"
-                    onClick={() => picker.current?.click()}
-                    whileHover={{ scale: 0.98 }}
-                    whileTap={{ scale: 0.94 }}
-                    className="flex aspect-square w-full items-center justify-center border border-dashed border-[#C9C8C7]/15 font-logo text-5xl text-[#C9C8C7]/30 transition-colors hover:border-[#C9C8C7]/40 hover:text-[#C9C8C7]"
-                    aria-label="add more"
-                  >
-                    +
-                  </motion.button>
-                )}
-              </div>
-            ))}
+            {sections.map(({ g, list }, si) => {
+              const columns = Array.from({ length: cols }, (_, c) =>
+                list.filter((_, i) => i % cols === c)
+              );
+              const last = si === sections.length - 1;
+              return (
+                <motion.section
+                  key={g?.id ?? 'loose'}
+                  layout
+                  className={si ? 'mt-14 md:mt-20' : ''}
+                >
+                  {g ? (
+                    <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-1 border-b border-[#C9C8C7]/10 pb-3">
+                      <input
+                        value={g.name}
+                        onChange={(e) => patchGroup(g.id, { name: e.target.value })}
+                        disabled={locked}
+                        placeholder="folder name"
+                        aria-label="folder name"
+                        className="min-w-0 flex-1 basis-[14rem] bg-transparent font-logo text-4xl uppercase leading-none tracking-tight text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/25 md:text-6xl"
+                      />
+                      <span className="pb-1 font-mono text-[11px] tabular-nums text-[#C9C8C7]/35">
+                        {String(list.length).padStart(2, '0')}
+                      </span>
+                      <Field
+                        value={g.note}
+                        onChange={(v) => patchGroup(g.id, { note: v })}
+                        disabled={locked}
+                        placeholder="instructions — this folder"
+                        className="flex-[2] basis-[16rem]"
+                      />
+                      {!locked && (
+                        <button
+                          type="button"
+                          onClick={() => ungroup(g.id)}
+                          className="pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/30 transition-colors hover:text-[#dc2626]"
+                        >
+                          unfolder
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    groups.length > 0 && (
+                      <div className="mb-4 flex items-end gap-6 border-b border-[#C9C8C7]/10 pb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40">
+                        <span>loose</span>
+                        <span className="tabular-nums text-[#C9C8C7]/25">
+                          {String(list.length).padStart(2, '0')}
+                        </span>
+                        <span className="ml-auto hidden normal-case tracking-normal text-[#C9C8C7]/25 md:inline">
+                          select some to put them in a folder
+                        </span>
+                      </div>
+                    )
+                  )}
+                  <div className="flex gap-3 md:gap-4">
+                    {columns.map((col, c) => (
+                      <div
+                        key={c}
+                        className="min-w-0 flex-1"
+                        style={{ marginTop: c % 2 ? '2.5rem' : 0 }}
+                      >
+                        <AnimatePresence mode="popLayout">
+                          {col.map((it) => (
+                            <Tile
+                              key={it.id}
+                              item={it}
+                              index={items.indexOf(it)}
+                              busy={locked}
+                              selected={selected.has(it.id)}
+                              selecting={selecting}
+                              inherit={g?.name ?? ''}
+                              onRemove={() => remove(it.id)}
+                              onSelect={() => toggle(it.id)}
+                              onChange={(p) => patchItem(it.id, p)}
+                            />
+                          ))}
+                        </AnimatePresence>
+                        {last && c === cols - 1 && !locked && <AddTiles />}
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -640,6 +856,60 @@ const Room = ({
                     keep open
                   </span>
                 </motion.div>
+              ) : selecting ? (
+                <motion.div
+                  key="sel"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="flex flex-wrap items-end gap-x-6 gap-y-3"
+                >
+                  <span className="font-logo text-5xl leading-[0.8] tabular-nums text-[#dc2626]">
+                    {String(selected.size).padStart(2, '0')}
+                  </span>
+                  <form
+                    className="flex min-w-[15rem] flex-1 items-end gap-3"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      makeFolder();
+                    }}
+                  >
+                    <Field
+                      value={newFolder}
+                      onChange={setNewFolder}
+                      placeholder="folder name"
+                      className="flex-1"
+                    />
+                    <button
+                      type="submit"
+                      className="whitespace-nowrap bg-[#C9C8C7] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-black transition-colors hover:bg-[#dc2626]"
+                    >
+                      make folder
+                    </button>
+                  </form>
+                  {(groups.length > 0 || !selGroups.has(null)) && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="pr-1 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/35">
+                        move to
+                      </span>
+                      {groups.map((g, n) => (
+                        <Chip key={g.id} onClick={() => moveTo(g.id)}>
+                          {g.name || `folder ${n + 1}`}
+                        </Chip>
+                      ))}
+                      {[...selGroups].some(Boolean) && (
+                        <Chip onClick={() => moveTo(null)}>loose</Chip>
+                      )}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelected(new Set())}
+                    className="pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40 transition-colors hover:text-[#C9C8C7]"
+                  >
+                    done
+                  </button>
+                </motion.div>
               ) : (
                 <motion.div
                   key="form"
@@ -669,7 +939,12 @@ const Room = ({
                       </button>
                     ))}
                   </div>
-                  <Field value={note} onChange={setNote} placeholder="notes" className="col-span-2 md:col-span-1" />
+                  <Field
+                    value={note}
+                    onChange={setNote}
+                    placeholder="instructions — everything"
+                    className="col-span-2 md:col-span-1"
+                  />
                   <motion.button
                     type="button"
                     onClick={send}
@@ -696,7 +971,11 @@ const Room = ({
             animate={{ opacity: 1 }}
             exit={{ clipPath: 'inset(50% 0 50% 0)', transition: { duration: 0.7, ease: EASE } }}
           >
-            <motion.div initial={{ scale: 1.5 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 16 }}>
+            <motion.div
+              initial={{ scale: 1.5 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 16 }}
+            >
               <Glitch text="SENT" heat={heat} className="text-[30vw] md:text-[22vw]" />
             </motion.div>
           </motion.div>
@@ -704,7 +983,10 @@ const Room = ({
       </AnimatePresence>
 
       {!items.length && (
-        <Queue requests={requests} onChange={(r) => setRequests((cur) => cur.map((c) => (c.id === r.id ? r : c)))} />
+        <Queue
+          requests={requests}
+          onChange={(r) => setRequests((cur) => cur.map((c) => (c.id === r.id ? r : c)))}
+        />
       )}
     </div>
   );
@@ -714,7 +996,7 @@ const Room = ({
 
 export const ArtPage = () => {
   useMetaTags({ title: 'art', description: '', noindex: true });
-  const { heat, raw } = useHeat();
+  const { heat, field } = usePointerHeat();
   const [open, setOpen] = useState(false);
   const [offerBio, setOfferBio] = useState(false);
   const [dim, setDim] = useState(false);
@@ -726,31 +1008,34 @@ export const ArtPage = () => {
     api.setToken(t);
     api.list().then(
       () => setOpen(true),
-      () => sess.set(TOKEN, ''),
+      () => sess.set(TOKEN, '')
     );
   }, []);
 
   const onOpen = async (via: 'key' | 'bio') => {
     setOpen(true);
-    if (via === 'key' && !local.get(BIO) && !local.get(BIO_NO) && (await api.canPasskey())) setOfferBio(true);
+    if (via === 'key' && !local.get(BIO) && !local.get(BIO_NO) && (await api.canPasskey()))
+      setOfferBio(true);
   };
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="relative min-h-[100svh] overflow-x-hidden bg-black text-[#C9C8C7] selection:bg-[#dc2626] selection:text-black">
-        <Backdrop heat={heat} intensity={dim ? 0.3 : open ? 0.8 : 1} />
+        <Backdrop field={field} intensity={dim ? 0.3 : open ? 0.8 : 1} />
         <AnimatePresence mode="wait">
           {open ? (
             <Shutter k="room">
-              <Room heat={heat} raw={raw} onDim={setDim} />
+              <Room heat={heat} onDim={setDim} />
             </Shutter>
           ) : (
             <Shutter k="lock">
-              <Lock heat={heat} raw={raw} onOpen={onOpen} />
+              <Lock heat={heat} onOpen={onOpen} />
             </Shutter>
           )}
         </AnimatePresence>
-        <AnimatePresence>{offerBio && <SaveBio onDone={() => setOfferBio(false)} />}</AnimatePresence>
+        <AnimatePresence>
+          {offerBio && <SaveBio onDone={() => setOfferBio(false)} />}
+        </AnimatePresence>
         {/* film grain */}
         <motion.div
           aria-hidden

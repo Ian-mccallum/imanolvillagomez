@@ -46,7 +46,8 @@ export interface ArtRequest {
   city: string;
   placement: 'top' | 'anywhere';
   note: string;
-  files: { name: string; key: string; size: number; type: string }[];
+  files: { name: string; key: string; size: number; type: string; folder?: string; label?: string; note?: string }[];
+  groups?: { folder: string; name: string; note: string }[];
   questions?: string[];
   answers?: { at: string; text: string }[];
   previewUrl?: string;
@@ -258,9 +259,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const id = `${d.toISOString().slice(0, 10).replace(/-/g, '')}-${randomBytes(3).toString('hex')}`;
       const seen = new Set<string>();
       const uploads = await Promise.all(
-        files.map(async (f: { name?: string; size?: number; type?: string }) => {
-          let name = safeName(clean(f.name, 200));
-          while (seen.has(name)) name = `_${name}`;
+        files.map(async (f: { name?: string; folder?: string; size?: number; type?: string }) => {
+          // one folder level per group, so the runner sees the drop the way Imanol sorted it
+          const folder = safeFolder(f.folder);
+          let base = safeName(clean(f.name, 200));
+          const path = () => (folder ? `${folder}/${base}` : base);
+          while (seen.has(path())) base = `_${base}`;
+          const name = path();
           seen.add(name);
           const size = Number(f.size) || 0;
           if (size > MAX_FILE) throw new Error(`${name} is over 5GB`);
@@ -269,7 +274,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const url = await getSignedUrl(s3, new PutObjectCommand({ Bucket, Key: key, ContentType: type }), {
             expiresIn: 60 * 60 * 6,
           });
-          return { name, key, size, type, url };
+          return { name, key, size, type, folder, url };
         }),
       );
       return res.json({ id, uploads });
@@ -280,14 +285,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const id = clean(body.id, 40);
       if (!/^\d{8}-[0-9a-f]{6}$/.test(id)) return res.status(400).json({ error: 'bad id' });
       const now = new Date().toISOString();
+      type In = { name: string; key: string; size: number; type: string; folder?: string; label?: string; note?: string };
       const files = (Array.isArray(body.files) ? body.files : [])
-        .map((f: { name: string; key: string; size: number; type: string }) => ({
-          name: clean(f.name, 200),
-          key: clean(f.key, 400),
+        .map((f: In) => ({
+          name: clean(f.name, 400),
+          key: clean(f.key, 600),
           size: Number(f.size) || 0,
           type: clean(f.type, 100),
+          folder: safeFolder(f.folder),
+          label: clean(f.label, 200),
+          note: clean(f.note, 2000),
         }))
         .filter((f) => f.key.startsWith(`${INBOX}${id}/files/`));
+      const groups = (Array.isArray(body.groups) ? body.groups.slice(0, 100) : []).map(
+        (g: { folder?: string; name?: string; note?: string }) => ({
+          folder: safeFolder(g.folder),
+          name: clean(g.name, 200),
+          note: clean(g.note, 4000),
+        }),
+      );
       const r: ArtRequest = {
         id,
         createdAt: now,
@@ -298,6 +314,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         placement: body.placement === 'top' ? 'top' : 'anywhere',
         note: clean(body.note, 4000),
         files,
+        groups,
       };
       await writeReq(r);
       return res.json({ request: r });
@@ -331,3 +348,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 const clean = (s: unknown, max = 2000) => String(s ?? '').slice(0, max).trim();
 const safeName = (n: string) =>
   n.normalize('NFKD').replace(/[^\w.\- ]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 160) || 'file';
+/** One folder level: same alphabet as file names, never leading dots (no `..`). */
+const safeFolder = (f: unknown) =>
+  clean(f, 200).normalize('NFKD').replace(/[^\w.\- ]+/g, '').replace(/\s+/g, ' ').replace(/^[.\s]+/, '').trim().slice(0, 80);
