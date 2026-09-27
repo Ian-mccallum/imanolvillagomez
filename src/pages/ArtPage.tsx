@@ -310,6 +310,66 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
+/** One + for everything: tap it, pick files or a whole folder. */
+const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  return (
+    <div ref={ref} className="relative flex items-center justify-center">
+      <AnimatePresence>
+        {open &&
+          (
+            [
+              ['files', onFiles, -1],
+              ['folder', onFolder, 1],
+            ] as const
+          ).map(([label, fn, dir]) => (
+            <motion.button
+              key={label}
+              type="button"
+              onClick={pick(fn)}
+              initial={{ opacity: 0, x: 0, scale: 0.6 }}
+              animate={{ opacity: 1, x: dir * 92, scale: 1 }}
+              exit={{ opacity: 0, x: 0, scale: 0.6 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+              className="absolute whitespace-nowrap rounded-full bg-[#C9C8C7] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-black shadow-[0_8px_30px_rgba(0,0,0,.6)] hover:bg-white"
+            >
+              {label}
+            </motion.button>
+          ))}
+      </AnimatePresence>
+      <motion.button
+        type="button"
+        aria-label="add files or a folder"
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
+        animate={{ rotate: open ? 45 : 0 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#C9C8C7] text-black shadow-[0_0_0_6px_rgba(0,0,0,.55),0_0_40px_rgba(201,200,199,.35)]"
+      >
+        <svg viewBox="0 0 24 24" className="h-7 w-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <path d="M12 4v16M4 12h16" />
+        </svg>
+      </motion.button>
+    </div>
+  );
+};
+
 // ─── room ──────────────────────────────────────────────────────────────────
 
 type Phase = 'idle' | 'sending' | 'sent' | 'error';
@@ -637,25 +697,8 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
   const selGroups = new Set(items.filter((i) => selected.has(i.id)).map((i) => i.group));
 
   const AddTiles = () => (
-    <motion.div layout className="flex flex-col gap-2">
-      <motion.button
-        type="button"
-        onClick={() => picker.current?.click()}
-        whileHover={{ scale: 0.98 }}
-        whileTap={{ scale: 0.94 }}
-        className="flex aspect-square w-full items-center justify-center border border-dashed border-[#C9C8C7]/15 font-logo text-5xl text-[#C9C8C7]/30 transition-colors hover:border-[#C9C8C7]/40 hover:text-[#C9C8C7]"
-        aria-label="add files"
-      >
-        +
-      </motion.button>
-      <motion.button
-        type="button"
-        onClick={() => folderPicker.current?.click()}
-        whileTap={{ scale: 0.96 }}
-        className="border border-dashed border-[#C9C8C7]/15 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40 transition-colors hover:border-[#C9C8C7]/40 hover:text-[#C9C8C7]"
-      >
-        + folder
-      </motion.button>
+    <motion.div layout className="flex justify-center py-6">
+      <Add onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
     </motion.div>
   );
 
@@ -703,16 +746,14 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
             >
               <Glitch text="DROP" heat={heat} className="text-[31vw] md:text-[24vw]" delay={0.35} />
             </button>
-            <motion.button
-              type="button"
-              onClick={() => folderPicker.current?.click()}
+<motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1, duration: 0.6, ease: EASE }}
-              className="absolute bottom-[10svh] left-1/2 -translate-x-1/2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#C9C8C7]/40 transition-colors hover:text-[#C9C8C7]"
+              className="absolute bottom-[8svh] left-1/2 -translate-x-1/2"
             >
-              or a folder
-            </motion.button>
+              <Add onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
+            </motion.div>
           </motion.div>
         ) : (
           <motion.div

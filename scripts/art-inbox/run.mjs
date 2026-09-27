@@ -137,16 +137,19 @@ You are running headless — nobody can answer you mid-run. Rules:
 5. If something breaks that you can't fix, write {"status":"failed","error":"<one line>"}.`;
 }
 
+// Vercel reports builds as commit statuses, not GitHub deployments, and its
+// branch aliases get hashed when long — so ask Vercel for the real URL.
 async function previewUrl(branch) {
-  for (let i = 0; i < 40; i++) {
+  const token = process.env.VERCEL_TOKEN;
+  if (!token) return null;
+  const q = new URLSearchParams({ app: 'imanolvillagomez', limit: '1', 'meta-githubCommitRef': branch });
+  for (let i = 0; i < 60; i++) {
     try {
-      const deps = JSON.parse(execFileSync('gh', ['api', `repos/${GH_REPO}/deployments?ref=${encodeURIComponent(branch)}&per_page=1`], { encoding: 'utf8' }));
-      if (deps[0]) {
-        const st = JSON.parse(execFileSync('gh', ['api', `repos/${GH_REPO}/deployments/${deps[0].id}/statuses?per_page=1`], { encoding: 'utf8' }));
-        if (st[0]?.state === 'success') return st[0].environment_url || st[0].target_url;
-        if (st[0]?.state === 'failure' || st[0]?.state === 'error') return null;
-      }
-    } catch { /* gh missing or not yet created */ }
+      const res = await fetch(`https://api.vercel.com/v6/deployments?${q}`, { headers: { Authorization: `Bearer ${token}` } });
+      const d = (await res.json()).deployments?.[0];
+      if (d?.state === 'READY') return `https://${d.url}`;
+      if (d?.state === 'ERROR' || d?.state === 'CANCELED') return null;
+    } catch { /* network blip — retry */ }
     await new Promise((res) => setTimeout(res, 15000));
   }
   return null;

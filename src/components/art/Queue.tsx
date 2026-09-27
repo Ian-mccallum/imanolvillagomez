@@ -189,11 +189,28 @@ const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRe
   );
 };
 
+/**
+ * The log of drops. Sits on its own solid panel so it reads cleanly over the
+ * backdrop — no glitch in here, this is the part you actually read.
+ */
 export const Queue = ({ requests, onChange }: { requests: ArtRequest[]; onChange: (r: ArtRequest) => void }) =>
   requests.length ? (
-    <ul className="mx-auto w-full max-w-4xl px-4 pb-40 pt-24 md:px-8">
-      {requests.map((r, i) => (
-        <Row key={r.id} r={r} i={i} onChange={onChange} />
-      ))}
-    </ul>
+    <section className="relative z-20 mx-auto w-full max-w-4xl px-3 pb-40 pt-16 md:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: EASE, delay: 0.3 }}
+        className="rounded-2xl border border-[#C9C8C7]/10 bg-[#0a0a0a]/95 px-5 py-2 shadow-[0_30px_80px_rgba(0,0,0,.7)] backdrop-blur-2xl md:px-8"
+      >
+        <header className="flex items-baseline justify-between pb-2 pt-5 font-mono text-[11px] uppercase tracking-[0.25em] text-[#C9C8C7]/40">
+          <span>drops</span>
+          <span className="tabular-nums">{String(requests.length).padStart(2, '0')}</span>
+        </header>
+        <ul className="[&>li:first-child]:border-t-[#C9C8C7]/15">
+          {requests.map((r, i) => (
+            <Row key={r.id} r={r} i={i} onChange={onChange} />
+          ))}
+        </ul>
+      </motion.div>
+    </section>
   ) : null;
