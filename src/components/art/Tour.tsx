@@ -140,8 +140,8 @@ export const Welcome = ({ onStart, onSkip }: { onStart: () => void; onSkip: () =
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: EASE }}
               >
-                <p className="max-w-xs font-mono text-[13px] leading-relaxed text-[#C9C8C7]/60">
-                  One minute. You'll send a practice drop — nothing gets uploaded.
+                <p className="max-w-sm font-mono text-[13px] leading-relaxed text-[#C9C8C7]/60">
+                  The newest way to add content to imanolvillagomez.com
                 </p>
                 <motion.button
                   type="button"
@@ -160,6 +160,9 @@ export const Welcome = ({ onStart, onSkip }: { onStart: () => void; onSkip: () =
                 >
                   skip
                 </button>
+                <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.4em] text-[#C9C8C7]/30">
+                  built by IM for IV
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

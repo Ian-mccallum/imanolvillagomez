@@ -332,7 +332,7 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
             exit={{ y: -8, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {state === 'saved' ? 'saved' : err ? `${err} — retry` : prepared ? `save ${name}` : '…'}
+            {state === 'saved' ? 'saved' : err ? `${err}, retry` : prepared ? `save ${name}` : '…'}
           </motion.span>
         </AnimatePresence>
       </button>
@@ -368,6 +368,34 @@ const useAddShortcut = (toggle: () => void) => {
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, [toggle]);
+};
+
+/**
+ * Empties the workspace. Two taps: the first arms it (turns red, says so), the
+ * second clears. It disarms itself after a few seconds.
+ */
+const ClearAll = ({ onClear }: { onClear: () => void }) => {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!armed) return;
+    const t = setTimeout(() => setArmed(false), 3500);
+    return () => clearTimeout(t);
+  }, [armed]);
+  return (
+    <motion.button
+      type="button"
+      layout
+      onClick={() => (armed ? (setArmed(false), onClear()) : setArmed(true))}
+      whileTap={{ scale: 0.94 }}
+      className={`whitespace-nowrap rounded-full border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${
+        armed
+          ? 'border-[#dc2626] bg-[#dc2626] text-black'
+          : 'border-[#C9C8C7]/20 text-[#C9C8C7]/50 hover:border-[#C9C8C7]/50 hover:text-[#C9C8C7]'
+      }`}
+    >
+      {armed ? 'tap to clear all' : 'clear all'}
+    </motion.button>
+  );
 };
 
 /** One + for everything: tap it, pick files or a whole folder. */
@@ -841,7 +869,7 @@ const Room = ({
       setRequests((cur) => cur.map((c) => (c.id === req.id ? { ...c, status, ...extra } : c)));
     setTimeout(() => step('working'), 4200);
     setTimeout(() => {
-      step('preview', { summary: 'Practice run — nothing was uploaded or published.' });
+      step('preview', { summary: 'Practice run. Nothing was uploaded or published.' });
       onTour?.('preview');
     }, 8200);
   };
@@ -1016,7 +1044,7 @@ const Room = ({
                         value={g.note}
                         onChange={(v) => patchGroup(g.id, { note: v })}
                         disabled={locked}
-                        placeholder="instructions — this folder"
+                        placeholder="instructions for this folder"
                         className="flex-[2] basis-[16rem]"
                       />
                       {!locked && (
@@ -1195,6 +1223,12 @@ const Room = ({
                   >
                     {title ? `${title}${city ? ` · ${city}` : ''}` : 'no title yet'}
                   </button>
+                  <ClearAll
+                    onClear={() => {
+                      setSelected(new Set());
+                      reset();
+                    }}
+                  />
                   <motion.button
                     type="button"
                     onClick={() => setDetailsOpen(true)}
@@ -1223,6 +1257,7 @@ const Room = ({
             }}
             count={items.length}
             error={phase === 'error'}
+            remember={!practice}
             onClose={() => setDetailsOpen(false)}
             onSend={() => {
               setDetailsOpen(false);
@@ -1322,7 +1357,7 @@ export const StudioPage = () => {
     },
     {
       title: 'shape it',
-      body: 'Each folder is its own group — rename it, add notes for the folder or any single photo. The + adds more.',
+      body: 'Each folder is its own group. Rename it, add notes for the folder or any single photo. The + adds more.',
       next: true,
     },
     {
@@ -1331,15 +1366,15 @@ export const StudioPage = () => {
     },
     {
       title: 'send it',
-      body: 'Hit send in the details. This is practice — nothing actually uploads.',
+      body: 'Hit send in the details. This is practice, so nothing actually uploads.',
     },
     {
       title: 'watch it land',
-      body: 'Scroll down to your drops. It goes queued → working → preview. If anything is unclear you get a question here instead — answer it right in the list.',
+      body: 'Scroll down to your drops. It goes queued → working → preview. If anything is unclear you get a question here instead. Answer it right in the list.',
     },
     {
       title: 'ship it',
-      body: 'On a preview: view ↗ shows the site with your work on it. When it looks right, press and hold “hold to ship”. Try it now.',
+      body: 'On a real drop, view preview opens the site with your work on it. This one is a test, so its preview is crossed out. When it looks right, press and hold “hold to ship”. Try it now.',
     },
     {
       title: "you're ready",
@@ -1357,7 +1392,7 @@ export const StudioPage = () => {
         () =>
           [...document.querySelectorAll('section')]
             .find((el) => el.innerText.toUpperCase().includes('DROPS'))
-            ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
         2200
       );
   }, [tour]);

@@ -86,6 +86,54 @@ const Status = ({ s }: { s: ArtStatus }) => {
   );
 };
 
+/**
+ * The preview, as a real button: a real one opens the Vercel preview. A practice drop
+ * gets the same button crossed out with a TEST tag, so the tour shows what a
+ * preview looks like without pretending one exists.
+ */
+const PreviewLink = ({ r }: { r: ArtRequest }) => {
+  const test = r.id.startsWith('practice-');
+  const url = r.previewUrl;
+  if (!test && !url) return null;
+  const sub = test ? 'no preview for a practice drop' : 'the site, with this drop on it';
+  const body = (
+    <>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#C9C8C7]/10 text-base">
+        {test ? '×' : '↗'}
+      </span>
+      <span className="min-w-0 text-left">
+        <span className={`block font-logo text-base uppercase leading-none tracking-tight ${test ? 'line-through decoration-[#dc2626] decoration-2' : ''}`}>
+          view preview
+        </span>
+        <span className="mt-1 block truncate font-mono text-[10px] text-[#C9C8C7]/40">{sub}</span>
+      </span>
+      {test && (
+        <span className="ml-1 rounded-full border border-[#dc2626]/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-[#dc2626]">
+          test
+        </span>
+      )}
+    </>
+  );
+  const cls =
+    'group flex max-w-full items-center gap-3 rounded-2xl border border-[#C9C8C7]/15 py-2 pl-2 pr-4 text-[#C9C8C7] transition-colors';
+  return test ? (
+    <div aria-disabled title="Practice drops don't get a preview" className={`${cls} cursor-not-allowed opacity-70`}>
+      {body}
+    </div>
+  ) : (
+    <motion.a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.97 }}
+      className={`${cls} hover:border-[#C9C8C7]/40 hover:bg-[#C9C8C7]/[0.04]`}
+    >
+      {body}
+    </motion.a>
+  );
+};
+
 const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRequest) => void }) => {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -162,19 +210,7 @@ const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRe
               {r.status === 'preview' && (
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
                   {r.summary && <p className="w-full font-mono text-[13px] text-[#C9C8C7]/60">{r.summary}</p>}
-                  {r.previewUrl && (
-                    <a
-                      href={r.previewUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]"
-                    >
-                      view{' '}
-                      <span className="inline-block transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
-                        ↗
-                      </span>
-                    </a>
-                  )}
+                  <PreviewLink r={r} />
                   <Hold
                     onConfirm={async () =>
                       onChange(r.id.startsWith('practice-') ? { ...r, status: 'live' } : await approve(r.id))

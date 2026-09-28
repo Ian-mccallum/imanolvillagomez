@@ -147,7 +147,7 @@ export const Tile = forwardRef<
               onBlur={() => !item.note.trim() && setNoteOpen(false)}
               disabled={busy}
               rows={2}
-              placeholder="instructions — just this one"
+              placeholder="instructions for just this one"
               aria-label={`instructions for ${item.file.name}`}
               className={`${inputCls} mt-1 resize-none border-t border-[#C9C8C7]/10 pt-1 leading-snug`}
             />

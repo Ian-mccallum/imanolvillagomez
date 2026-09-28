@@ -83,6 +83,7 @@ export const DetailsModal = ({
   onSend,
   onClose,
   error,
+  remember = true,
 }: {
   value: Details;
   onChange: (patch: Partial<Details>) => void;
@@ -90,6 +91,8 @@ export const DetailsModal = ({
   onSend: () => void;
   onClose: () => void;
   error: boolean;
+  /** off for the tour's practice drop */
+  remember?: boolean;
 }) => {
   const recent = useRef(loadRecent()).current;
   const first = useRef<HTMLInputElement>(null);
@@ -105,7 +108,7 @@ export const DetailsModal = ({
   }, [onClose]);
 
   const send = () => {
-    saveRecent(value);
+    if (remember) saveRecent(value);
     onSend();
   };
 
@@ -227,7 +230,7 @@ export const DetailsModal = ({
               value={value.note}
               onChange={(e) => onChange({ note: e.target.value })}
               rows={4}
-              placeholder="Anything I should know — order, what goes where, which to skip."
+              placeholder="Anything I should know: order, what goes where, which to skip."
               className="mt-2 w-full resize-none rounded-xl border border-[#C9C8C7]/10 bg-[#C9C8C7]/[0.03] p-4 font-mono text-[13px] leading-relaxed text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/25 focus:border-[#dc2626]/60"
             />
             <Chips list={recent.note} current={value.note} onPick={(note) => onChange({ note })} />
