@@ -149,9 +149,12 @@ function typeTexture(logo: HTMLImageElement | null): HTMLCanvasElement {
 export const Backdrop = ({
   field,
   intensity = 1,
+  className = 'fixed inset-0',
 }: {
   field: React.MutableRefObject<Field>;
   intensity?: number;
+  /** positioning; defaults to filling the window. The footer uses `absolute inset-0`. */
+  className?: string;
 }) => {
   const ref = useRef<HTMLCanvasElement>(null);
   const inten = useRef(intensity);
@@ -264,6 +267,13 @@ export const Backdrop = ({
     };
     size();
     window.addEventListener('resize', size);
+    // the canvas can change size without the window doing so (e.g. in the footer)
+    const ro = new ResizeObserver(size);
+    ro.observe(cv);
+    // don't burn frames while scrolled out of view
+    let onScreen = true;
+    const io = new IntersectionObserver(([en]) => (onScreen = en.isIntersecting));
+    io.observe(cv);
 
     const m = { x: 0, y: 0 };
     const trail = new Float32Array(TRAIL * 3);
@@ -273,7 +283,7 @@ export const Backdrop = ({
     const t0 = performance.now();
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      if (document.hidden) return;
+      if (document.hidden || !onScreen || !cv.width || !cv.height) return;
       const f = field.current;
       const t = ((now - t0) / 1000) * (reduce ? 0.15 : 1);
       const a = cv.width / cv.height;
@@ -306,6 +316,8 @@ export const Backdrop = ({
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', size);
+      ro.disconnect();
+      io.disconnect();
       // don't lose the context: StrictMode re-runs this effect on the same canvas
       gl.deleteProgram(scene);
       gl.deleteProgram(glitch);
@@ -316,6 +328,6 @@ export const Backdrop = ({
   }, [field]);
 
   return (
-    <canvas ref={ref} aria-hidden className="pointer-events-none fixed inset-0 z-0 h-full w-full" />
+    <canvas ref={ref} aria-hidden className={`pointer-events-none z-0 h-full w-full ${className}`} />
   );
 };

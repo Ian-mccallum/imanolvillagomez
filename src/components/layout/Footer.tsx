@@ -1,25 +1,27 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Backdrop } from '@/components/art/Backdrop';
+import { usePointerHeat } from '@/components/art/heat';
 
 /**
- * Legal footer — copyright and privacy only.
+ * Legal footer — copyright and privacy only, over the /studio WebGL light
+ * field (IMANOL VILLAGOMEZ type lit by the cursor). The cursor is mapped into
+ * the footer's own box, so the flare follows the pointer across it.
  * Instagram lives in InstagramPromoStrip / OtherPageInstagramOutro above this bar.
  */
 
 export const Footer = () => {
+  const ref = useRef<HTMLElement>(null);
+  const { field } = usePointerHeat(ref);
   return (
-    <footer className="relative z-10 overflow-hidden border-t border-white/10 bg-[#070707]">
-      <div
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4.0' numOctaves='10' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'overlay',
-          opacity: 0.22,
-        }}
-      />
+    <footer ref={ref} className="relative z-10 overflow-hidden border-t border-white/10 bg-black">
+      <Backdrop field={field} intensity={1.15} className="absolute inset-0" />
+      {/* keep the legal line readable over the light */}
+      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black/45 via-transparent to-black/35" />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-primary/80 to-transparent" />
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between md:py-6">
+        <div className="flex flex-col gap-4 py-10 sm:flex-row sm:items-center sm:justify-between md:py-14">
           <div className="flex items-center gap-3">
             <span className="footer-signal-dot h-2 w-2 shrink-0 bg-red-primary shadow-[0_0_18px_rgba(220,38,38,0.85)]" />
             <p className="max-w-[42rem] text-[11px] font-black uppercase leading-relaxed tracking-[0.16em] text-[#F2F0EF] sm:text-xs">

@@ -23,7 +23,11 @@ export interface Field {
   energy: number;
 }
 
-export function usePointerHeat(): {
+/**
+ * `target`: map the pointer into that element's box instead of the window
+ * (for a backdrop that only fills part of the page, like the footer).
+ */
+export function usePointerHeat(target?: React.RefObject<HTMLElement>): {
   heat: MotionValue<number>;
   field: React.MutableRefObject<Field>;
 } {
@@ -41,8 +45,9 @@ export function usePointerHeat(): {
 
     const move = (cx: number, cy: number) => {
       const t = performance.now();
-      f.x = cx / window.innerWidth;
-      f.y = 1 - cy / window.innerHeight;
+      const box = target?.current?.getBoundingClientRect();
+      f.x = box ? (cx - box.left) / box.width : cx / window.innerWidth;
+      f.y = box ? 1 - (cy - box.top) / box.height : 1 - cy / window.innerHeight;
       if (last) {
         const dt = Math.max(t - last.t, 8);
         const d = Math.hypot(cx - last.x, cy - last.y);
