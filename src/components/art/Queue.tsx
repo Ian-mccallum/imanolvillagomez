@@ -95,7 +95,7 @@ const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRe
     if (!text.trim() || busy) return;
     setBusy(true);
     try {
-      onChange(await reply(r.id, text));
+      onChange(r.id.startsWith('practice-') ? { ...r, status: 'pending' } : await reply(r.id, text));
       setText('');
     } finally {
       setBusy(false);
@@ -175,7 +175,13 @@ const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRe
                       </span>
                     </a>
                   )}
-                  <Hold onConfirm={async () => onChange(await approve(r.id))}>hold to ship</Hold>
+                  <Hold
+                    onConfirm={async () =>
+                      onChange(r.id.startsWith('practice-') ? { ...r, status: 'live' } : await approve(r.id))
+                    }
+                  >
+                    hold to ship
+                  </Hold>
                 </div>
               )}
               {r.status === 'failed' && r.error && (

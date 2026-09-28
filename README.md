@@ -80,7 +80,7 @@ Copy the example env file and set values (secrets never go in git):
 cp .env.example .env
 ```
 
-See **`.env.example`** for **`VITE_R2_PUBLIC_URL`** (public URL for video assets) vs **`R2_*`** variables (upload scripts, and the `/art` API on Vercel). `/art` also needs **`ART_KEY`** on Vercel, and the laptop runner needs **`VERCEL_TOKEN`** — see [art-drop.md](documentation/ops/art-drop.md).
+See **`.env.example`** for **`VITE_R2_PUBLIC_URL`** (public URL for video assets) vs **`R2_*`** variables (upload scripts, and the `/studio` API on Vercel). `/studio` also needs **`ART_KEY`** on Vercel, and the laptop runner needs **`VERCEL_TOKEN`** — see [studio.md](documentation/ops/studio.md).
 
 ## Portfolio media — adding new videos & photos
 
@@ -92,9 +92,9 @@ that prevent the two ways a video ships broken:
 .claude/skills/imanol-publish/scripts/publish-video.sh "<source>" "<Name.mp4>"
 ```
 
-**Imanol can also drop work himself** at `/art` — a laptop runner feeds it through the
+**Imanol can also drop work himself** at `/studio` — a laptop runner feeds it through the
 same skill and hands him a preview to approve. Runbook:
-**[documentation/ops/art-drop.md](documentation/ops/art-drop.md)**.
+**[documentation/ops/studio.md](documentation/ops/studio.md)**.
 
 **Longhand background:**
 
@@ -126,7 +126,7 @@ One-time Cloudflare setup (bucket, custom domain, CORS): **[documentation/ops/cl
 - ✅ Custom video rotation support (270° for portrait videos)
 - ✅ Animation libraries (Framer Motion)
 - ✅ Image gallery with fullscreen viewer
-- ✅ `/art` — private drop page for new work (password / Face ID), with a laptop runner that publishes via Claude Code
+- ✅ `/studio` — private drop page for new work (password / Face ID), with a laptop runner that publishes via Claude Code
 
 ## SEO Features
 

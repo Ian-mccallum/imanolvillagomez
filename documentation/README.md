@@ -20,7 +20,7 @@ See **[documentation/ops/](./ops/)** for hosting, cache, and video pipeline guid
 
 Highlights:
 
-- [/art drop page](./ops/art-drop.md) — Imanol's self-serve uploads → laptop runner → preview → ship
+- [/studio drop page](./ops/studio.md) — Imanol's self-serve uploads → laptop runner → preview → ship
 - [Cloudflare R2 setup](./ops/cloudflare-r2-setup.md)
 - [Video optimization](./ops/video-optimization-guide.md)
 - [Quick cache check](./ops/quick-cache-check.md)

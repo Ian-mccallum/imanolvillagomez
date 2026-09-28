@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { HomePage } from '@/pages/HomePage';
@@ -11,7 +11,7 @@ import { ContactPage } from '@/pages/ContactPage';
 import { ThankYouPage } from '@/pages/ThankYouPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { ArtPage } from '@/pages/ArtPage';
+import { StudioPage } from '@/pages/StudioPage';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 
 function App() {
@@ -19,7 +19,8 @@ function App() {
     <ErrorBoundary>
       <ScrollToTop />
       <Routes>
-        <Route path="art" element={<ArtPage />} />
+        <Route path="studio" element={<StudioPage />} />
+        <Route path="art" element={<Navigate to="/studio" replace />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="work" element={<WorkHubPage />} />

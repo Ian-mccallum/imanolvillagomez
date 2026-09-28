@@ -1,21 +1,23 @@
-# /art — Imanol's drop page
+# /studio — Imanol's drop page
 
-`imanolvillagomez.com/art` lets Imanol upload new work himself. A runner on
+`imanolvillagomez.com/studio` (`/art` redirects here) lets Imanol upload new work himself. A runner on
 Ian's laptop picks each drop up, runs the `imanol-publish` skill in Claude Code,
 and pushes the result to a Vercel preview. Nothing reaches `main` until Imanol
 holds **ship** on that preview.
 
 ```
-Imanol ──/art──▶ R2 inbox/<id>/ ──runner (laptop)──▶ claude -p /imanol-publish
+Imanol ─/studio─▶ R2 inbox/<id>/ ──runner (laptop)──▶ claude -p /imanol-publish
                                                         │
-          ◀── question (he answers on /art) ────────────┤
+          ◀── question (answered on /studio) ────────────┤
           ◀── preview link ─── branch art/<id> ─────────┘
           hold to ship ──▶ runner rebases + pushes to main ──▶ live
 ```
 
 ## For Imanol
 
-1. Open `/art`, enter the password, then save Face ID / Touch ID — from the pill
+1. Open `/studio`, enter the password. The first time, a TV-style **welcome to the
+   studio** screen offers a guided practice run (nothing uploads); **?** bottom-left
+   replays it. Then then save Face ID / Touch ID — from the pill
    that drops in after login, or the **face id** button top-left any time. Later
    visits just need the face button. Must be on `imanolvillagomez.com`.
 2. Tap **DROP** (or press **Cmd/Ctrl+0**) → **files** or **folder**. Each folder becomes a group; name it and
@@ -33,8 +35,8 @@ keeps the files but restarts the upload.
 
 | Piece | Where |
 |---|---|
-| Page | `src/pages/ArtPage.tsx`, `src/components/art/` |
-| API (Vercel function) | `api/art.ts` — auth, presigned uploads, queue actions |
+| Page | `src/pages/StudioPage.tsx`, `src/components/art/` (tour: `Tour.tsx`) |
+| API (Vercel function) | `api/art.ts` (internal name kept) — auth, presigned uploads, queue actions |
 | Queue storage | R2 `inbox/<id>/request.json` + `inbox/<id>/files/*` |
 | Auth storage | R2 `auth/passkeys.json`, `auth/fails.json` |
 | Runner | `scripts/art-inbox/run.mjs`, systemd user timer `art-inbox.timer` |
@@ -106,7 +108,7 @@ page) and `claude.log` (Claude's final summary). For the full step-by-step,
 ### Local development
 
 `npm run dev` serves `/api/art` through a dev-only Vite middleware
-(`vite.config.ts`) using `.env`, so the whole page works on localhost against the
+(`vite.config.ts`) using `.env`, so `/studio` works on localhost against the
 real R2 bucket.
 
 ### Cleaning up a test drop

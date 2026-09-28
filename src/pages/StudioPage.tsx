@@ -18,12 +18,13 @@ import * as api from '@/components/art/artApi';
 import { Backdrop } from '@/components/art/Backdrop';
 import { Star } from '@/components/art/Star';
 import { DetailsModal } from '@/components/art/Details';
+import { Welcome, Coach, type Step } from '@/components/art/Tour';
 import { loadDraft, saveDraft, clearDraft } from '@/components/art/draft';
 import { usePointerHeat } from '@/components/art/heat';
 import { fromDrop, fromList, type Incoming } from '@/components/art/files';
 
 /**
- * /art — Imanol's drop box. Unlisted, noindex, key-gated.
+ * /studio — Imanol's drop box. Unlisted, noindex, key-gated.
  * Files land in R2 inbox/<id>/; the laptop runner publishes them to a preview,
  * and Imanol holds to ship from the queue below.
  */
@@ -59,6 +60,7 @@ const sess = store('session');
 const TOKEN = 'art-token';
 const BIO = 'art-bio';
 const BIO_NO = 'art-bio-no';
+const WELCOMED = 'studio-welcomed';
 
 /** Camera-shutter wipe between the lock and the room. */
 const Shutter = ({ children, k }: { children: ReactNode; k: string }) => (
@@ -579,7 +581,27 @@ const Chip = ({
   </motion.button>
 );
 
-const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) => void }) => {
+export type TourEvent = 'added' | 'details' | 'sent' | 'preview' | 'shipped';
+
+/** Practice drops never touch the API — the tour runs the whole flow locally. */
+const isPractice = (id: string) => id.startsWith('practice-');
+const SAMPLES = ['2hollis-1.jpeg', 'frostchildren-1.jpeg', 'frostchildren-2.jpeg'];
+
+const Room = ({
+  heat,
+  onDim,
+  practice = false,
+  samples = 0,
+  onTour,
+}: {
+  heat: MotionValue<number>;
+  onDim: (d: boolean) => void;
+  /** tour mode: sends are simulated, nothing is saved or uploaded */
+  practice?: boolean;
+  /** bump to drop the sample photos in */
+  samples?: number;
+  onTour?: (e: TourEvent) => void;
+}) => {
   const [items, setItems] = useState<Item[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
@@ -603,6 +625,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
   // ── draft: survive a refresh ──
   const restored = useRef(false);
   useEffect(() => {
+    if (practice) return;
     loadDraft().then((d) => {
       if (d?.items.length) {
         setGroups(d.groups);
@@ -616,7 +639,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
     });
   }, []);
   useEffect(() => {
-    if (!restored.current || phase === 'sending') return;
+    if (practice || !restored.current || phase === 'sending') return;
     const t = setTimeout(() => {
       if (!items.length) clearDraft();
       else
@@ -630,7 +653,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
         });
     }, 400);
     return () => clearTimeout(t);
-  }, [items, groups, title, city, placement, note, phase]);
+  }, [items, groups, title, city, placement, note, phase, practice]);
 
   const total = items.reduce((s, i) => s + i.file.size, 0);
   const loaded = items.reduce((s, i) => s + i.loaded, 0);
@@ -642,7 +665,7 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
     () =>
       api
         .list()
-        .then(setRequests)
+        .then((list) => setRequests((cur) => [...cur.filter((r) => isPractice(r.id)), ...list]))
         .catch(() => {}),
     []
   );
@@ -773,11 +796,62 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
   const ungroup = (id: string) =>
     setItems((cur) => cur.map((i) => (i.group === id ? { ...i, group: null } : i)));
 
+  const reset = () => {
+    items.forEach((i) => URL.revokeObjectURL(i.url));
+    setItems([]);
+    setGroups([]);
+    setTitle('');
+    setCity('');
+    setNote('');
+    setPlacement('anywhere');
+    setPhase('idle');
+    if (!practice) clearDraft();
+  };
+
+  /** The tour's send: fake the upload, then walk a local drop through the queue. */
+  const sendPractice = async () => {
+    const ms = 2600;
+    const t0 = performance.now();
+    await new Promise<void>((done) => {
+      const tick = () => {
+        const p = Math.min((performance.now() - t0) / ms, 1);
+        setItems((cur) => cur.map((i) => ({ ...i, loaded: i.file.size * p })));
+        if (p < 1) requestAnimationFrame(tick);
+        else done();
+      };
+      requestAnimationFrame(tick);
+    });
+    const now = new Date().toISOString();
+    const req: api.ArtRequest = {
+      id: `practice-${uid()}`,
+      createdAt: now,
+      updatedAt: now,
+      status: 'pending',
+      title: title || 'practice drop',
+      city,
+      placement,
+      note,
+      files: items.map((i) => ({ name: i.file.name, key: '', size: i.file.size, type: i.file.type })),
+    };
+    setRequests((r) => [req, ...r]);
+    setPhase('sent');
+    onTour?.('sent');
+    setTimeout(reset, 1900);
+    const step = (status: api.ArtStatus, extra: Partial<api.ArtRequest> = {}) =>
+      setRequests((cur) => cur.map((c) => (c.id === req.id ? { ...c, status, ...extra } : c)));
+    setTimeout(() => step('working'), 4200);
+    setTimeout(() => {
+      step('preview', { summary: 'Practice run — nothing was uploaded or published.' });
+      onTour?.('preview');
+    }, 8200);
+  };
+
   const send = async () => {
     if (!items.length || busy) return;
     setPhase('sending');
     setSelected(new Set());
     setItems((cur) => cur.map((i) => ({ ...i, loaded: 0 })));
+    if (practice) return sendPractice();
     try {
       // each group gets its own folder in the drop; names kept unique
       const used = new Set<string>();
@@ -827,23 +901,33 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
       });
       setRequests((r) => [req, ...r]);
       setPhase('sent');
-      setTimeout(() => {
-        items.forEach((i) => URL.revokeObjectURL(i.url));
-        setItems([]);
-        setGroups([]);
-        setTitle('');
-        setCity('');
-        setNote('');
-        setPlacement('anywhere');
-        setPhase('idle');
-        clearDraft();
-      }, 1900);
+      setTimeout(reset, 1900);
     } catch {
       setPhase('error');
     }
   };
 
   useEffect(() => onDim(items.length > 0), [items.length, onDim]);
+
+  // ── tour hooks ──
+  useEffect(() => {
+    if (items.length) onTour?.('added');
+  }, [items.length, onTour]);
+  useEffect(() => {
+    if (detailsOpen) onTour?.('details');
+  }, [detailsOpen, onTour]);
+  const seenSamples = useRef(samples); // only react to a new press, never on mount
+  useEffect(() => {
+    if (!practice || samples === seenSamples.current) return;
+    seenSamples.current = samples;
+    Promise.all(
+      SAMPLES.map(async (n) => {
+        const b = await fetch(`/images/${n}`).then((r) => r.blob());
+        return { file: new File([b], n, { type: b.type || 'image/jpeg' }), folder: 'PRACTICE' };
+      })
+    ).then(add, () => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [samples]);
 
   const sections = [
     ...groups.map((g) => ({ g, list: items.filter((i) => i.group === g.id) })),
@@ -1171,7 +1255,10 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
       {!items.length && (
         <Queue
           requests={requests}
-          onChange={(r) => setRequests((cur) => cur.map((c) => (c.id === r.id ? r : c)))}
+          onChange={(r) => {
+            setRequests((cur) => cur.map((c) => (c.id === r.id ? r : c)));
+            if (isPractice(r.id) && r.status === 'live') onTour?.('shipped');
+          }}
         />
       )}
     </div>
@@ -1180,8 +1267,8 @@ const Room = ({ heat, onDim }: { heat: MotionValue<number>; onDim: (d: boolean) 
 
 // ─── page ──────────────────────────────────────────────────────────────────
 
-export const ArtPage = () => {
-  useMetaTags({ title: 'art', description: '', noindex: true });
+export const StudioPage = () => {
+  useMetaTags({ title: 'studio', description: '', noindex: true });
   const { heat, field } = usePointerHeat();
   const [open, setOpen] = useState(false);
   const [offerBio, setOfferBio] = useState(false);
@@ -1202,11 +1289,78 @@ export const ArtPage = () => {
     );
   }, []);
 
+  // ── first visit: welcome screen, then a guided practice run ──
+  const [welcome, setWelcome] = useState(false);
+  const [tour, setTour] = useState<number | null>(null); // step index while touring
+  const [samples, setSamples] = useState(0);
+  const [roomKey, setRoomKey] = useState(0); // remount Room to throw practice state away
+
+  const offerBioIfNew = async () => {
+    if (!local.get(BIO) && !local.get(BIO_NO) && (await api.canPasskey())) setOfferBio(true);
+  };
+
   const onOpen = async (via: 'key' | 'bio') => {
     setOpen(true);
-    if (via === 'key' && !local.get(BIO) && !local.get(BIO_NO) && (await api.canPasskey()))
-      setOfferBio(true);
+    if (!local.get(WELCOMED)) setWelcome(true);
+    else if (via === 'key') offerBioIfNew();
   };
+
+  const endTour = () => {
+    local.set(WELCOMED, '1');
+    setWelcome(false);
+    setTour(null);
+    setSamples(0);
+    setRoomKey((k) => k + 1);
+    offerBioIfNew();
+  };
+
+  const steps: Step[] = [
+    {
+      title: 'drop your work',
+      body: 'Tap DROP (or ⌘0) and pick files or a whole folder. No files handy? Use the samples.',
+      action: { label: 'use samples', run: () => setSamples((n) => n + 1) },
+    },
+    {
+      title: 'shape it',
+      body: 'Each folder is its own group — rename it, add notes for the folder or any single photo. The + adds more.',
+      next: true,
+    },
+    {
+      title: 'the details',
+      body: 'Tap details → at the bottom. Title, city, where it goes. Next time, your past answers come back as one-tap chips.',
+    },
+    {
+      title: 'send it',
+      body: 'Hit send in the details. This is practice — nothing actually uploads.',
+    },
+    {
+      title: 'watch it land',
+      body: 'Scroll down to your drops. It goes queued → working → preview. If anything is unclear you get a question here instead — answer it right in the list.',
+    },
+    {
+      title: 'ship it',
+      body: 'On a preview: view ↗ shows the site with your work on it. When it looks right, press and hold “hold to ship”. Try it now.',
+    },
+    {
+      title: "you're ready",
+      body: 'That was the whole thing. From here every drop is real.',
+    },
+  ];
+  // real actions move the tour on — only forward, never back
+  const onTour = useCallback((e: TourEvent) => {
+    const at: Record<TourEvent, number> = { added: 1, details: 3, sent: 4, preview: 5, shipped: 6 };
+    setTour((cur) => (cur === null ? cur : Math.max(cur, at[e])));
+  }, []);
+  useEffect(() => {
+    if (tour === 4)
+      setTimeout(
+        () =>
+          [...document.querySelectorAll('section')]
+            .find((el) => el.innerText.toUpperCase().includes('DROPS'))
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        2200
+      );
+  }, [tour]);
 
   return (
     <MotionConfig reducedMotion="user">
@@ -1215,7 +1369,14 @@ export const ArtPage = () => {
         <AnimatePresence mode="wait">
           {open ? (
             <Shutter k="room">
-              <Room heat={heat} onDim={setDim} />
+              <Room
+                key={roomKey}
+                heat={heat}
+                onDim={setDim}
+                practice={tour !== null}
+                samples={samples}
+                onTour={onTour}
+              />
             </Shutter>
           ) : (
             <Shutter k="lock">
@@ -1226,7 +1387,40 @@ export const ArtPage = () => {
         <AnimatePresence>
           {offerBio && <SaveBio onDone={() => setOfferBio(false)} />}
         </AnimatePresence>
-        {open && canBio && !offerBio && !local.get(BIO) && (
+        <AnimatePresence>
+          {welcome && tour === null && (
+            <Welcome
+              onStart={() => {
+                setWelcome(false);
+                setTour(0);
+                setRoomKey((k) => k + 1); // start the practice run on a clean slate
+              }}
+              onSkip={endTour}
+            />
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {tour !== null && (
+            <Coach
+              steps={steps}
+              step={tour}
+              onNext={() => setTour((t) => (t === null ? t : t + 1))}
+              onSkip={endTour}
+              onFinish={endTour}
+            />
+          )}
+        </AnimatePresence>
+        {open && tour === null && !welcome && !dim && (
+          <button
+            type="button"
+            onClick={() => setWelcome(true)}
+            aria-label="replay the tour"
+            className="fixed bottom-4 left-4 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-[#C9C8C7]/15 bg-black/60 font-mono text-[12px] text-[#C9C8C7]/50 backdrop-blur-md transition-colors hover:text-[#C9C8C7] md:left-8"
+          >
+            ?
+          </button>
+        )}
+        {open && canBio && !offerBio && tour === null && !welcome && !local.get(BIO) && (
           <motion.button
             type="button"
             onClick={() => setOfferBio(true)}
