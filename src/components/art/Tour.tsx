@@ -160,9 +160,15 @@ export const Welcome = ({ onStart, onSkip }: { onStart: () => void; onSkip: () =
                 >
                   skip
                 </button>
-                <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.4em] text-[#C9C8C7]/30">
-                  built by IM for IV
-                </p>
+                <motion.p
+                  initial={{ opacity: 0, y: 8, letterSpacing: '0.6em' }}
+                  animate={{ opacity: 1, y: 0, letterSpacing: '0.18em' }}
+                  transition={{ duration: 1.1, ease: EASE, delay: 0.35 }}
+                  className="mt-8 font-logo text-xl uppercase text-[#C9C8C7]/85 md:text-3xl"
+                >
+                  built by <span className="text-[#dc2626] drop-shadow-[0_0_18px_rgba(220,38,38,.55)]">IM</span> for{' '}
+                  <span className="text-[#dc2626] drop-shadow-[0_0_18px_rgba(220,38,38,.55)]">IV</span>
+                </motion.p>
               </motion.div>
             )}
           </AnimatePresence>
