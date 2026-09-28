@@ -19,41 +19,89 @@ const date = (iso: string) => {
   return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 };
 
-/** Press-and-hold to confirm. Fills red over 1.1s; letting go drains it. */
+/**
+ * Press-and-hold to confirm. Fills red over 1.1s; letting go drains it.
+ *
+ * The pointer is captured on press, so drifting off the button (or the button
+ * shrinking under the finger) doesn't cancel the hold — only lifting does. A
+ * quick tap shakes and says "keep holding" instead of silently doing nothing,
+ * and long-press menus (iOS callout, right-click) are suppressed.
+ */
 const Hold = ({ onConfirm, children }: { onConfirm: () => void; children: string }) => {
   const p = useMotionValue(0);
   const scale = useTransform(p, [0, 1], [0, 1]);
+  const x = useMotionValue(0);
   const ctrl = useRef<ReturnType<typeof animate> | null>(null);
+  const done = useRef(false);
+  const [hint, setHint] = useState(false);
+  const [holding, setHolding] = useState(false);
+
   const go = () => {
+    if (done.current) return;
+    setHolding(true);
+    setHint(false);
     ctrl.current?.stop();
     ctrl.current = animate(p, 1, {
       duration: 1.1 * (1 - p.get()),
       ease: 'linear',
       onComplete: () => {
+        done.current = true;
+        setHolding(false);
         navigator.vibrate?.(30);
         onConfirm();
       },
     });
   };
   const stop = () => {
-    if (p.get() >= 1) return;
+    setHolding(false);
+    if (done.current || p.get() >= 1) return;
+    const early = p.get() < 0.6;
     ctrl.current?.stop();
     ctrl.current = animate(p, 0, { duration: 0.35, ease: EASE });
+    if (early) {
+      setHint(true);
+      animate(x, [0, -6, 6, -4, 4, 0], { duration: 0.35 });
+    }
   };
+
   return (
-    <motion.button
-      type="button"
-      onPointerDown={go}
-      onPointerUp={stop}
-      onPointerLeave={stop}
-      onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && !e.repeat && go()}
-      onKeyUp={stop}
-      whileTap={{ scale: 0.96 }}
-      className="relative touch-none select-none overflow-hidden border border-[#C9C8C7]/30 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]"
-    >
-      <motion.span aria-hidden style={{ scaleX: scale }} className="absolute inset-0 origin-left bg-[#dc2626]" />
-      <span className="relative">{children}</span>
-    </motion.button>
+    <span className="inline-flex flex-col items-start gap-1.5">
+      <motion.button
+        type="button"
+        style={{ x, WebkitTouchCallout: 'none' }}
+        onPointerDown={(e) => {
+          if (e.button !== 0) return;
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } catch {
+            /* some pointers can't be captured — the hold still works */
+          }
+          go();
+        }}
+        onPointerUp={stop}
+        onPointerCancel={stop}
+        onContextMenu={(e) => e.preventDefault()}
+        onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && !e.repeat && (e.preventDefault(), go())}
+        onKeyUp={(e) => (e.key === ' ' || e.key === 'Enter') && stop()}
+        animate={{ scale: holding ? 0.97 : 1 }}
+        className="relative touch-none select-none overflow-hidden rounded-full border border-[#C9C8C7]/30 px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7] transition-colors hover:border-[#C9C8C7]/60"
+      >
+        <motion.span aria-hidden style={{ scaleX: scale }} className="absolute inset-0 origin-left bg-[#dc2626]" />
+        <span className="relative">{children}</span>
+      </motion.button>
+      <AnimatePresence>
+        {hint && (
+          <motion.span
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="pl-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#dc2626]"
+          >
+            keep holding
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </span>
   );
 };
 
