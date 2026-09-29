@@ -79,34 +79,25 @@ export const MinimalNav = () => {
         {/* Hamburger Menu Button - Right Side (Mobile Only) */}
         <motion.button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden flex flex-col gap-1.5 p-2 min-h-[44px] min-w-[44px] items-center justify-center relative"
+          className="md:hidden relative flex min-h-[44px] min-w-[44px] items-center justify-center p-2"
           aria-label="Toggle menu"
+          aria-expanded={isMobileMenuOpen}
           whileTap={{ scale: 0.95 }}
         >
-          <motion.span
-            className="block w-6 h-0.5 bg-white origin-center"
-            animate={{
-              rotate: isMobileMenuOpen ? 45 : 0,
-              y: isMobileMenuOpen ? 6.5 : 0,
-            }}
-            transition={{ duration: 0.2 }}
-          />
-          <motion.span
-            className="block w-6 h-0.5 bg-white"
-            animate={{
-              opacity: isMobileMenuOpen ? 0 : 1,
-              scale: isMobileMenuOpen ? 0 : 1,
-            }}
-            transition={{ duration: 0.2 }}
-          />
-          <motion.span
-            className="block w-6 h-0.5 bg-white origin-center"
-            animate={{
-              rotate: isMobileMenuOpen ? -45 : 0,
-              y: isMobileMenuOpen ? -6.5 : 0,
-            }}
-            transition={{ duration: 0.2 }}
-          />
+          {/* all three lines share one centre, so the open X crosses dead-centre */}
+          {[-7, 0, 7].map((y, i) => (
+            <motion.span
+              key={i}
+              className="absolute left-1/2 top-1/2 -ml-3 -mt-px block h-0.5 w-6 bg-white"
+              initial={false}
+              animate={
+                isMobileMenuOpen
+                  ? { y: 0, rotate: i === 1 ? 0 : i === 0 ? 45 : -45, opacity: i === 1 ? 0 : 1 }
+                  : { y, rotate: 0, opacity: 1 }
+              }
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            />
+          ))}
         </motion.button>
 
         {/* Desktop Menu - Hidden on Mobile */}
