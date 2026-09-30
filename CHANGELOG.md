@@ -9,6 +9,13 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-09-30
+
+### Added
+
+- **ESDEEKID** — 8 photos from the Sept 26 show (Chicago), at the top of the photo
+  grid in the order Imanol asked for. No tour tag given, so they sit under artist and year.
+
 ## 2026-09-28
 
 ### Added
