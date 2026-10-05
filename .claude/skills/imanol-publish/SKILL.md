@@ -97,6 +97,19 @@ it into the `videosChronological` array and fill in the fields:
 - `thumbnailTime: <seconds>` if the clip opens on a black frame, so the still shows a
   real frame instead of darkness.
 
+**Make the grid still.** The Videos grid shows `src/assets/posters/<Name>.jpg` instead of
+loading the clip, and only plays the clip while a mouse hovers it. A video without a
+still falls back to loading the whole file in its tile, which is slow, so make one. Pass
+the entry's `thumbnailTime` if it has one (default 1s):
+
+```bash
+scripts/make-poster.sh public/videos/<Name.mp4> [thumbnailTime]
+```
+
+Use the script rather than a hand-written `ffmpeg -ss`: it picks the frame browsers
+actually show at that time and tone-maps HDR (iPhone HLG) clips, which most of this
+library is. A plain `ffmpeg -ss` still comes out washed out or a frame off.
+
 Then `npm run type-check`.
 
 ## Photos

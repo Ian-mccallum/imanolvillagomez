@@ -6,6 +6,10 @@ set -e
 
 echo "🔨 Building application..."
 
+# Photo sizes for the grid (so lazy loading works); covers newly added photos
+echo "📐 Reading photo dimensions..."
+node scripts/photo-dimensions.mjs
+
 # TypeScript compilation
 echo "📝 Running TypeScript compiler..."
 tsc

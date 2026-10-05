@@ -20,6 +20,14 @@ import { usePageTitle, useMetaTags, useResponsive } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
 import { PAGE_FILM_GRAIN_OPACITY, PAGE_FILM_GRAIN_SVG } from '@/constants/pageFilmGrain';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
+import photoDimensions from '@/constants/data/photo-dimensions.json';
+
+/** [width, height] per imageUrl, generated at build by scripts/photo-dimensions.mjs. */
+const PHOTO_DIMENSIONS: Record<string, number[] | undefined> = photoDimensions;
+
+/** Matches the grid's Tailwind breakpoints (sm / lg / xl). */
+const columnCountFor = (width: number) =>
+  width >= 1280 ? 4 : width >= 1024 ? 3 : width >= 640 ? 2 : 1;
 
 /**
  * PhotosPage — same filter bar as Videos: ALL + ARTIST / YEAR / TOUR (artist ↔ photo client).
@@ -68,16 +76,12 @@ export const PhotosPage = () => {
   // round-robin (item i -> column i % columnCount). CSS multi-column layout
   // fills one column at a time top-to-bottom, so the most recent/pinned
   // photos would all stack in column 1 instead of forming the top row.
-  const [columnCount, setColumnCount] = useState(1);
+  // Start at the right count: a one-column first render followed by a reflow puts
+  // every photo somewhere else for a moment, which can trigger loads for tiles that
+  // end up nowhere near the screen.
+  const [columnCount, setColumnCount] = useState(() => columnCountFor(window.innerWidth));
   useEffect(() => {
-    const updateColumnCount = () => {
-      const width = window.innerWidth;
-      if (width >= 1280) setColumnCount(4);
-      else if (width >= 1024) setColumnCount(3);
-      else if (width >= 640) setColumnCount(2);
-      else setColumnCount(1);
-    };
-    updateColumnCount();
+    const updateColumnCount = () => setColumnCount(columnCountFor(window.innerWidth));
     window.addEventListener('resize', updateColumnCount);
     return () => window.removeEventListener('resize', updateColumnCount);
   }, []);
@@ -241,10 +245,12 @@ function PhotoMasonryCard({
 }) {
   const { isMobile } = useResponsive();
   const [isHovered, setIsHovered] = useState(false);
+  // Reserve the tile's real shape before the file arrives; otherwise every tile is
+  // 0px tall, all of them look on-screen, and lazy loading fetches the whole library.
+  const [width, height] = PHOTO_DIMENSIONS[photo.imageUrl] ?? [4, 5];
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -272,8 +278,11 @@ function PhotoMasonryCard({
             src={photo.imageUrl}
             alt={`IMANOL VILLAGOMEZ - ${photo.client || 'Concert'} photography${photo.year ? ` - ${photo.year}` : ''}`}
             className={cn('w-full', isMobile ? 'h-auto object-contain' : 'h-full object-cover')}
+            width={width}
+            height={height}
             loading="lazy"
-            style={{ maxWidth: '100%', display: 'block' }}
+            decoding="async"
+            style={{ maxWidth: '100%', display: 'block', aspectRatio: `${width} / ${height}` }}
           />
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.1]"

@@ -7,6 +7,7 @@ import { GlitchOverlay } from '@/components/ui/GlitchOverlay';
 import { useState, useEffect, useRef } from 'react';
 import { useGlitchIntensity } from '@/hooks/useResponsive';
 import { formatVideoSongLocationCaption } from '@/utils/videoCaption';
+import { getVideoPoster } from '@/utils/videoPoster';
 
 /**
  * VideoCard
@@ -41,10 +42,27 @@ export const VideoCard = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const glitchIntensity = useGlitchIntensity();
-  
-  // Lazy load video thumbnail when card enters viewport
+  const caption = formatVideoSongLocationCaption(video) ?? video.title;
+
+  // With a poster, the tile is a still image and the clip itself only loads while a
+  // mouse hovers it, then unmounts again; so the grid never holds more than one
+  // live video, however many are on the page.
+  const poster = getVideoPoster(video.videoUrl);
+  // Mouse only: on a phone a tap opens the player, so don't also start the clip here.
+  const [canHover] = useState(() => window.matchMedia('(hover: hover)').matches);
+  const showHoverVideo = poster != null && canHover && isHovered;
+
+  const mediaClassName = `w-full h-full transition-transform duration-500 ${
+    video.rotation === 270 ? 'object-contain' : 'object-cover group-hover:scale-110'
+  }`;
+  const mediaStyle = {
+    transform: video.rotation === 270 ? cssTransformRotation270() : 'none',
+    transformOrigin: 'center center',
+  };
+
+  // Lazy load video thumbnail when card enters viewport (only needed without a poster)
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (poster || !containerRef.current) return;
     
     const observer = new IntersectionObserver(
       (entries) => {
@@ -66,7 +84,7 @@ export const VideoCard = ({
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [poster]);
   
 
   // Standard sizing for Pinterest/scrapbook layout
@@ -118,7 +136,39 @@ export const VideoCard = ({
       >
         {/* Use video element to display actual video thumbnail */}
         {/* Optimized: Lazy load when in viewport, preload metadata for faster thumbnail display */}
-        {shouldLoadVideo && (
+        {poster && (
+          <>
+            <img
+              src={poster}
+              alt={caption}
+              loading="lazy"
+              decoding="async"
+              className={mediaClassName}
+              style={mediaStyle}
+            />
+            {showHoverVideo && (
+              <video
+                src={video.videoUrl}
+                className={cn('absolute inset-0', mediaClassName)}
+                style={mediaStyle}
+                muted
+                playsInline
+                autoPlay
+                preload="auto"
+                onLoadedMetadata={(e) => {
+                  // Start the preview from the poster's frame
+                  const videoEl = e.currentTarget;
+                  if (video.thumbnailTime != null) {
+                    videoEl.currentTime = video.thumbnailTime;
+                  } else if (isFinite(videoEl.duration) && videoEl.duration > 0) {
+                    videoEl.currentTime = Math.min(1, videoEl.duration / 2);
+                  }
+                }}
+              />
+            )}
+          </>
+        )}
+        {!poster && shouldLoadVideo && (
           <video
             ref={videoRef}
             src={video.thumbnail || video.videoUrl}
@@ -185,7 +235,7 @@ export const VideoCard = ({
           />
         )}
         {/* Placeholder while video loads */}
-        {!shouldLoadVideo && (
+        {!poster && !shouldLoadVideo && (
           <div className="w-full h-full bg-black/50 flex items-center justify-center">
             <div className="w-8 h-8 border-2 border-white/30 border-t-white animate-spin rounded-full" />
           </div>
@@ -209,7 +259,7 @@ export const VideoCard = ({
           "text-sm md:text-base font-medium uppercase tracking-tight",
           darkBackground ? "text-white" : "text-text-dark"
         )}>
-          {formatVideoSongLocationCaption(video) ?? video.title}
+          {caption}
         </div>
         
         {video.year != null && (
