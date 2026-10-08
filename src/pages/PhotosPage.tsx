@@ -20,10 +20,10 @@ import { usePageTitle, useMetaTags, useResponsive } from '@/hooks';
 import { SEO_CONFIG, BASE_URL } from '@/constants';
 import { PAGE_FILM_GRAIN_OPACITY, PAGE_FILM_GRAIN_SVG } from '@/constants/pageFilmGrain';
 import { StructuredData, createBreadcrumbSchema } from '@/components/seo/StructuredData';
-import photoDimensions from '@/constants/data/photo-dimensions.json';
+import { getPhotoSources } from '@/utils/photoSources';
 
-/** [width, height] per imageUrl, generated at build by scripts/photo-dimensions.mjs. */
-const PHOTO_DIMENSIONS: Record<string, number[] | undefined> = photoDimensions;
+/** Tile width per breakpoint, so the browser picks the 960 or 1600 copy (matches columnCountFor). */
+const PHOTO_TILE_SIZES = '(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw';
 
 /** Matches the grid's Tailwind breakpoints (sm / lg / xl). */
 const columnCountFor = (width: number) =>
@@ -209,8 +209,8 @@ export const PhotosPage = () => {
                   key={columnIndex}
                   className="flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2 md:gap-4"
                 >
-                  {column.map((photo) => (
-                    <PhotoMasonryCard key={photo.id} photo={photo} onSelect={handlePhotoSelect} />
+                  {column.map((photo, row) => (
+                    <PhotoMasonryCard key={photo.id} photo={photo} onSelect={handlePhotoSelect} isTopRow={row === 0} />
                   ))}
                 </div>
               ))}
@@ -239,15 +239,18 @@ export const PhotosPage = () => {
 function PhotoMasonryCard({
   photo,
   onSelect,
+  isTopRow,
 }: {
   photo: Photo;
   onSelect: (photo: Photo, position: { x: number; y: number; width: number; height: number }) => void;
+  /** First row of the grid: loads first, ahead of everything else on the page */
+  isTopRow: boolean;
 }) {
   const { isMobile } = useResponsive();
   const [isHovered, setIsHovered] = useState(false);
   // Reserve the tile's real shape before the file arrives; otherwise every tile is
   // 0px tall, all of them look on-screen, and lazy loading fetches the whole library.
-  const [width, height] = PHOTO_DIMENSIONS[photo.imageUrl] ?? [4, 5];
+  const { src, srcSet, width, height, color } = getPhotoSources(photo.imageUrl);
 
   return (
     <motion.div
@@ -273,14 +276,18 @@ function PhotoMasonryCard({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        <div className="relative overflow-hidden bg-black">
+        <div className="relative overflow-hidden bg-black" style={{ backgroundColor: color }}>
           <img
-            src={photo.imageUrl}
+            src={src}
+            srcSet={srcSet}
+            sizes={PHOTO_TILE_SIZES}
             alt={`IMANOL VILLAGOMEZ - ${photo.client || 'Concert'} photography${photo.year ? ` - ${photo.year}` : ''}`}
             className={cn('w-full', isMobile ? 'h-auto object-contain' : 'h-full object-cover')}
             width={width}
             height={height}
-            loading="lazy"
+            loading={isTopRow ? 'eager' : 'lazy'}
+            // lowercase: React 18 doesn't know fetchPriority yet
+            {...{ fetchpriority: isTopRow ? 'high' : 'auto' }}
             decoding="async"
             style={{ maxWidth: '100%', display: 'block', aspectRatio: `${width} / ${height}` }}
           />

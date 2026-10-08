@@ -1,4 +1,5 @@
 import { Video, Photo } from './index';
+import { getPhotoFullUrl } from '@/utils/photoSources';
 
 /**
  * Unified media item type for FullscreenModal
@@ -61,7 +62,8 @@ export function photoToMediaItem(photo: Photo): MediaItem {
   return {
     id: photo.id,
     type: 'image',
-    imageUrl: photo.imageUrl,
+    // The viewer's copy (2560px, enough for its 2x zoom), not the camera original
+    imageUrl: getPhotoFullUrl(photo.imageUrl),
     title: photo.title,
     client: photo.client,
     year: photo.year,

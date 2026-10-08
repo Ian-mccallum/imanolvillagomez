@@ -118,12 +118,14 @@ photo of that client above the year sort, preserving their relative order.
 
 ## A note on file size
 
-These arrive as full-resolution camera JPEGs — frequently 10–17MB each. They're
-committed to git permanently and shipped to every visitor at full size, which is the
-main driver of slow photo loading on the site.
+These arrive as full-resolution camera JPEGs — frequently 10–17MB each. Commit them as
+delivered; visitors never download them. `npm run build` (scripts/prepare-media.mjs) makes
+small WebP copies of every photo in `public/images/` — 960/1600px for the grid, 2560px for
+the full-screen viewer — into `public/images/sized/`, and records each photo's size and
+average colour in `src/constants/data/photo-meta.json`. Commit both. The build only does
+photos that are new or changed, and removes copies of photos that are gone.
 
-There's no resize step in the pipeline today. If a delivery is unusually large, it's
-worth raising with the user before committing rather than silently adding another
-150MB. A resize to ~2000px long edge at quality 80 typically cuts 90%+ with no visible
-difference at display size — but don't do it unasked, since it alters the client's
-deliverable.
+The copies' file names carry a hash of the original, so replacing a photo under the same
+name is fine: the next build makes fresh copies. A photo the script can't read (HEIC,
+a corrupt file) is skipped with a warning and the site falls back to the original for it,
+which is slow, so convert it to JPEG instead.

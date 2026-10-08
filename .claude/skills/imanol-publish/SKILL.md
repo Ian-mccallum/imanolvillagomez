@@ -17,6 +17,8 @@ problems here.
 | Local video copies | `public/videos/` — gitignored, dev fallback only |
 | **Photo files** | `public/images/` — committed to git and served by Vercel |
 | Photo data | `src/constants/data/photos-shoot-<YYYYMMDD>.json` + `src/constants/photos.ts` |
+| Small photo copies the site actually loads | `public/images/sized/` + `src/constants/data/photo-meta.json` — made by the build |
+| Video grid stills | `src/assets/posters/<Name>.jpg` — made by the build |
 | R2 credentials | `.env` at repo root (gitignored) |
 
 **The basename rule:** the string inside `getVideoUrl('...')` must exactly match the
@@ -97,18 +99,16 @@ it into the `videosChronological` array and fill in the fields:
 - `thumbnailTime: <seconds>` if the clip opens on a black frame, so the still shows a
   real frame instead of darkness.
 
-**Make the grid still.** The Videos grid shows `src/assets/posters/<Name>.jpg` instead of
-loading the clip, and only plays the clip while a mouse hovers it. A video without a
-still falls back to loading the whole file in its tile, which is slow, so make one. Pass
-the entry's `thumbnailTime` if it has one (default 1s):
-
-```bash
-scripts/make-poster.sh public/videos/<Name.mp4> [thumbnailTime]
-```
-
-Use the script rather than a hand-written `ffmpeg -ss`: it picks the frame browsers
-actually show at that time and tone-maps HDR (iPhone HLG) clips, which most of this
-library is. A plain `ffmpeg -ss` still comes out washed out or a frame off.
+**The grid still is automatic.** The Videos grid shows `src/assets/posters/<Name>.jpg`
+instead of loading the clip, and only plays the clip while a mouse hovers it. `npm run
+build` makes the still for any video that lacks one (from the copy in `public/videos/`,
+at its `thumbnailTime` or 1s), so build after adding the entry and commit the new `.jpg`.
+If the build warns "no grid still for …", ffmpeg is missing or the local copy isn't in
+`public/videos/`; that tile then loads the whole video, which is slow, so fix it. To
+redo a still (say, after changing `thumbnailTime`), delete the `.jpg` and build again,
+or run `scripts/make-poster.sh public/videos/<Name.mp4> [seconds]` directly. Don't
+hand-write an `ffmpeg -ss`: the script picks the frame browsers actually show and
+tone-maps HDR (iPhone HLG) clips, which most of this library is.
 
 Then `npm run type-check`.
 
@@ -172,6 +172,11 @@ which makes correct data look wrong on screen.
    ```bash
    npm run build
    ```
+
+   The build also makes the small copies of new photos (`public/images/sized/*.webp`,
+   recorded in `src/constants/data/photo-meta.json`) and stills for new videos
+   (`src/assets/posters/`). Commit those with the rest; they're what visitors load. Check
+   its output for "skipped" or "no grid still" warnings.
 
 3. Commit and push (only when asked). Then confirm the deploy actually served the new
    files — a green build doesn't prove the assets are reachable:

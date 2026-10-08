@@ -131,8 +131,10 @@ You are running headless — nobody can answer you mid-run. Rules:
    ${resultPath} as {"status":"question","questions":["..."]} — short, plain questions Imanol
    can answer in a sentence — and stop.
 2. Otherwise publish per the skill: videos to R2, photos into public/images, data files, ordering.
-3. Run the build the way the skill says. Commit on the current branch (${`art/${r.id}`}).
-   Do NOT push, do NOT touch main, do NOT deploy — the runner handles that.
+3. Run the build the way the skill says. It also makes the small grid copies of new photos
+   (public/images/sized/, src/constants/data/photo-meta.json) and new video stills
+   (src/assets/posters/); commit those along with everything else, on the current branch
+   (${`art/${r.id}`}). Do NOT push, do NOT touch main, do NOT deploy — the runner handles that.
 4. Write ${resultPath} as {"status":"preview","summary":"<one line of what went on the site>"}.
 5. If something breaks that you can't fix, write {"status":"failed","error":"<one line>"}.`;
 }

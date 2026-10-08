@@ -5,6 +5,8 @@ import { videos } from '@/constants/videos';
 import shootFeb2026 from '@/constants/data/photos-shoot-20260228.json';
 import type { Photo } from '@/types';
 import type { Video } from '@/types';
+import { getVideoPoster } from '@/utils/videoPoster';
+import { getPhotoSources } from '@/utils/photoSources';
 
 const SESSION_YEAR = 2026;
 
@@ -59,7 +61,10 @@ export const WorkSessionsSpotlight = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
-          {mosaic.map((cell, index) => (
+          {mosaic.map((cell, index) => {
+            const poster = cell.kind === 'video' ? getVideoPoster(cell.item.videoUrl) : undefined;
+            const photo = cell.kind === 'photo' ? getPhotoSources(cell.item.imageUrl) : undefined;
+            return (
             <motion.div
               key={`${cell.kind}-${cell.item.id}`}
               initial={{ opacity: 0, y: 12 }}
@@ -73,13 +78,23 @@ export const WorkSessionsSpotlight = () => {
                   to={`${ROUTES.WORK_VIDEOS}?year=${SESSION_YEAR}`}
                   className="group block border-2 border-text-dark/30 bg-black overflow-hidden aspect-[4/5] relative"
                 >
-                  <video
-                    src={cell.item.videoUrl}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                  />
+                  {poster ? (
+                    <img
+                      src={poster}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                    />
+                  ) : (
+                    <video
+                      src={cell.item.videoUrl}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <p className="text-white text-[10px] md:text-xs font-bold uppercase tracking-wider line-clamp-2">
@@ -92,12 +107,16 @@ export const WorkSessionsSpotlight = () => {
                 <Link
                   to={`${ROUTES.WORK_PHOTOS}?year=${SESSION_YEAR}`}
                   className="group block border-2 border-text-dark/30 overflow-hidden aspect-[4/5] bg-zinc-900 relative"
+                  style={{ backgroundColor: photo?.color }}
                 >
                   <img
-                    src={cell.item.imageUrl}
+                    src={photo?.src}
+                    srcSet={photo?.srcSet}
+                    sizes="(min-width: 640px) 25vw, 50vw"
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
@@ -109,7 +128,8 @@ export const WorkSessionsSpotlight = () => {
                 </Link>
               )}
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
