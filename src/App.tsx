@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
@@ -11,15 +12,25 @@ import { ContactPage } from '@/pages/ContactPage';
 import { ThankYouPage } from '@/pages/ThankYouPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
-import { StudioPage } from '@/pages/StudioPage';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+
+// Imanol's upload tool: loaded only when /studio is opened, so its code (drop UI, passkey
+// sign-in, uploads) isn't part of every visitor's download.
+const StudioPage = lazy(() => import('@/pages/StudioPage').then((m) => ({ default: m.StudioPage })));
 
 function App() {
   return (
     <ErrorBoundary>
       <ScrollToTop />
       <Routes>
-        <Route path="studio" element={<StudioPage />} />
+        <Route
+          path="studio"
+          element={
+            <Suspense fallback={<div className="min-h-[100svh] bg-black" />}>
+              <StudioPage />
+            </Suspense>
+          }
+        />
         <Route path="art" element={<Navigate to="/studio" replace />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />

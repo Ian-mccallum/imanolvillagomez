@@ -250,6 +250,7 @@ const videosChronological: Video[] = [
     category: 'music-video',
     videoUrl: getVideoUrl('earlylifecrisis.mp4'),
     thumbnail: getVideoUrl('earlylifecrisis.mp4'),
+    thumbnailTime: 3.05, // Opens near-black and strobes; this is the peak of the backlit silhouette shot
     featured: true,
   },
   {
@@ -291,6 +292,7 @@ const videosChronological: Video[] = [
     category: 'music-video',
     videoUrl: getVideoUrl('reel1776802607072991.mp4'),
     thumbnail: getVideoUrl('reel1776802607072991.mp4'),
+    thumbnailTime: 4, // Opens near-black; use the "early life crisis?" card
   },
   {
     id: 'shoot-reel-1776901621418237',
@@ -305,6 +307,7 @@ const videosChronological: Video[] = [
     category: 'music-video',
     videoUrl: getVideoUrl('reel1776901621418237.mp4'),
     thumbnail: getVideoUrl('reel1776901621418237.mp4'),
+    thumbnailTime: 10, // Opens near-black; use the lit stage with the logo
     featured: true,
   },
   {
