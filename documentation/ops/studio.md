@@ -126,6 +126,13 @@ users, config or service. See `~/Coding/fortivus/docs/studio.md` → "The VM".
 | Has | R2, Vercel keys (root-only `/etc/nol-studio/env`), the GitHub deploy key | a Claude subscription token (`/etc/nol-studio/nolai.env`) |
 | Can write | the checkout `/srv/nol` | `.art-inbox/wt/`, `.art-inbox/req/`, `node_modules/.vite-temp/` |
 
+Both runners live in `studios.slice` (3.4GB cap for the pair, set up by NOL's setup.sh; Fortivus
+joins through the drop-in `fortivus-studio.service.d/10-studios-slice.conf`). Nick comes first:
+NOL runs with `Nice=10`, half the CPU weight, idle IO and `OOMScoreAdjust=500`, so a squeeze
+slows NOL and, at worst, kills a NOL step (the drop fails and can be resent), never Fortivus's.
+There's deliberately no lock between them: a NOL drop can run for hours, and Fortivus caps
+each AI step at 25 minutes.
+
 The worktree's `.env` holds only public values (`VITE_*`, `R2_PUBLIC_URL`). Neither NOL user
 can read Fortivus's secrets and vice versa; `nol-studio-doctor` checks both directions. With
 `ART_SYNC=1` the checkout follows `origin/main` (and reruns `npm ci` when the lockfile

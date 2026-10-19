@@ -13,6 +13,8 @@
 # Box-level setup (Node 24, pinned Claude Code, firewall, swap, SSH hardening, automatic
 # security updates, journald caps) belongs to Fortivus's scripts/studio/vm/setup.sh; this
 # script checks for it instead of reinstalling, so Fortivus's pinned versions don't move.
+# The one shared thing it adds is studios.slice: both runners live in it, so together they
+# can't starve the box, and under pressure NOL yields (lower CPU/IO priority, killed first).
 #
 # Two users, mirroring Fortivus's studio/leo:
 #   nol     runs scripts/art-inbox/run.mjs. Holds the secrets (R2, Vercel, deploy key)
@@ -143,6 +145,13 @@ TasksMax=512
 UMask=0027
 PrivateTmp=yes
 ProtectSystem=full
+# Nick's Fortivus requests come first: NOL gets half the CPU weight, idle IO, and is
+# what the kernel kills first if the shared slice runs out of memory.
+Slice=studios.slice
+Nice=10
+CPUWeight=50
+IOSchedulingClass=idle
+OOMScoreAdjust=500
 EOF
 cat >/etc/systemd/system/nol-studio.timer <<'EOF'
 [Unit]
@@ -154,6 +163,24 @@ OnUnitInactiveSec=2min
 
 [Install]
 WantedBy=timers.target
+EOF
+# Shared by both studios. The box has ~3.7GB; keep ~400MB for the system and sshd.
+cat >/etc/systemd/system/studios.slice <<'EOF'
+[Unit]
+Description=Fortivus and NOL studio runners, sharing the box's memory
+
+[Slice]
+MemoryAccounting=yes
+MemoryHigh=3000M
+MemoryMax=3400M
+EOF
+# Fortivus joins via a drop-in (its setup.sh rewrites the main unit, not drop-ins). It takes
+# effect on Fortivus's next restart; restart it only while it's idle.
+install -d -m 0755 /etc/systemd/system/fortivus-studio.service.d
+cat >/etc/systemd/system/fortivus-studio.service.d/10-studios-slice.conf <<'EOF'
+# Added by NOL's scripts/art-inbox/vm/setup.sh: both studios share studios.slice.
+[Service]
+Slice=studios.slice
 EOF
 systemctl daemon-reload
 # Bound AI logs and leftover drop files so the shared disk cannot fill.

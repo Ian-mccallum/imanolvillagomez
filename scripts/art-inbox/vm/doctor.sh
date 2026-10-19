@@ -42,6 +42,10 @@ for u in studio leo; do
   done
 done
 
+[ "$(systemctl show nol-studio -p Slice --value)" = studios.slice ] || fail 'nol-studio is not in studios.slice.'
+if systemctl is-active --quiet fortivus-studio && [ "$(systemctl show fortivus-studio -p Slice --value)" != studios.slice ]; then
+  echo 'Note: Fortivus is not in studios.slice yet; restart fortivus-studio while it is idle.' >&2
+fi
 sudo -H -u nol git -C "$REPO" ls-remote -q origin main >/dev/null || fail 'GitHub deploy key does not work.'
 node --check "$REPO/scripts/art-inbox/run.mjs"
 echo 'Local readiness checks passed. A real drop test and cutover still need verification.'
