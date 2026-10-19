@@ -195,6 +195,7 @@ A staged video the runner already uploaded stays at `videos/<name>` in R2; delet
 
 - 5 GB per file (single presigned PUT).
 - On the laptop, it must be awake; drops wait until the next run. The VPS checks every 2 min.
-- A 4K `--web-encode` on the VPS's 2 vCPUs takes roughly 5–10 min per minute of footage.
+- A 4K `--web-encode` on the VPS takes about 9 min per minute of footage and peaks near 2GB
+  (measured Oct 19, 2026: 10s of 4K in 90s, 1.96GB). A plain build as nolai: 19s, ~480MB.
 - The runner commits with hooks disabled — the repo has stale git-lfs hooks and no
   LFS content.
