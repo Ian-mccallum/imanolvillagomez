@@ -87,8 +87,12 @@ VERCEL_TOKEN=
 # Public values the build bakes into the site (safe to hand to the worktree's .env).
 VITE_R2_PUBLIC_URL=
 VITE_TURNSTILE_SITE_KEY=
-# Optional Healthchecks.io ping URL; configure its alert recipient as Ian only.
-STUDIO_HEALTHCHECK_URL=
+# Optional: email Ian about previews, questions and failures (Resend, verified sender domain).
+RESEND_API_KEY=
+ART_EMAIL_FROM=
+ART_EMAIL_TO=
+# Optional Healthchecks.io ping URL (pinged after every run); alert recipient Ian only.
+ART_HEALTHCHECK_URL=
 EOF
 fi
 chown root:root "$CONF/env" && chmod 600 "$CONF/env"
@@ -187,9 +191,12 @@ install -d -o nol -g nolai -m 2750 "$REPO/.art-inbox"
 install -d -o nol -g nolai -m 2770 "$REPO/.art-inbox/wt" "$REPO/.art-inbox/req"
 install -d -o nol -g nol -m 700 "$REPO/.art-inbox/logs"
 as_nol bash -c "umask 0027; cd $REPO && npm ci --no-audit --no-fund >/dev/null && sha256sum package-lock.json | cut -d' ' -f1 | tr -d '\n' > .art-inbox/npm.sha"
+# Vite 7 bundles vite.config.ts into node_modules/.vite-temp; nolai's builds must write there.
+install -d -o nol -g nolai -m 2770 "$REPO/node_modules/.vite-temp"
 # Repair older installations too. Preserve only the two intentionally mutable
 # AI directories; never follow worktree symlinks while changing trusted modes.
 find "$REPO" -path "$REPO/.art-inbox/wt" -prune -o -path "$REPO/.art-inbox/req" -prune -o \
+  -path "$REPO/node_modules/.vite-temp" -prune -o \
   \( -type f -o -type d \) -exec chmod g-w,o-rwx {} +
 
 missing=()

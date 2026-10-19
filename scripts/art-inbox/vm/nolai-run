@@ -18,6 +18,7 @@ set +a
 # Only subscription authentication. Disable paid usage credits/auto-reload in the account too.
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
 export DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export ART_STAGED_UPLOADS=1 # publish-video.sh stops before R2; the runner uploads
 
 case "${1:-}" in
   claude) shift; exec claude "$@" ;;

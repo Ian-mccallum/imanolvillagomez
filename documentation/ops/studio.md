@@ -1,15 +1,16 @@
 # /studio — Imanol's drop page
 
-`imanolvillagomez.com/studio` (`/art` redirects here) lets Imanol upload new work himself. A runner on
-Ian's laptop picks each drop up, runs the `imanol-publish` skill in Claude Code,
-and pushes the result to a Vercel preview. Nothing reaches `main` until Imanol
+`imanolvillagomez.com/studio` (`/art` redirects here) lets Imanol upload new work himself. A runner
+(Ian's laptop today; the Fortivus VPS once cut over, see [The VPS](#the-vps)) picks each drop up,
+runs the `imanol-publish` skill in Claude Code, and pushes the result to a Vercel preview. Nothing reaches `main` until Imanol
 holds **ship** on that preview.
 
 ```
-Imanol ─/studio─▶ R2 inbox/<id>/ ──runner (laptop)──▶ claude -p /imanol-publish
-                                                        │
-          ◀── question (answered on /studio) ────────────┤
-          ◀── preview link ─── branch art/<id> ─────────┘
+Imanol ─/studio─▶ R2 inbox/<id>/ ──runner──▶ claude -p /imanol-publish (as nolai on the VPS)
+                                              │
+          ◀── question (answered on /studio) ──┤
+          ◀── preview link ── runner commits, checks paths, uploads staged videos,
+                              pushes branch art/<id>
           hold to ship ──▶ runner rebases + pushes to main ──▶ live
 ```
 
@@ -39,8 +40,9 @@ keeps the files but restarts the upload.
 | API (Vercel function) | `api/art.ts` (internal name kept) — auth, presigned uploads, queue actions |
 | Queue storage | R2 `inbox/<id>/request.json` + `inbox/<id>/files/*` |
 | Auth storage | R2 `auth/passkeys.json`, `auth/fails.json` |
-| Runner | `scripts/art-inbox/run.mjs`, systemd user timer `art-inbox.timer` |
-| Runner working dir | `.art-inbox/` (gitignored): downloads, worktrees, logs |
+| Runner | `scripts/art-inbox/run.mjs`: laptop user timer `art-inbox.timer`, or VPS timer `nol-studio.timer` |
+| VPS setup | `scripts/art-inbox/vm/setup.sh`, `vm/nolai-run` (the only thing the runner may run as nolai), `vm/doctor.sh` |
+| Runner working dir | `.art-inbox/` (gitignored): `req/<id>/` downloads + `result.json`, `wt/<id>/` worktrees, `logs/` |
 
 ### Auth
 
@@ -53,11 +55,34 @@ keeps the files but restarts the upload.
 - Passkeys are bound to `imanolvillagomez.com` — they won't work on `*.vercel.app`
   previews or localhost.
 
+### What a drop may change
+
+Claude doesn't commit or upload. The runner commits whatever it changed, then refuses to push
+(drop → `failed`, details to Ian) if the branch touches anything outside:
+
+- photos under `public/images/` (jpg/png/webp/avif, including `sized/`)
+- `src/constants/data/*.json`, `src/constants/videos.ts`, `src/constants/photos.ts`
+- `src/assets/posters/*.jpg`, `CHANGELOG.md`
+
+Added lines in `videos.ts`/`photos.ts` can't contain imports, URLs, `fetch`, `window`,
+`document`, `process.env`, `import.meta` and similar: a new entry only needs the helpers
+already imported there. Anything else (a component, config, the runner) is Ian's job.
+
+**Videos:** the runner hands Claude no R2 keys. `publish-video.sh` runs in staged mode
+(`ART_STAGED_UPLOADS=1`): it encodes and checks faststart, then leaves the file in the
+worktree's `public/videos/`. After Claude finishes, the runner uploads every new `.mp4` there
+to `videos/<name>` (names `[A-Za-z0-9._-]`, plain files only), skips one already up at the same
+size (a rerun), and refuses to replace a different live video. Then it checks the public URL
+answers a range request.
+
+**Approval** ships the exact commit Imanol previewed (`previewSha`): the runner rebases it in a
+fresh worktree only it touches, rechecks the paths, and pushes to `main`.
+
 ### Statuses
 
 `pending` (queued) → `working` → `question` | `preview` | `failed` →
 `approved` (shipping) → `live`. A `working` drop older than 3.5h (laptop slept
-mid-run) goes back to `pending`.
+mid-run, VPS restarted) goes back to `pending`.
 
 ## Setup
 
@@ -88,6 +113,39 @@ logged in and `git config user.name/email` set. Then, once:
 
 That installs `art-inbox.timer`: it runs ~90s after login and every 10 minutes.
 
+### The VPS
+
+The runner can move to the Fortivus Studio VPS (OVH VPS-1, `40.160.97.8`, 2 vCPU / 4GB / 40GB).
+Fortivus's `scripts/studio/vm/setup.sh` owns the box (Node 24, pinned Claude Code, firewall,
+swap, updates); NOL's setup only checks for it, adds ffmpeg, and never touches Fortivus's
+users, config or service. See `~/Coding/fortivus/docs/studio.md` → "The VM".
+
+| | `nol` | `nolai` |
+|---|---|---|
+| Runs | `run.mjs` (`nol-studio.timer`, every 2 min) | Claude and its builds, via `/usr/local/bin/nolai-run` |
+| Has | R2, Vercel keys (root-only `/etc/nol-studio/env`), the GitHub deploy key | a Claude subscription token (`/etc/nol-studio/nolai.env`) |
+| Can write | the checkout `/srv/nol` | `.art-inbox/wt/`, `.art-inbox/req/`, `node_modules/.vite-temp/` |
+
+The worktree's `.env` holds only public values (`VITE_*`, `R2_PUBLIC_URL`). Neither NOL user
+can read Fortivus's secrets and vice versa; `nol-studio-doctor` checks both directions. With
+`ART_SYNC=1` the checkout follows `origin/main` (and reruns `npm ci` when the lockfile
+changes), so merging to main updates the runner and skill. Optional `/etc/nol-studio/env`
+values: `RESEND_API_KEY` + `ART_EMAIL_FROM` + `ART_EMAIL_TO` email Ian what the laptop shows
+as popups; `ART_HEALTHCHECK_URL` is pinged after every run.
+
+Install (the VPS's SSH key is `~/.ssh/fortivus_vm`):
+
+```bash
+scp -i ~/.ssh/fortivus_vm -r scripts/art-inbox/vm ubuntu@40.160.97.8:~/nol-vm
+ssh -i ~/.ssh/fortivus_vm ubuntu@40.160.97.8
+sudo env GIT_NAME="Ian McCallum" GIT_EMAIL="<GitHub email>" bash ~/nol-vm/setup.sh
+```
+
+The first run prints a deploy key for `Ian-mccallum/imanolvillagomez` (write access). Fill
+both env files (a bucket-scoped R2 token, not the laptop's; `claude setup-token` for nolai),
+rerun, then cut over: `systemctl --user disable --now art-inbox.timer` on the laptop, and
+`sudo env LAPTOP_RUNNER_STOPPED=yes bash ~/nol-vm/setup.sh --start` on the VPS. Never run both.
+
 ## Operating it
 
 ```bash
@@ -101,9 +159,12 @@ systemctl --user start art-inbox.service
 ART_DRY=1 node scripts/art-inbox/run.mjs
 ```
 
-Per drop, `.art-inbox/<id>/` holds `files/`, `result.json` (what went back to the
-page) and `claude.log` (Claude's final summary). For the full step-by-step,
-`claude --resume` from `.art-inbox/wt/<id>`.
+Per drop, `.art-inbox/req/<id>/` holds `files/` and `result.json` while it runs (cleared
+after, downloads can be GBs) and `.art-inbox/logs/<id>-claude.log` keeps Claude's output.
+For the full step-by-step, `claude --resume` from `.art-inbox/wt/<id>`.
+
+On the VPS: `journalctl -u nol-studio -f`, `sudo systemctl start nol-studio` (run now),
+`sudo nol-studio-doctor` (isolation and config checks).
 
 ### Local development
 
@@ -118,12 +179,15 @@ Delete `inbox/<id>/` in R2, the `art/<id>` branch on GitHub, then locally:
 ```bash
 git worktree remove --force .art-inbox/wt/<id>
 git branch -D art/<id>
-rm -rf .art-inbox/<id>
+rm -rf .art-inbox/req/<id>
 ```
+
+A staged video the runner already uploaded stays at `videos/<name>` in R2; delete it there too.
 
 ## Limits
 
 - 5 GB per file (single presigned PUT).
-- The laptop must be awake; drops wait until the next run.
+- On the laptop, it must be awake; drops wait until the next run. The VPS checks every 2 min.
+- A 4K `--web-encode` on the VPS's 2 vCPUs takes roughly 5–10 min per minute of footage.
 - The runner commits with hooks disabled — the repo has stale git-lfs hooks and no
   LFS content.
