@@ -1,0 +1,27 @@
+#!/bin/bash
+# Runs Claude, a build, or a cleanup as the unprivileged `nolai` user inside one drop
+# worktree. Installed root-owned at /usr/local/bin/nolai-run by setup.sh; sudoers lets the
+# `nol` runner call only this, and only as nolai. nolai holds no R2, Vercel or GitHub keys:
+# it stages videos and writes result.json, and the runner does every upload and push.
+set -euo pipefail
+WT_ROOT=__REPO__/.art-inbox/wt
+
+dir=$(realpath -e -- "${1:?worktree}")
+shift
+case "$dir" in "$WT_ROOT"/*) ;; *) echo "nolai-run: $dir is not a drop worktree" >&2; exit 64 ;; esac
+cd "$dir"
+umask 002 # the runner (group nolai) commits and cleans up what nolai writes
+export HOME=/home/nolai PATH=/usr/local/bin:/usr/bin:/bin
+set -a
+. /etc/nol-studio/nolai.env
+set +a
+# Only subscription authentication. Disable paid usage credits/auto-reload in the account too.
+unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+export DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+
+case "${1:-}" in
+  claude) shift; exec claude "$@" ;;
+  build) exec npm run build ;;
+  reap) pkill -KILL -u nolai || true ;; # nothing nolai started outlives a step
+  *) echo "nolai-run: unknown command" >&2; exit 64 ;;
+esac
