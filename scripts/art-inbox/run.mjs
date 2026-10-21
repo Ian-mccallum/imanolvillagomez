@@ -40,6 +40,8 @@ const LOGS = join(WORK, 'logs'); // runner only
 const LOCK = join(WORK, '.lock');
 const INBOX = 'inbox/';
 const ID = /^\d{8}-[0-9a-f]{6}$/; // what api/art.ts hands out
+// What Imanol sees when a drop fails. The details go to Ian (log + notify), never to the page.
+const TEXT_IAN = 'something went wrong on our end. text Ian and he\'ll sort it';
 
 // The laptop keeps keys in .env; on the VPS systemd passes them from /etc/nol-studio/env.
 if (existsSync(join(REPO, '.env'))) {
@@ -427,7 +429,7 @@ async function handlePending(r) {
     problems.push(...videos.problems);
     if (problems.length) {
       r.status = 'failed';
-      r.error = 'this one needs Ian — he has the details';
+      r.error = TEXT_IAN;
       await notify(`${r.id} blocked before preview:\n${problems.slice(0, 20).join('\n')}`);
     } else {
       git(REPO, 'push', '-q', '--force-with-lease', '-u', 'origin', branch);
@@ -439,8 +441,8 @@ async function handlePending(r) {
     }
   } else {
     r.status = 'failed';
-    r.error = str(result.error, 300) || 'failed';
-    await notify(`${r.id} failed: ${r.error}`);
+    r.error = TEXT_IAN;
+    await notify(`${r.id} failed: ${str(result.error, 300) || 'no reason given'} (see .art-inbox/logs/${r.id}-claude.log)`);
   }
   // Downloads can be GBs; a rerun downloads them again anyway.
   try { rmSync(base, { recursive: true, force: true }); } catch (e) { log(`  ! couldn't clear ${base}`, e.message); }
@@ -472,7 +474,7 @@ async function handleApproved(r) {
   } catch (e) {
     spawnSync('git', [...GIT_SAFE, `--git-dir=${join(REPO, '.git', 'worktrees', id)}`, `--work-tree=${join(WT, id)}`, 'rebase', '--abort'], { cwd: REPO, stdio: 'ignore' });
     r.status = 'failed';
-    r.error = 'could not merge onto main — Ian will sort it';
+    r.error = TEXT_IAN;
     await notify(`${r.id} merge failed: ${String(e.stderr || e.message || e).slice(0, 300)}`);
   }
   await writeReq(r);
@@ -511,8 +513,8 @@ async function main() {
       } catch (e) {
         log(`  ! ${id}`, e);
         r.status = 'failed';
-        r.error = String(e.message ?? e).slice(0, 300);
-        await notify(`${id} crashed: ${r.error}`);
+        r.error = TEXT_IAN;
+        await notify(`${id} crashed: ${String(e.message ?? e).slice(0, 300)}`);
         await writeReq(r).catch(() => {});
       }
     }
