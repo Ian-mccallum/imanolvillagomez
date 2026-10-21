@@ -82,7 +82,10 @@ fresh worktree only it touches, rechecks the paths, and pushes to `main`.
 ### Statuses
 
 `pending` (queued) → `working` → `question` | `preview` | `failed` →
-`approved` (shipping) → `live`. A `working` drop older than 3.5h (laptop slept
+`approved` (shipping) → `live`. Imanol can **hold to remove** a `question`, `preview` or `failed`
+drop: it goes `removed` (hidden from the page), and the next run deletes its `art/<id>` branch,
+worktree, R2 `inbox/<id>/` and any videos it uploaded that `main` doesn't use. Each run also
+prunes worktrees whose drop is gone from R2. A `working` drop older than 3.5h (laptop slept
 mid-run, VPS restarted) goes back to `pending`.
 
 ## Setup
