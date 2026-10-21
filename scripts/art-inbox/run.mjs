@@ -205,6 +205,9 @@ const ALLOWED = [
 // videos.ts/photos.ts are data in TypeScript clothing; a new entry never needs any of these
 const RISKY = /\bimport\b|\brequire\s*\(|\bfetch\s*\(|\beval\s*\(|\bFunction\s*\(|process\.env|import\.meta|\bwindow\b|\bdocument\b|\bglobalThis\b|<script|innerHTML|\bXMLHttpRequest\b|\bWebSocket\b|\bWorker\b|\batob\b|fromCharCode|https?:\/\//;
 
+// The one import a drop legitimately adds: a new shoot's data file into photos.ts.
+const SHOOT_IMPORT = /^\+import \w+ from '@\/constants\/data\/photos-shoot-\d{8}\.json';\s*$/;
+
 /** Everything this branch changes vs main, staged and committed. Returns problems, if any. */
 function check(id, base) {
   const problems = [];
@@ -215,7 +218,7 @@ function check(id, base) {
   }
   for (const file of ['src/constants/videos.ts', 'src/constants/photos.ts']) {
     const added = gitw(id, 'diff', '--cached', '-U0', base, '--', file).split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++'));
-    for (const line of added) if (RISKY.test(line)) problems.push(`${file}: ${line.slice(1, 120).trim()}`);
+    for (const line of added) if (RISKY.test(line) && !SHOOT_IMPORT.test(line)) problems.push(`${file}: ${line.slice(1, 120).trim()}`);
   }
   return problems;
 }
@@ -343,7 +346,8 @@ You are running headless — nobody can answer you mid-run. Rules:
 4. Do NOT commit, push or run git commands that write: the runner commits and pushes. It only
    ships changes to photos under public/images/, src/constants/data/*.json,
    src/constants/videos.ts, src/constants/photos.ts, src/assets/posters/*.jpg and CHANGELOG.md; new entries in
-   videos.ts/photos.ts must reuse the helpers already imported there (no imports, URLs or code).
+   videos.ts/photos.ts must reuse the helpers already imported there (no URLs or code; the only
+   new import allowed is a new shoot's: import x from '@/constants/data/photos-shoot-YYYYMMDD.json';).
    Anything else fails the drop; if the request needs that, ask instead and say Ian will do it.
 5. Write ${resultPath} as {"status":"preview","summary":"<one line of what went on the site>"}.
 6. If something breaks that you can't fix, write {"status":"failed","error":"<one line>"}.`;
