@@ -5,6 +5,7 @@
 #
 # Does the whole mechanical pipeline in one shot:
 #   probe codec -> H.264 + faststart -> public/videos/ -> R2 -> verify it actually plays
+# With ART_STAGED_UPLOADS=1 (the /studio runner) it stops before R2; the runner uploads.
 #
 # Why this exists — two failure modes that both look like "the video won't play",
 # and both are invisible until a real viewer on a real connection hits them:
@@ -137,6 +138,18 @@ step "Verifying faststart"
 FIRST_ATOM="$(ffprobe -v trace -i "$DEST" 2>&1 | grep -oE "type:'(moov|mdat)'" | head -1 | grep -oE 'moov|mdat' || true)"
 [ "$FIRST_ATOM" = "moov" ] || die "moov atom is not first (found '${FIRST_ATOM:-none}'). Refusing to upload — this file would stall in the browser."
 ok "moov atom is first — will stream immediately"
+
+# ---------- staged mode (the /studio runner) ----------
+# The drop runner gives Claude no R2 keys. It uploads every new .mp4 left in
+# public/videos/ itself, after checking the name, so stop here with the file in place.
+if [ "${ART_STAGED_UPLOADS:-}" = 1 ]; then
+  step "Staged for the runner"
+  ok "public/videos/$DEST_NAME stays put; the runner uploads it to videos/$DEST_NAME after you finish"
+  warn "don't leave other .mp4 files in public/videos/: the runner uploads every new one"
+  echo
+  echo "Next: register it in src/constants/videos.ts with videoUrl/thumbnail: getVideoUrl('$DEST_NAME'), then npm run type-check"
+  exit 0
+fi
 
 # ---------- upload ----------
 # upload-to-r2.js reads process.env only; it does not read .env on its own, which is

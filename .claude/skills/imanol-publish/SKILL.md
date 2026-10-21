@@ -71,6 +71,11 @@ the URL actually streams:
 
 Add `--dry-run` to see what it would do without writing or uploading anything.
 
+In a /studio drop run (`ART_STAGED_UPLOADS=1`, no R2 keys) the script stops after the
+faststart check and leaves the file in `public/videos/`; the runner uploads every new
+`.mp4` there once you finish. So delete any trial encodes you don't want on the site, and
+never reuse the name of a video that's already live: the runner refuses to replace one.
+
 Pick a destination name that's ASCII with no spaces, matching the client's title for
 the piece (`PROBLEMA.mp4`, `VIKING.mp4`, `TheHellpPromo.mp4`). The name becomes a
 public URL path segment.
