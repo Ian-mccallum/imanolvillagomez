@@ -66,7 +66,8 @@ Claude doesn't commit or upload. The runner commits whatever it changed, then re
 
 Added lines in `videos.ts`/`photos.ts` can't contain imports, URLs, `fetch`, `window`,
 `document`, `process.env`, `import.meta` and similar: a new entry only needs the helpers
-already imported there. Anything else (a component, config, the runner) is Ian's job.
+already imported there. The one import allowed is a new shoot's data file
+(`import x from '@/constants/data/photos-shoot-YYYYMMDD.json';`). Anything else (a component, config, the runner) is Ian's job.
 
 **Videos:** the runner hands Claude no R2 keys. `publish-video.sh` runs in staged mode
 (`ART_STAGED_UPLOADS=1`): it encodes and checks faststart, then leaves the file in the
