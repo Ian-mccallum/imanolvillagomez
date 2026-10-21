@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, AnimatePresence, animate, useMotionValue, useTransform } from 'framer-motion';
-import { approve, reply, type ArtRequest, type ArtStatus } from './artApi';
+import { approve, remove, reply, type ArtRequest, type ArtStatus } from './artApi';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -12,6 +12,7 @@ const LABEL: Record<ArtStatus, string> = {
   approved: 'shipping',
   live: 'live',
   failed: 'failed',
+  removed: 'removed',
 };
 
 const date = (iso: string) => {
@@ -271,6 +272,15 @@ const Row = ({ r, i, onChange }: { r: ArtRequest; i: number; onChange: (r: ArtRe
               {r.status === 'failed' && r.error && (
                 <p className="font-mono text-[13px] text-[#dc2626]/80">{r.error}</p>
               )}
+              <div className="mt-4">
+                <Hold
+                  onConfirm={async () =>
+                    onChange(r.id.startsWith('practice-') ? { ...r, status: 'removed' } : await remove(r.id))
+                  }
+                >
+                  hold to remove
+                </Hold>
+              </div>
             </div>
           </motion.div>
         )}

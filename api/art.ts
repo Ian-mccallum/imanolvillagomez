@@ -35,7 +35,7 @@ const SESSION_MS = 12 * 3600e3;
 const LOCK_AFTER = 8;
 const LOCK_MS = 15 * 60e3;
 
-type Status = 'pending' | 'working' | 'question' | 'preview' | 'approved' | 'live' | 'failed';
+type Status = 'pending' | 'working' | 'question' | 'preview' | 'approved' | 'live' | 'failed' | 'removed';
 
 export interface ArtRequest {
   id: string;
@@ -246,7 +246,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'list' && req.method === 'GET') {
       const out = await s3.send(new ListObjectsV2Command({ Bucket, Prefix: INBOX, Delimiter: '/' }));
       const ids = (out.CommonPrefixes ?? []).map((p) => p.Prefix!.slice(INBOX.length, -1));
-      const all = (await Promise.all(ids.map(readReq))).filter(Boolean) as ArtRequest[];
+      // removed drops wait for the runner to clean up their files; Imanol never sees them again
+      const all = ((await Promise.all(ids.map(readReq))).filter(Boolean) as ArtRequest[]).filter((r) => r.status !== 'removed');
       all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
       return res.json({ requests: all.slice(0, 40) });
     }
@@ -335,6 +336,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const r = await readReq(clean(body.id, 40));
       if (!r || r.status !== 'preview') return res.status(409).json({ error: 'not in preview' });
       r.status = 'approved';
+      await writeReq(r);
+      return res.json({ request: r });
+    }
+
+    // Clear a drop that didn't ship. The runner deletes its branch, files and unshipped videos.
+    if (action === 'remove' && post) {
+      const r = await readReq(clean(body.id, 40));
+      if (!r || !['question', 'preview', 'failed'].includes(r.status)) return res.status(409).json({ error: 'cannot remove' });
+      r.status = 'removed';
       await writeReq(r);
       return res.json({ request: r });
     }

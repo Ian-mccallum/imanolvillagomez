@@ -12,7 +12,8 @@ export type ArtStatus =
   | 'preview'
   | 'approved'
   | 'live'
-  | 'failed';
+  | 'failed'
+  | 'removed';
 
 export interface ArtRequest {
   id: string;
@@ -186,6 +187,10 @@ export const reply = (id: string, text: string) =>
 
 export const approve = (id: string) =>
   call<{ request: ArtRequest }>('approve', { id }).then((r) => r.request);
+
+/** Clear a question / preview / failed drop from the list; the runner deletes its files. */
+export const remove = (id: string) =>
+  call<{ request: ArtRequest }>('remove', { id }).then((r) => r.request);
 
 /** PUT one file to its presigned URL with byte-level progress. */
 export function put(u: Upload, file: File, onProgress: (loaded: number) => void): Promise<void> {

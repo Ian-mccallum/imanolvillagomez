@@ -19,7 +19,7 @@
  * admin dir (see `gitw`), since nolai can rewrite the tree. Without ART_AI_RUN (the
  * laptop) Claude runs as you; the same checks and staged uploads still apply.
  */
-import { S3Client, GetObjectCommand, PutObjectCommand, ListObjectsV2Command, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, PutObjectCommand, ListObjectsV2Command, HeadObjectCommand, DeleteObjectsCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -439,6 +439,7 @@ async function handlePending(r) {
       git(REPO, 'push', '-q', '--force-with-lease', '-u', 'origin', branch);
       r.status = 'preview';
       r.summary = summary;
+      r.uploaded = [...new Set([...(r.uploaded ?? []), ...videos.uploaded])];
       r.previewSha = git(REPO, 'rev-parse', branch);
       r.previewUrl = (await previewUrl(branch)) ?? undefined;
       await notify(`${r.id} preview ready${videos.uploaded.length ? ` (${videos.uploaded.length} video${videos.uploaded.length > 1 ? 's' : ''} uploaded)` : ''}`);
@@ -484,6 +485,39 @@ async function handleApproved(r) {
   await writeReq(r);
 }
 
+/** Imanol removed a drop that never shipped: delete its branch, files and unshipped videos. */
+async function handleRemoved(r) {
+  log(`→ ${r.id} removed`);
+  const branch = branchFor(r.id);
+  dropWorktree(r.id);
+  tryGit(REPO, 'branch', '-D', branch);
+  tryGit(REPO, 'push', '-q', 'origin', '--delete', branch);
+  // a video it uploaded stays only if main already uses it (shipped by another drop)
+  git(REPO, 'fetch', '-q', 'origin', 'main');
+  const onMain = git(REPO, 'show', 'origin/main:src/constants/videos.ts');
+  for (const name of (r.uploaded ?? []).filter((n) => VIDEO_NAME.test(n))) {
+    if (onMain.includes(`'${name}'`)) continue;
+    await s3.send(new DeleteObjectCommand({ Bucket, Key: `videos/${name}` }));
+    log(`  ✕ videos/${name}`);
+  }
+  rmSync(join(REQ, r.id), { recursive: true, force: true });
+  // last: request.json goes with the rest, so a crash midway retries next run
+  for (let token; ;) {
+    const out = await s3.send(new ListObjectsV2Command({ Bucket, Prefix: `${INBOX}${r.id}/`, ContinuationToken: token }));
+    const keys = (out.Contents ?? []).map((o) => ({ Key: o.Key }));
+    if (keys.length) await s3.send(new DeleteObjectsCommand({ Bucket, Delete: { Objects: keys } }));
+    if (!out.IsTruncated) break;
+    token = out.NextContinuationToken;
+  }
+  log(`  = gone`);
+}
+
+/** Worktrees whose drop no longer exists in R2 (deleted by hand) just take up disk. */
+function pruneOrphans(ids) {
+  if (!existsSync(WT)) return;
+  for (const id of readdirSync(WT)) if (ID.test(id) && !ids.includes(id)) { log(`  prune worktree ${id}`); dropWorktree(id); }
+}
+
 async function main() {
   mkdirSync(LOGS, { recursive: true });
   try {
@@ -514,6 +548,7 @@ async function main() {
       try {
         if (r.status === 'pending') await handlePending(r);
         else if (r.status === 'approved') await handleApproved(r);
+        else if (r.status === 'removed') await handleRemoved(r);
       } catch (e) {
         log(`  ! ${id}`, e);
         r.status = 'failed';
@@ -522,6 +557,7 @@ async function main() {
         await writeReq(r).catch(() => {});
       }
     }
+    pruneOrphans(ids);
     if (process.env.ART_HEALTHCHECK_URL) await fetch(process.env.ART_HEALTHCHECK_URL, { signal: AbortSignal.timeout(10_000) }).catch(() => {});
   } finally {
     rmSync(LOCK, { force: true });

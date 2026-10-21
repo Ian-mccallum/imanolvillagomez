@@ -1291,7 +1291,9 @@ const Room = ({
         <Queue
           requests={requests}
           onChange={(r) => {
-            setRequests((cur) => cur.map((c) => (c.id === r.id ? r : c)));
+            setRequests((cur) =>
+              r.status === 'removed' ? cur.filter((c) => c.id !== r.id) : cur.map((c) => (c.id === r.id ? r : c)),
+            );
             if (isPractice(r.id) && r.status === 'live') onTour?.('shipped');
           }}
         />
