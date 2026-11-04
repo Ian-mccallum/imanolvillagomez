@@ -157,7 +157,38 @@ both env files (a bucket-scoped R2 token, not the laptop's; `claude setup-token`
 rerun, then cut over: `systemctl --user disable --now art-inbox.timer` on the laptop, and
 `sudo env LAPTOP_RUNNER_STOPPED=yes bash ~/nol-vm/setup.sh --start` on the VPS. Never run both.
 
+### Cursor or Codex on the VPS
+
+The root-owned `nolai-run` wrapper selects its backend using `ART_AGENT` in
+`/etc/nol-studio/nolai.env`: `cursor`, `codex`, or `claude` (the default).
+Cursor and Codex read `.claude/skills/imanol-publish/SKILL.md` directly and use the
+same result JSON, staged uploads, file checks and preview approval flow.
+
+The active VPS was switched to **Cursor** on November 4, 2026. Cursor CLI
+`2026.10.22-27dcf5f` is installed for `nolai`. Authenticate as that user with
+`sudo -u nolai -H env NO_OPEN_BROWSER=1 /home/nolai/.local/bin/agent login`;
+`agent status` checks the account. Codex is installed but needs a separate NOL
+worker login before selecting `ART_AGENT=codex`.
+
+Cursor runs with its sandbox enabled. Ubuntu's user namespace restrictions need
+an AppArmor profile for its exact `cursorsandbox` executable. The installed
+`/etc/apparmor.d/nol-cursor-sandbox` uses Ubuntu's `bwrap-userns-restrict` policy,
+with only the executable and profile names changed; child capabilities stay denied.
+A Cursor upgrade that changes the executable path needs that profile updated.
+The global `kernel.apparmor_restrict_unprivileged_userns` remains enabled.
+
+When switching providers, stop `nol-studio.timer`, wait for any active service to
+finish, install the updated root-owned wrapper, authenticate the selected provider,
+then restart the timer. Keep the laptop timer off. Verify a sandboxed prompt and
+result-file write before resuming. Do not send real drops through an exhausted
+provider. The provider is selected explicitly; there is no automatic paid fallback.
+
 ## Operating it
+
+Before changing a runner, fetch `origin` and compare this checkout with
+`origin/main`. Read the current main-branch runbook and check the VPS timer via SSH;
+a disabled laptop timer is expected after VPS cutover. Never enable the laptop
+runner until the VPS runner is confirmed stopped.
 
 ```bash
 # watch the runner

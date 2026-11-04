@@ -7,15 +7,29 @@ REPO=/srv/nol
 CONF=/etc/nol-studio
 fail() { echo "NOT READY: $*" >&2; exit 1; }
 [ "$(node -p 'process.versions.node.split(".")[0]')" = 24 ] || fail 'Node 24 is required.'
-command -v claude >/dev/null || fail 'Claude Code is missing (Fortivus setup.sh installs it).'
 command -v ffmpeg >/dev/null || fail 'ffmpeg is missing; video stills and web encodes need it.'
 for file in "$CONF/env" "$CONF/nolai.env"; do [ -s "$file" ] || fail "Missing $file"; done
 for key in R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET_NAME R2_PUBLIC_URL VERCEL_TOKEN; do
   grep -Eq "^$key=.+" "$CONF/env" || fail "Set $key in $CONF/env"
 done
-grep -Eq '^CLAUDE_CODE_OAUTH_TOKEN=.+' "$CONF/nolai.env" || fail 'Claude subscription token is missing.'
+agent_backend=$(sed -n 's/^ART_AGENT=//p' "$CONF/nolai.env" | tail -1)
+case "${agent_backend:-claude}" in
+  cursor)
+    [ -x /home/nolai/.local/bin/agent ] || fail 'Cursor CLI is missing for nolai.'
+    sudo -H -u nolai /home/nolai/.local/bin/agent status 2>&1 | grep -q 'Logged in as' || fail 'Cursor needs login as nolai.'
+    ;;
+  codex)
+    command -v codex >/dev/null || fail 'Codex CLI is missing.'
+    sudo -H -u nolai codex login status 2>&1 | grep -q 'Logged in' || fail 'Codex needs login as nolai.'
+    ;;
+  claude|'')
+    command -v claude >/dev/null || fail 'Claude Code is missing.'
+    grep -Eq '^CLAUDE_CODE_OAUTH_TOKEN=.+' "$CONF/nolai.env" || fail 'Claude subscription token is missing.'
+    ;;
+  *) fail 'ART_AGENT must be cursor, codex or claude.' ;;
+esac
 if grep -Eq '^(ANTHROPIC_API_KEY|ANTHROPIC_AUTH_TOKEN|R2_[A-Z_]*KEY[A-Z_]*|VERCEL_TOKEN)=.+' "$CONF/nolai.env"; then
-  fail "Only the Claude subscription token belongs in $CONF/nolai.env."
+  fail "Only AI authentication and backend configuration belong in $CONF/nolai.env."
 fi
 
 # NOL's own isolation
@@ -49,4 +63,4 @@ fi
 sudo -H -u nol git -C "$REPO" ls-remote -q origin main >/dev/null || fail 'GitHub deploy key does not work.'
 node --check "$REPO/scripts/art-inbox/run.mjs"
 echo 'Local readiness checks passed. A real drop test and cutover still need verification.'
-echo 'Also verify Claude usage credits are off: both studios share one subscription.'
+echo "AI backend: ${agent_backend:-claude}. Check that account's usage allowance before sending real drops."
