@@ -1,4 +1,4 @@
-import { formatBytes, workerOnline, type WorkerHeartbeat } from './studioModel';
+import { workerOnline, type WorkerHeartbeat } from './studioModel';
 
 export type StudioView = 'upload' | 'drops' | 'help';
 
@@ -7,7 +7,6 @@ export function WorkspaceHeader({
   onView,
   attention,
   draftCount,
-  draftBytes,
   worker,
   connected,
   onRefresh,
@@ -19,7 +18,6 @@ export function WorkspaceHeader({
   onView: (v: StudioView) => void;
   attention: number;
   draftCount: number;
-  draftBytes: number;
   worker: WorkerHeartbeat | null;
   connected: boolean | null;
   onRefresh: () => void;
@@ -85,6 +83,7 @@ export function WorkspaceHeader({
           aria-current={view === 'upload' ? 'page' : undefined}
           onClick={() => onView('upload')}
         >
+          <NavIcon kind="upload" />
           New drop{draftCount > 0 && <span className="studio-nav-count">{draftCount}</span>}
         </button>
         <button
@@ -92,15 +91,14 @@ export function WorkspaceHeader({
           aria-current={view === 'drops' ? 'page' : undefined}
           onClick={() => onView('drops')}
         >
+          <NavIcon kind="drops" />
           Your drops
           {attention > 0 && <span className="studio-nav-count is-attention">{attention}</span>}
         </button>
         <button aria-current={view === 'help' ? 'page' : undefined} onClick={() => onView('help')}>
-          How it works
+          <NavIcon kind="help" />
+          Help
         </button>
-        {draftCount > 0 && (
-          <span className="studio-nav-draft">{formatBytes(draftBytes)} in your draft</span>
-        )}
       </nav>
       {connected === false && (
         <div className="studio-notice" role="alert">
@@ -176,5 +174,34 @@ export function StudioHelp({
         </button>
       </div>
     </section>
+  );
+}
+
+function NavIcon({ kind }: { kind: 'upload' | 'drops' | 'help' }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {kind === 'upload' ? (
+        <path d="M12 16V4m-4 4 4-4 4 4M5 15v5h14v-5" />
+      ) : kind === 'drops' ? (
+        <>
+          <path d="M5 5h14v14H5zM5 10h14M10 10v9" />
+        </>
+      ) : (
+        <>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M10 9a2 2 0 1 1 3 1.7c-1 .6-1 1.3-1 2.3M12 16h.01" />
+        </>
+      )}
+    </svg>
   );
 }

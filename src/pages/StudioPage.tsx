@@ -480,25 +480,23 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
   );
 };
 
-/** The empty state: DROP is the button, and tapping it offers files or a folder. */
+/** One upload canvas; detailed guidance lives in Help. */
 const DropWord = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void }) => {
   useAddShortcut(onFiles);
   return (
     <section className="studio-upload-empty">
+      <div className="studio-page-heading">
+        <h1>New drop</h1>
+        <p>Add work to your website.</p>
+      </div>
       <div className="studio-upload-target">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M12 16V3m-5 5 5-5 5 5M4 15v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" />
-        </svg>
-        <h1>Add new work.</h1>
-        <p>Photos, videos, or a whole folder. Drop them here, or choose what you want to add.</p>
+        <div className="studio-file-mark" aria-hidden>
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.3">
+            <path d="M13 6h15l8 8v28H13zM28 6v9h8M19 28h11M24.5 22.5v11" />
+          </svg>
+        </div>
+        <h2>Drop files here</h2>
+        <p>Photos, videos, ZIPs. Folders stay together.</p>
         <div className="studio-actions">
           <button className="studio-button studio-button-primary" onClick={onFiles}>
             Choose files
@@ -507,22 +505,9 @@ const DropWord = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => 
             Choose folder
           </button>
         </div>
-        <p className="studio-upload-limit">Up to 200 files per drop · 5 GB per file</p>
+        <p className="studio-upload-limit">200 files per drop · 5 GB per file</p>
       </div>
-      <aside className="studio-upload-guide">
-        <h2>Nothing goes live without you.</h2>
-        <ol>
-          <li>
-            <strong>Add your files</strong>Keep folders together and leave instructions.
-          </li>
-          <li>
-            <strong>Review & send</strong>Give your drop a name and tell us where it goes.
-          </li>
-          <li>
-            <strong>Approve the preview</strong>Check it first. Publish when you are happy.
-          </li>
-        </ol>
-      </aside>
+      <p className="studio-upload-footnote">You’ll review a preview before anything goes live.</p>
     </section>
   );
 };
@@ -1064,7 +1049,6 @@ const Room = ({
         onView={changeView}
         attention={requests.filter((r) => needsAttention(r.status)).length}
         draftCount={items.length}
-        draftBytes={total}
         worker={worker}
         connected={connected}
         onRefresh={refresh}
@@ -1424,7 +1408,7 @@ const Room = ({
         )}
       </AnimatePresence>
 
-      {(view === 'drops' || (view === 'upload' && !items.length)) && (
+      {view === 'drops' && (
         <Queue
           requests={requests}
           onNewDrop={() => changeView('upload')}
@@ -1453,7 +1437,7 @@ export const StudioPage = () => {
   useEffect(() => {
     api.canPasskey().then(setCanBio);
   }, []);
-  const [dim, setDim] = useState(false);
+  const [, setDim] = useState(false);
 
   // a live session in this tab skips the lock
   useEffect(() => {
@@ -1541,7 +1525,7 @@ export const StudioPage = () => {
   return (
     <MotionConfig reducedMotion="user">
       <div className="relative min-h-[100svh] overflow-x-hidden bg-black text-[#C9C8C7] selection:bg-[#dc2626] selection:text-black">
-        <Backdrop field={field} intensity={open ? (dim ? 0.06 : 0.1) : 1} />
+        {!open && <Backdrop field={field} intensity={1} />}
         <AnimatePresence mode="wait">
           {open ? (
             <Shutter k="room">

@@ -310,8 +310,8 @@ export function Queue({
     <section className="studio-queue" aria-labelledby="drops-heading">
       <div className="studio-section-head">
         <div>
-          <h2 id="drops-heading">Your drops</h2>
-          <p className="studio-muted">Follow every drop from upload to live.</p>
+          <h1 id="drops-heading">Your drops</h1>
+          <p className="studio-muted">Uploads, previews, and published work.</p>
         </div>
         {onNewDrop && (
           <button className="studio-button" onClick={onNewDrop}>

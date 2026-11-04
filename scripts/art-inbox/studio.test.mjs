@@ -2,6 +2,11 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { S3Client } from '@aws-sdk/client-s3';
 import { createServer } from 'vite';
+import ts from 'typescript';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, symlinkSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   fileProblem,
   MAX_FILE_BYTES,
@@ -181,6 +186,26 @@ test('API supplies actual worker heartbeat alongside the queue', async () => {
   assert.equal(result.status, 200);
   assert.equal(result.data.worker.state, 'idle');
   assert.equal(result.data.requests.length, 1);
+});
+
+test('deployed API imports resolve under native Node ESM without Vite', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'nol-esm-'));
+  const repo = fileURLToPath(new URL('../../', import.meta.url));
+  try {
+    writeFileSync(join(root, 'package.json'), '{"type":"module"}');
+    symlinkSync(join(repo, 'node_modules'), join(root, 'node_modules'));
+    for (const file of ['api/art.ts', 'src/components/art/studioModel.ts']) {
+      const destination = join(root, file.replace(/\.ts$/, '.js'));
+      mkdirSync(dirname(destination), { recursive: true });
+      writeFileSync(destination, ts.transpileModule(readFileSync(join(repo, file), 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+      }).outputText);
+    }
+    const api = await import(pathToFileURL(join(root, 'api/art.js')));
+    assert.equal(typeof api.default, 'function');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 after(async () => {

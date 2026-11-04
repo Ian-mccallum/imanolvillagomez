@@ -7,7 +7,7 @@ import {
   ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { fileProblem, queueAgain, type WorkerHeartbeat } from '../src/components/art/studioModel';
+import { fileProblem, queueAgain, type WorkerHeartbeat } from '../src/components/art/studioModel.js';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
