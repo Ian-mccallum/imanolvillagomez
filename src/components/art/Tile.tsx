@@ -24,7 +24,7 @@ const mb = (n: number) =>
   n > 1e9 ? `${(n / 1e9).toFixed(1)}G` : `${Math.max(1, Math.round(n / 1e6))}M`;
 
 const inputCls =
-  'w-full min-w-0 bg-transparent font-mono text-[12px] text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/30 disabled:opacity-60';
+  'w-full min-w-0 bg-transparent font-mono text-[12px] text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/80 disabled:opacity-60';
 
 /**
  * One scrapbook tile. A dark veil lifts as bytes land. Underneath: a name for
@@ -115,7 +115,7 @@ export const Tile = forwardRef<
 
         <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-6 font-mono text-[10px] uppercase tracking-wider text-[#C9C8C7]">
           <span className="truncate">{item.file.name}</span>
-          <span className="shrink-0 tabular-nums text-[#C9C8C7]/60">
+          <span className="shrink-0 tabular-nums text-[#C9C8C7]/80">
             {busy && !done ? `${Math.floor(p * 100)}` : mb(item.file.size)}
           </span>
         </figcaption>
@@ -156,7 +156,7 @@ export const Tile = forwardRef<
               <button
                 type="button"
                 onClick={() => setNoteOpen(true)}
-                className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-[#C9C8C7]/30 transition-colors hover:text-[#C9C8C7]"
+                className="mt-0.5 font-mono text-[12px] text-[#C9C8C7]/80 transition-colors hover:text-[#C9C8C7]"
               >
                 + instructions
               </button>

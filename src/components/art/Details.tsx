@@ -22,7 +22,7 @@ interface Recent {
   last?: Details;
 }
 
-export const loadRecent = (): Recent => {
+const loadRecent = (): Recent => {
   try {
     return { title: [], city: [], note: [], ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
   } catch {
@@ -30,14 +30,21 @@ export const loadRecent = (): Recent => {
   }
 };
 
-export const saveRecent = (d: Details) => {
+const saveRecent = (d: Details) => {
   const r = loadRecent();
   const bump = (list: string[], v: string) =>
-    v.trim() ? [v.trim(), ...list.filter((x) => x.toLowerCase() !== v.trim().toLowerCase())].slice(0, MAX) : list;
+    v.trim()
+      ? [v.trim(), ...list.filter((x) => x.toLowerCase() !== v.trim().toLowerCase())].slice(0, MAX)
+      : list;
   try {
     localStorage.setItem(
       KEY,
-      JSON.stringify({ title: bump(r.title, d.title), city: bump(r.city, d.city), note: bump(r.note, d.note), last: d }),
+      JSON.stringify({
+        title: bump(r.title, d.title),
+        city: bump(r.city, d.city),
+        note: bump(r.note, d.note),
+        last: d,
+      })
     );
   } catch {
     /* private mode */
@@ -47,10 +54,18 @@ export const saveRecent = (d: Details) => {
 // ─── pieces ────────────────────────────────────────────────────────────────
 
 const Label = ({ children }: { children: string }) => (
-  <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#C9C8C7]/40">{children}</span>
+  <span className="text-xs font-semibold text-[#C9C8C7]/80">{children}</span>
 );
 
-const Chips = ({ list, current, onPick }: { list: string[]; current: string; onPick: (v: string) => void }) =>
+const Chips = ({
+  list,
+  current,
+  onPick,
+}: {
+  list: string[];
+  current: string;
+  onPick: (v: string) => void;
+}) =>
   list.length ? (
     <div className="flex flex-wrap gap-1.5 pt-2">
       {list.map((v) => (
@@ -72,7 +87,7 @@ const Chips = ({ list, current, onPick }: { list: string[]; current: string; onP
   ) : null;
 
 const input =
-  'w-full border-b border-[#C9C8C7]/15 bg-transparent py-2 font-logo text-2xl uppercase tracking-tight text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/15 focus:border-[#dc2626] md:text-3xl';
+  'w-full border-b border-[#C9C8C7]/30 bg-transparent py-2 text-xl font-medium text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/60 focus:border-[#dc2626]';
 
 // ─── modal ─────────────────────────────────────────────────────────────────
 
@@ -97,16 +112,35 @@ export const DetailsModal = ({
   const isPresent = useIsPresent();
   const recent = useRef(loadRecent()).current;
   const first = useRef<HTMLInputElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
 
   useEffect(() => {
+    if (!isPresent) return;
+    const previous = document.activeElement as HTMLElement | null;
     const t = setTimeout(() => first.current?.focus(), 350);
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close.current();
+      if (e.key !== 'Tab') return;
+      const controls = [
+        ...(dialog.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), a[href]'
+        ) ?? []),
+      ];
+      const edge = e.shiftKey ? controls[0] : controls[controls.length - 1];
+      if (document.activeElement === edge) {
+        e.preventDefault();
+        (e.shiftKey ? controls[controls.length - 1] : controls[0])?.focus();
+      }
+    };
     window.addEventListener('keydown', esc);
     return () => {
       clearTimeout(t);
       window.removeEventListener('keydown', esc);
+      if (previous?.isConnected) previous.focus();
     };
-  }, [onClose]);
+  }, [isPresent]);
 
   const send = () => {
     if (remember) saveRecent(value);
@@ -128,6 +162,7 @@ export const DetailsModal = ({
         aria-hidden
       />
       <motion.div
+        ref={dialog}
         role="dialog"
         aria-modal="true"
         aria-label="details"
@@ -139,14 +174,15 @@ export const DetailsModal = ({
       >
         <header className="flex items-center justify-between px-6 pb-2 pt-5 md:px-8">
           <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#C9C8C7]/50">
-            <span className="tabular-nums text-[#C9C8C7]">{String(count).padStart(2, '0')}</span> files
+            <span className="tabular-nums text-[#C9C8C7]">{String(count).padStart(2, '0')}</span>{' '}
+            files
           </span>
           <div className="flex items-center gap-4">
             {recent.last && (
               <button
                 type="button"
                 onClick={() => onChange(recent.last!)}
-                className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/50 transition-colors hover:text-[#C9C8C7]"
+                className="text-sm font-medium text-[#C9C8C7]/80 transition-colors hover:text-[#C9C8C7]"
               >
                 ↺ same as last
               </button>
@@ -155,7 +191,7 @@ export const DetailsModal = ({
               type="button"
               aria-label="close"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#C9C8C7]/50 transition-colors hover:bg-[#C9C8C7]/10 hover:text-[#C9C8C7]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#C9C8C7]/80 transition-colors hover:bg-[#C9C8C7]/10 hover:text-[#C9C8C7]"
             >
               ×
             </button>
@@ -177,7 +213,11 @@ export const DetailsModal = ({
               placeholder="Artist / song"
               className={input}
             />
-            <Chips list={recent.title} current={value.title} onPick={(title) => onChange({ title })} />
+            <Chips
+              list={recent.title}
+              current={value.title}
+              onPick={(title) => onChange({ title })}
+            />
           </motion.label>
 
           <motion.div
@@ -194,7 +234,11 @@ export const DetailsModal = ({
                 placeholder="Chicago"
                 className={input}
               />
-              <Chips list={recent.city} current={value.city} onPick={(city) => onChange({ city })} />
+              <Chips
+                list={recent.city}
+                current={value.city}
+                onPick={(city) => onChange({ city })}
+              />
             </label>
             <div>
               <Label>placement</Label>
@@ -213,7 +257,9 @@ export const DetailsModal = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 34 }}
                       />
                     )}
-                    <span className={`relative ${value.placement === p ? 'text-black' : 'text-[#C9C8C7]/50'}`}>
+                    <span
+                      className={`relative ${value.placement === p ? 'text-black' : 'text-[#C9C8C7]/80'}`}
+                    >
                       {p === 'anywhere' ? 'any' : p}
                     </span>
                   </button>
@@ -246,9 +292,9 @@ export const DetailsModal = ({
             onClick={send}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            className="group relative w-full overflow-hidden rounded-full bg-[#C9C8C7] py-4 font-logo text-2xl uppercase tracking-tight text-black"
+            className="group relative w-full overflow-hidden rounded-full bg-[#ef6058] py-4 text-xl font-semibold text-black"
           >
-            <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#dc2626] transition-transform duration-300 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-y-100" />
+            <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#ff7972] transition-transform duration-300 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-y-100" />
             <span className="relative">{error ? 'retry' : 'send'}</span>
           </motion.button>
         </footer>

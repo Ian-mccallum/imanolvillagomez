@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T21:45:17.366139+00:00",
+  "title": "Design System: NOL Studio",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "warmgray": {
+        "role": "neutral",
+        "displayName": "Warmgray",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Primary",
+        "tonalRamp": [
+          "oklch(15% 0.12 25)",
+          "oklch(25% 0.12 25)",
+          "oklch(35% 0.12 25)",
+          "oklch(45% 0.12 25)",
+          "oklch(55% 0.12 25)",
+          "oklch(70% 0.12 25)",
+          "oklch(85% 0.12 25)",
+          "oklch(95% 0.12 25)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Primary Hover",
+        "tonalRamp": [
+          "oklch(15% 0.12 25)",
+          "oklch(25% 0.12 25)",
+          "oklch(35% 0.12 25)",
+          "oklch(45% 0.12 25)",
+          "oklch(55% 0.12 25)",
+          "oklch(70% 0.12 25)",
+          "oklch(85% 0.12 25)",
+          "oklch(95% 0.12 25)"
+        ]
+      },
+      "control-border": {
+        "role": "neutral",
+        "displayName": "Control Border",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "control-hover": {
+        "role": "neutral",
+        "displayName": "Control Hover",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "control-hover-border": {
+        "role": "neutral",
+        "displayName": "Control Hover Border",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Placeholder",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "selected-filter": {
+        "role": "neutral",
+        "displayName": "Selected Filter",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "status": {
+        "role": "neutral",
+        "displayName": "Status",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "status-failed-text": {
+        "role": "neutral",
+        "displayName": "Status Failed Text",
+        "tonalRamp": [
+          "oklch(15% 0.12 25)",
+          "oklch(25% 0.12 25)",
+          "oklch(35% 0.12 25)",
+          "oklch(45% 0.12 25)",
+          "oklch(55% 0.12 25)",
+          "oklch(70% 0.12 25)",
+          "oklch(85% 0.12 25)",
+          "oklch(95% 0.12 25)"
+        ]
+      },
+      "dock": {
+        "role": "neutral",
+        "displayName": "Dock",
+        "tonalRamp": [
+          "oklch(15% 0.004 90)",
+          "oklch(25% 0.004 90)",
+          "oklch(35% 0.004 90)",
+          "oklch(45% 0.004 90)",
+          "oklch(55% 0.004 90)",
+          "oklch(70% 0.004 90)",
+          "oklch(85% 0.004 90)",
+          "oklch(95% 0.004 90)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground"
+      },
+      "upload-canvas": {
+        "role": "neutral",
+        "displayName": "Upload Canvas"
+      },
+      "nav-active": {
+        "role": "neutral",
+        "displayName": "Nav Active"
+      }
+    },
+    "typographyMeta": {
+      "wordmark": {
+        "displayName": "NOL wordmark",
+        "purpose": "Small brand signature only."
+      },
+      "headline": {
+        "displayName": "Workspace heading",
+        "purpose": "Normal-case operational headings."
+      },
+      "body": {
+        "displayName": "Workspace body",
+        "purpose": "Compact readable Arial copy; folder-name inputs and selection counts use Arial at 20px. Enabled draft instructions, caption metadata, generic-field placeholders, folder counts, Ungroup files and Clear all use warm gray at 80% opacity. Add instructions is 12px; Ungroup files is 13px. Armed Clear all uses action red with dark text and keeps two-tap confirmation."
+      }
+    },
+    "shadows": [
+      {
+        "name": "details-modal",
+        "value": "0 40px 120px rgba(0,0,0,.8)",
+        "purpose": "Details dialog only; workspace panels stay flat."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-transition",
+        "value": "background 0.16s, border-color 0.16s",
+        "purpose": "Workspace button hover."
+      },
+      {
+        "name": "workspace-reduced-motion",
+        "value": "animation-duration:0.01ms;transition-duration:0.01ms;scroll-behavior:auto",
+        "purpose": "Applied under prefers-reduced-motion:reduce."
+      },
+      {
+        "name": "details-spring",
+        "value": "stiffness:260;damping:28",
+        "purpose": "Existing details dialog spring."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "rail-intermediate-max",
+        "value": "1000px"
+      },
+      {
+        "name": "bottom-navigation",
+        "value": "700px"
+      },
+      {
+        "name": "full-width-search",
+        "value": "640px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Workspace action; primary red or bordered secondary.",
+      "html": "<button class=\"ds-button-primary\">Choose files</button>",
+      "css": ".ds-button-primary{font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500;line-height:1.35;min-height:38px;padding:9px 14px;border:1px solid #5b5a56;border-radius:4px;color:#c9c8c7;background:transparent;transition:background .16s,border-color .16s;background:#ef6058;color:#111;border-color:#ef6058;}.ds-button-primary:hover{background:#ff7972;border-color:#ff7972;}.ds-button-primary:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed;}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Workspace action; primary red or bordered secondary.",
+      "html": "<button class=\"ds-button-secondary\">Choose folder</button>",
+      "css": ".ds-button-secondary{font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500;line-height:1.35;min-height:38px;padding:9px 14px;border:1px solid #5b5a56;border-radius:4px;color:#c9c8c7;background:transparent;transition:background .16s,border-color .16s;}.ds-button-secondary:hover{background:#282826;border-color:#a6a49e;}.ds-button-secondary:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed;}"
+    },
+    {
+      "name": "Search drops",
+      "kind": "input",
+      "refersTo": "search",
+      "description": "Search the loaded recent-drop list.",
+      "html": "<input class=\"ds-search\" type=\"search\" aria-label=\"Search drops\" placeholder=\"Search drops\u2026\">",
+      "css": ".ds-search{font-family:Arial,Helvetica,sans-serif;width:240px;max-width:100%;padding:8px 10px;font-size:13px;background:#0d0d0d;color:#c9c8c7;border:1px solid #333;border-radius:4px}.ds-search::placeholder{color:#a5a39e}.ds-search:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}"
+    },
+    {
+      "name": "Studio navigation",
+      "kind": "nav",
+      "description": "Compact vertical desktop navigation; fixed bottom navigation on mobile.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Studio\"><button aria-current=\"page\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 16V4m-4 4 4-4 4 4M5 15v5h14v-5\"/></svg>New drop</button><button><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 5h14v14H5zM5 10h14M10 10v9\"/></svg>Your drops</button><button><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M10 9a2 2 0 1 1 3 1.7c-1 .6-1 1.3-1 2.3M12 16h.01\"/></svg>Help</button></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:5px;width:188px;font-family:Arial,Helvetica,sans-serif}.ds-nav button{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px 12px;text-align:left;font-size:13px;font-weight:400;border:0;border-radius:5px;background:none;color:#969696}.ds-nav button:hover{background:#141414}.ds-nav button[aria-current]{background:#1b1b1b;color:#eee}.ds-nav button:focus-visible{outline:2px solid #ef6058;outline-offset:5px}@media(max-width:700px){.ds-nav{display:grid;grid-template-columns:repeat(3,1fr);width:auto;min-height:68px;background:#0c0c0c;border-top:1px solid #282828;padding:7px 12px}.ds-nav button{flex-direction:column;justify-content:center;gap:4px;min-height:48px;padding:5px;font-size:11px}.ds-nav button[aria-current]{background:none;color:#fff}}"
+    },
+    {
+      "name": "Drop filter",
+      "kind": "chip",
+      "description": "Selected search filter uses a quiet filled surface.",
+      "html": "<button class=\"ds-filter\" aria-pressed=\"true\">Needs you (2)</button>",
+      "css": ".ds-filter{font-family:Arial,Helvetica,sans-serif;border:0;border-radius:4px;padding:6px 10px;min-height:34px;font-size:12px;color:#969696;background:transparent}.ds-filter[aria-pressed=\"true\"]{color:#c9c8c7;background:#30302d}.ds-filter:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}"
+    },
+    {
+      "name": "Drop row",
+      "kind": "custom",
+      "description": "Flat divided row, normal-case Arial name and unboxed status text.",
+      "html": "<article class=\"ds-drop\"><header><h3>New work</h3><span>Ready to review</span></header><p>3 files \u00b7 Chicago</p></article>",
+      "css": ".ds-drop{font-family:Arial,Helvetica,sans-serif;color:#dedede;border-top:1px solid #282828;padding:23px 0}.ds-drop header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.ds-drop h3{font:500 16px/1.4 Arial,Helvetica,sans-serif;letter-spacing:-.015em;margin:0 0 6px}.ds-drop span{font-size:12px;padding:0;border-radius:0;background:none;color:#dedede;font-weight:400}.ds-drop span:before{content:\"\u2022\";padding-right:6px}.ds-drop p{font-size:13px;color:#969696;margin:0}@media(max-width:700px){.ds-drop header{gap:12px}.ds-drop h3{font-size:15px}.ds-drop span{font-size:11px;max-width:100px;text-align:right}}"
+    }
+  ],
+  "narrative": {
+    "overview": "This is the implemented **authenticated Studio workspace**, not the public portfolio, sign-in or onboarding identity. The small NOL wordmark retains Archivo Black. Normal-case Arial headings and drop names keep the working surface quiet and compact. There is no animated Backdrop in the authenticated workspace.",
+    "keyCharacteristics": [
+      "Fixed desktop side navigation and fixed mobile bottom navigation.",
+      "One upload canvas; Help owns the tutorial.",
+      "Unboxed status text, divided drop rows and understated inline replies.",
+      "Red actions, visible upload choices and explicit publication approval."
+    ],
+    "rules": [],
+    "dos": [
+      "**Do** keep the NOL wordmark small and workspace headings in normal-case Arial.",
+      "**Do** preserve visible file/folder actions and the separate New drop, Your drops and Help destinations.",
+      "**Do** preserve truthful worker/drop status, revision, retry and explicit publish confirmation.",
+      "**Do** describe drafts as device- and origin-local, with storage-failure feedback.",
+      "**Do** keep the mobile draft dock above bottom navigation."
+    ],
+    "donts": [
+      "**Don't** restore the large editorial headings, top tab bar or upload tutorial sidebar.",
+      "**Don't** turn statuses and replies into prominent filled cards.",
+      "**Don't** add the animated Backdrop to the authenticated workspace.",
+      "**Don't** imply sending, retrying or requesting changes publishes work.",
+      "**Don't** claim cross-device draft synchronization or full visual approval from incomplete captures."
+    ]
+  },
+  "notes": [
+    "Color ramps are synthesized preview extensions, not implemented CSS scales.",
+    "No new creative north star was invented; the incumbent NOL identity remains authoritative.",
+    "Component snippets resolve scoped workspace tokens to literals so shadow-DOM previews render independently."
+  ]
+}
