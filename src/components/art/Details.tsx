@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useIsPresent } from 'framer-motion';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -94,6 +94,7 @@ export const DetailsModal = ({
   /** off for the tour's practice drop */
   remember?: boolean;
 }) => {
+  const isPresent = useIsPresent();
   const recent = useRef(loadRecent()).current;
   const first = useRef<HTMLInputElement>(null);
 
@@ -115,6 +116,8 @@ export const DetailsModal = ({
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-end justify-center md:items-center"
+      style={{ pointerEvents: isPresent ? 'auto' : 'none' }}
+      aria-hidden={!isPresent || undefined}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

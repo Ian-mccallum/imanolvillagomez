@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs Claude, a build, or a cleanup as the unprivileged `nolai` user inside one drop
+# Runs an AI agent, a build, or a cleanup as the unprivileged `nolai` user inside one drop
 # worktree. Installed root-owned at /usr/local/bin/nolai-run by setup.sh; sudoers lets the
 # `nol` runner call only this, and only as nolai. nolai holds no R2, Vercel or GitHub keys:
 # it stages videos and writes result.json, and the runner does every upload and push.
@@ -11,7 +11,7 @@ shift
 case "$dir" in "$WT_ROOT"/*) ;; *) echo "nolai-run: $dir is not a drop worktree" >&2; exit 64 ;; esac
 cd "$dir"
 umask 002 # the runner (group nolai) commits and cleans up what nolai writes
-export HOME=/home/nolai PATH=/usr/local/bin:/usr/bin:/bin
+export HOME=/home/nolai PATH=/home/nolai/.local/bin:/usr/local/bin:/usr/bin:/bin
 set -a
 . /etc/nol-studio/nolai.env
 set +a
@@ -21,7 +21,36 @@ export DISABLE_AUTOUPDATER=1 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 export ART_STAGED_UPLOADS=1 # publish-video.sh stops before R2; the runner uploads
 
 case "${1:-}" in
-  claude) shift; exec claude "$@" ;;
+  claude)
+    shift
+    case "${ART_AGENT:-claude}" in
+      claude) exec claude "$@" ;;
+      cursor|codex)
+        # Keep the runner's existing protocol; translate only the prompt and
+        # extra writable directory. Provider-specific Claude flags don't apply.
+        prompt=''
+        extra=''
+        while [ "$#" -gt 0 ]; do
+          case "$1" in
+            -p) prompt=${2:?prompt}; shift 2 ;;
+            --add-dir) extra=${2:?directory}; shift 2 ;;
+            --permission-mode|--allowedTools) shift 2 ;;
+            *) echo "nolai-run: unsupported agent argument: $1" >&2; exit 64 ;;
+          esac
+        done
+        [ -n "$prompt" ] && [ -n "$extra" ] || exit 64
+        # Slash commands are Claude-specific. Both alternate agents read the
+        # same checked-in publishing skill and keep the runner's JSON protocol.
+        prompt="Read .claude/skills/imanol-publish/SKILL.md and its referenced files. Follow that publishing workflow.
+${prompt#/imanol-publish}"
+        if [ "$ART_AGENT" = cursor ]; then
+          exec agent -p --force --sandbox enabled --trust --output-format text --add-dir "$extra" "$prompt"
+        fi
+        exec codex exec --sandbox workspace-write --add-dir "$extra" "$prompt"
+        ;;
+      *) echo "nolai-run: unsupported ART_AGENT" >&2; exit 64 ;;
+    esac
+    ;;
   build) exec npm run build ;;
   reap) pkill -KILL -u nolai || true ;; # nothing nolai started outlives a step
   *) echo "nolai-run: unknown command" >&2; exit 64 ;;
