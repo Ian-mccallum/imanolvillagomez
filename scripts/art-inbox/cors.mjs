@@ -9,10 +9,11 @@ const s3 = new S3Client({ region: 'auto', endpoint: `https://${process.env.R2_AC
   credentials: { accessKeyId: process.env.R2_ACCESS_KEY_ID, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY } });
 const Bucket = process.env.R2_BUCKET_NAME;
 let rules = [];
-try { rules = (await s3.send(new GetBucketCorsCommand({ Bucket }))).CORSRules ?? []; } catch { /* none yet */ }
+try { rules = (await s3.send(new GetBucketCorsCommand({ Bucket }))).CORSRules ?? []; }
+catch (e) { if (e.$metadata?.httpStatusCode !== 404) throw e; }
 console.log('existing:', JSON.stringify(rules));
 rules = rules.filter((r) => r.ID !== 'art-upload');
 rules.push({ ID: 'art-upload', AllowedMethods: ['PUT'], AllowedHeaders: ['content-type'], ExposeHeaders: ['ETag'], MaxAgeSeconds: 3600,
-  AllowedOrigins: ['https://imanolvillagomez.com', 'https://www.imanolvillagomez.com', 'https://*.vercel.app', 'http://localhost:5173', 'http://localhost:3000'] });
+  AllowedOrigins: ['https://imanolvillagomez.com', 'https://www.imanolvillagomez.com', 'https://studio.imanolvillagomez.com', 'https://*.vercel.app', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'] });
 await s3.send(new PutBucketCorsCommand({ Bucket, CORSConfiguration: { CORSRules: rules } }));
 console.log('now:', JSON.stringify(rules));

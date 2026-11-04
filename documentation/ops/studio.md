@@ -1,36 +1,35 @@
 # /studio — Imanol's drop page
 
-`imanolvillagomez.com/studio` (`/art` redirects here) lets Imanol upload new work himself. A runner
-(Ian's laptop today; the Fortivus VPS once cut over, see [The VPS](#the-vps)) picks each drop up,
-runs the `imanol-publish` skill in Claude Code, and pushes the result to a Vercel preview. Nothing reaches `main` until Imanol
-holds **ship** on that preview.
-
-```
-Imanol ─/studio─▶ R2 inbox/<id>/ ──runner──▶ claude -p /imanol-publish (as nolai on the VPS)
-                                              │
-          ◀── question (answered on /studio) ──┤
-          ◀── preview link ── runner commits, checks paths, uploads staged videos,
-                              pushes branch art/<id>
-          hold to ship ──▶ runner rebases + pushes to main ──▶ live
-```
+`https://studio.imanolvillagomez.com` opens Imanol’s upload workspace directly.
+The existing `www.imanolvillagomez.com/studio` address also works; it stays available
+for existing drafts and uploads. A VPS runner prepares each drop with Cursor and
+pushes a Vercel preview. Nothing reaches `main` until Imanol explicitly confirms
+**Publish to website**.
 
 ## For Imanol
 
-1. Open `/studio`, enter the password. The first time, a TV-style **welcome to the
-   studio** screen offers a guided practice run (nothing uploads); **?** bottom-left
-   replays it. Then then save Face ID / Touch ID — from the pill
-   that drops in after login, or the **face id** button top-left any time. Later
-   visits just need the face button. Must be on `imanolvillagomez.com`.
-2. Tap **DROP** (or press **Cmd/Ctrl+0**) → **files** or **folder**. Each folder becomes a group; name it and
-   add instructions per folder or per file. The **+** under the grid adds more.
-3. **details →** opens title, city, placement (top / any) and instructions. Recent
-   values show as chips; **↺ same as last** refills the previous drop.
-4. **send**. Keep the page open until it hits 100.
-5. The queue below shows each drop: queued → working → question / preview → live.
-   Answer questions inline; on a preview, open **view ↗**, then **hold to ship**.
+1. Sign in with the existing password or a saved passkey. The workspace opens
+   directly; **How it works → Try a practice drop** offers an optional local tour.
+2. **Choose files** or **Choose folder** (or Cmd/Ctrl+0). Each folder becomes a
+   group with its own name and instructions. Add notes to individual files too.
+3. **Review & send** opens the title, city, placement and instructions. Keep the
+   page open until the upload finishes. Limit: 200 files per drop, 5 GB per file.
+4. **Your drops** shows the latest 40 drops, with search and filters for work
+   needing attention, in progress, or live. Answer questions inline, retry a
+   failed drop without re-uploading, or request preview changes.
+5. Open the preview, choose **Publish to website**, then **Yes, publish this
+   version**. Changes requested through **Needs changes** return to the queue
+   and require a new preview approval.
 
-A refresh keeps an unsent drop (files and all) on that device. A refresh mid-upload
-keeps the files but restarts the upload.
+Unsent work is saved on that device when browser storage is available. Drafts
+belong to their website address: a draft at `www` does not move to the studio
+subdomain. Finish it at the original address. Refreshing during an upload keeps
+the draft files but restarts the upload.
+
+The header uses the runner’s real `queue/nol-heartbeat.json`. An idle heartbeat
+older than six minutes, a working heartbeat older than four hours, or an error
+shows the worker as unavailable. Uploads can still queue while it is offline.
+A network refresh failure is shown separately with **Try again**.
 
 ## Pieces
 
@@ -57,7 +56,7 @@ keeps the files but restarts the upload.
 
 ### What a drop may change
 
-Claude doesn't commit or upload. The runner commits whatever it changed, then refuses to push
+The AI worker does not commit or upload. The runner commits whatever it changed, then refuses to push
 (drop → `failed`, details to Ian) if the branch touches anything outside:
 
 - photos under `public/images/` (jpg/png/webp/avif, including `sized/`)
@@ -82,7 +81,7 @@ fresh worktree only it touches, rechecks the paths, and pushes to `main`.
 ### Statuses
 
 `pending` (queued) → `working` → `question` | `preview` | `failed` →
-`approved` (shipping) → `live`. Imanol can **hold to remove** a `question`, `preview` or `failed`
+`approved` (shipping) → `live`. Imanol can confirm **Remove drop** under **Drop details** for a `question`, `preview` or `failed`
 drop: it goes `removed` (hidden from the page), and the next run deletes its `art/<id>` branch,
 worktree, R2 `inbox/<id>/` and any videos it uploaded that `main` doesn't use. Each run also
 prunes worktrees whose drop is gone from R2. A `working` drop older than 3.5h (laptop slept
@@ -102,7 +101,9 @@ Imanol hits a Vercel login on every preview link.
 ### R2 CORS
 
 The bucket's CORS rule must allow `PUT` from the site origins (uploads go
-straight from the browser to R2). See
+straight from the browser to R2), including `https://studio.imanolvillagomez.com`.
+The studio DNS CNAME is `98c50231f0162084.vercel-dns-017.com` (DNS only); the domain
+is attached to the existing Vercel project. See
 [cloudflare-r2-setup.md](./cloudflare-r2-setup.md).
 
 ### Laptop
@@ -119,15 +120,15 @@ That installs `art-inbox.timer`: it runs ~90s after login and every 10 minutes.
 
 ### The VPS
 
-The runner can move to the Fortivus Studio VPS (OVH VPS-1, `40.160.97.8`, 2 vCPU / 4GB / 40GB).
+The runner is active on the Fortivus Studio VPS (OVH VPS-1, `40.160.97.8`, 2 vCPU / 4GB / 40GB).
 Fortivus's `scripts/studio/vm/setup.sh` owns the box (Node 24, pinned Claude Code, firewall,
 swap, updates); NOL's setup only checks for it, adds ffmpeg, and never touches Fortivus's
 users, config or service. See `~/Coding/fortivus/docs/studio.md` → "The VM".
 
 | | `nol` | `nolai` |
 |---|---|---|
-| Runs | `run.mjs` (`nol-studio.timer`, every 2 min) | Claude and its builds, via `/usr/local/bin/nolai-run` |
-| Has | R2, Vercel keys (root-only `/etc/nol-studio/env`), the GitHub deploy key | a Claude subscription token (`/etc/nol-studio/nolai.env`) |
+| Runs | `run.mjs` (`nol-studio.timer`, every 2 min) | Cursor and its builds, via `/usr/local/bin/nolai-run` |
+| Has | R2, Vercel keys (root-only `/etc/nol-studio/env`), the GitHub deploy key | the selected AI provider login (`/etc/nol-studio/nolai.env`) |
 | Can write | the checkout `/srv/nol` | `.art-inbox/wt/`, `.art-inbox/req/`, `node_modules/.vite-temp/` |
 
 Both runners live in `studios.slice` (3.4GB cap for the pair, set up by NOL's setup.sh; Fortivus

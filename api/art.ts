@@ -7,6 +7,7 @@ import {
   ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { fileProblem, queueAgain, type WorkerHeartbeat } from '../src/components/art/studioModel';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -35,7 +36,15 @@ const SESSION_MS = 12 * 3600e3;
 const LOCK_AFTER = 8;
 const LOCK_MS = 15 * 60e3;
 
-type Status = 'pending' | 'working' | 'question' | 'preview' | 'approved' | 'live' | 'failed' | 'removed';
+type Status =
+  | 'pending'
+  | 'working'
+  | 'question'
+  | 'preview'
+  | 'approved'
+  | 'live'
+  | 'failed'
+  | 'removed';
 
 export interface ArtRequest {
   id: string;
@@ -46,10 +55,19 @@ export interface ArtRequest {
   city: string;
   placement: 'top' | 'anywhere';
   note: string;
-  files: { name: string; key: string; size: number; type: string; folder?: string; label?: string; note?: string }[];
+  files: {
+    name: string;
+    key: string;
+    size: number;
+    type: string;
+    folder?: string;
+    label?: string;
+    note?: string;
+  }[];
   groups?: { folder: string; name: string; note: string }[];
   questions?: string[];
   answers?: { at: string; text: string }[];
+  revisions?: { at: string; text: string }[];
   previewUrl?: string;
   summary?: string;
   error?: string;
@@ -85,7 +103,14 @@ async function getJson<T>(Key: string): Promise<T | null> {
 }
 
 const putJson = (Key: string, v: unknown) =>
-  s3.send(new PutObjectCommand({ Bucket, Key, Body: JSON.stringify(v, null, 2), ContentType: 'application/json' }));
+  s3.send(
+    new PutObjectCommand({
+      Bucket,
+      Key,
+      Body: JSON.stringify(v, null, 2),
+      ContentType: 'application/json',
+    })
+  );
 
 const readReq = (id: string) => getJson<ArtRequest>(`${INBOX}${id}/request.json`);
 
@@ -96,11 +121,15 @@ async function writeReq(r: ArtRequest) {
 
 // ─── tokens ─────────────────────────────────────────────────────────────────
 
-const eq = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
-const mac = (s: string) => createHmac('sha256', `art:${process.env.ART_KEY}`).update(s).digest('base64url');
+const eq = (a: string, b: string) =>
+  a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
+const mac = (s: string) =>
+  createHmac('sha256', `art:${process.env.ART_KEY}`).update(s).digest('base64url');
 
 function sign(payload: Record<string, unknown>, ttl: number) {
-  const b = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + ttl })).toString('base64url');
+  const b = Buffer.from(JSON.stringify({ ...payload, exp: Date.now() + ttl })).toString(
+    'base64url'
+  );
   return `${b}.${mac(b)}`;
 }
 
@@ -158,7 +187,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.json({ token: session() });
       }
       const n = fails.n + 1;
-      await putJson(FAILS, n >= LOCK_AFTER ? { n: 0, until: Date.now() + LOCK_MS } : { n, until: 0 });
+      await putJson(
+        FAILS,
+        n >= LOCK_AFTER ? { n: 0, until: Date.now() + LOCK_MS } : { n, until: 0 }
+      );
       await new Promise((r) => setTimeout(r, 400 + Math.random() * 400));
       return res.status(401).json({ error: 'nope' });
     }
@@ -189,7 +221,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         expectedOrigin: origin,
         expectedRPID: rpID,
         requireUserVerification: true,
-        credential: { id: k.id, publicKey: Buffer.from(k.publicKey, 'base64url'), counter: k.counter, transports: k.transports },
+        credential: {
+          id: k.id,
+          publicKey: Buffer.from(k.publicKey, 'base64url'),
+          counter: k.counter,
+          transports: k.transports,
+        },
       });
       if (!v.verified) return res.status(401).json({ error: 'nope' });
       k.counter = v.authenticationInfo.newCounter;
@@ -212,7 +249,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         userDisplayName: 'Imanol',
         attestationType: 'none',
         excludeCredentials: keys.map((k) => ({ id: k.id, transports: k.transports })),
-        authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'preferred', userVerification: 'required' },
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          residentKey: 'preferred',
+          userVerification: 'required',
+        },
       });
       return res.json({ options, challenge: sign({ t: 'r', ch: options.challenge }, 5 * 60e3) });
     }
@@ -228,9 +269,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         expectedRPID: rpID,
         requireUserVerification: true,
       });
-      if (!v.verified || !v.registrationInfo) return res.status(400).json({ error: 'not verified' });
+      if (!v.verified || !v.registrationInfo)
+        return res.status(400).json({ error: 'not verified' });
       const { credential } = v.registrationInfo;
-      const keys = ((await getJson<Passkey[]>(PASSKEYS)) ?? []).filter((k) => k.id !== credential.id);
+      const keys = ((await getJson<Passkey[]>(PASSKEYS)) ?? []).filter(
+        (k) => k.id !== credential.id
+      );
       keys.push({
         id: credential.id,
         publicKey: Buffer.from(credential.publicKey).toString('base64url'),
@@ -244,18 +288,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── drops ──
     if (action === 'list' && req.method === 'GET') {
-      const out = await s3.send(new ListObjectsV2Command({ Bucket, Prefix: INBOX, Delimiter: '/' }));
+      const out = await s3.send(
+        new ListObjectsV2Command({ Bucket, Prefix: INBOX, Delimiter: '/' })
+      );
       const ids = (out.CommonPrefixes ?? []).map((p) => p.Prefix!.slice(INBOX.length, -1));
       // removed drops wait for the runner to clean up their files; Imanol never sees them again
-      const all = ((await Promise.all(ids.map(readReq))).filter(Boolean) as ArtRequest[]).filter((r) => r.status !== 'removed');
+      const all = ((await Promise.all(ids.map(readReq))).filter(Boolean) as ArtRequest[]).filter(
+        (r) => r.status !== 'removed'
+      );
       all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-      return res.json({ requests: all.slice(0, 40) });
+      const worker = await getJson<WorkerHeartbeat>('queue/nol-heartbeat.json');
+      return res.json({ requests: all.slice(0, 40), worker });
     }
 
     // Reserve an id and hand back one presigned PUT per file.
     if (action === 'start' && post) {
-      const files = Array.isArray(body.files) ? body.files.slice(0, 200) : [];
+      const files = Array.isArray(body.files) ? body.files : [];
       if (!files.length) return res.status(400).json({ error: 'no files' });
+      const problem = fileProblem(
+        files.map((f) => ({ name: String(f?.name ?? 'File'), size: Number(f?.size) }))
+      );
+      if (problem) return res.status(400).json({ error: problem });
       const d = new Date();
       const id = `${d.toISOString().slice(0, 10).replace(/-/g, '')}-${randomBytes(3).toString('hex')}`;
       const seen = new Set<string>();
@@ -272,11 +325,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (size > MAX_FILE) throw new Error(`${name} is over 5GB`);
           const type = clean(f.type, 100) || 'application/octet-stream';
           const key = `${INBOX}${id}/files/${name}`;
-          const url = await getSignedUrl(s3, new PutObjectCommand({ Bucket, Key: key, ContentType: type }), {
-            expiresIn: 60 * 60 * 6,
-          });
+          const url = await getSignedUrl(
+            s3,
+            new PutObjectCommand({ Bucket, Key: key, ContentType: type }),
+            {
+              expiresIn: 60 * 60 * 6,
+            }
+          );
           return { name, key, size, type, folder, url };
-        }),
+        })
       );
       return res.json({ id, uploads });
     }
@@ -286,7 +343,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const id = clean(body.id, 40);
       if (!/^\d{8}-[0-9a-f]{6}$/.test(id)) return res.status(400).json({ error: 'bad id' });
       const now = new Date().toISOString();
-      type In = { name: string; key: string; size: number; type: string; folder?: string; label?: string; note?: string };
+      type In = {
+        name: string;
+        key: string;
+        size: number;
+        type: string;
+        folder?: string;
+        label?: string;
+        note?: string;
+      };
       const files = (Array.isArray(body.files) ? body.files : [])
         .map((f: In) => ({
           name: clean(f.name, 400),
@@ -303,7 +368,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           folder: safeFolder(g.folder),
           name: clean(g.name, 200),
           note: clean(g.note, 4000),
-        }),
+        })
       );
       const r: ArtRequest = {
         id,
@@ -323,10 +388,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Answer the runner's questions → back into the queue.
     if (action === 'reply' && post) {
+      if (!clean(body.text, 4000))
+        return res.status(400).json({ error: 'Write an answer before sending.' });
       const r = await readReq(clean(body.id, 40));
       if (!r || r.status !== 'question') return res.status(409).json({ error: 'not waiting' });
-      r.answers = [...(r.answers ?? []), { at: new Date().toISOString(), text: clean(body.text, 4000) }];
+      r.answers = [
+        ...(r.answers ?? []),
+        { at: new Date().toISOString(), text: clean(body.text, 4000) },
+      ];
       r.status = 'pending';
+      await writeReq(r);
+      return res.json({ request: r });
+    }
+
+    if ((action === 'revise' || action === 'retry') && post) {
+      const current = await readReq(clean(body.id, 40));
+      if (!current) return res.status(404).json({ error: 'Drop not found.' });
+      let r: ArtRequest;
+      try {
+        r = queueAgain(current, action, clean(body.text, 4000));
+      } catch (e) {
+        return res
+          .status(409)
+          .json({
+            error: e instanceof Error ? e.message : 'This drop has changed. Refresh and try again.',
+          });
+      }
       await writeReq(r);
       return res.json({ request: r });
     }
@@ -343,7 +430,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Clear a drop that didn't ship. The runner deletes its branch, files and unshipped videos.
     if (action === 'remove' && post) {
       const r = await readReq(clean(body.id, 40));
-      if (!r || !['question', 'preview', 'failed'].includes(r.status)) return res.status(409).json({ error: 'cannot remove' });
+      if (!r || !['question', 'preview', 'failed'].includes(r.status))
+        return res.status(409).json({ error: 'cannot remove' });
       r.status = 'removed';
       await writeReq(r);
       return res.json({ request: r });
@@ -355,9 +443,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-const clean = (s: unknown, max = 2000) => String(s ?? '').slice(0, max).trim();
+const clean = (s: unknown, max = 2000) =>
+  String(s ?? '')
+    .slice(0, max)
+    .trim();
 const safeName = (n: string) =>
-  n.normalize('NFKD').replace(/[^\w.\- ]+/g, '').replace(/\s+/g, ' ').trim().slice(0, 160) || 'file';
+  n
+    .normalize('NFKD')
+    .replace(/[^\w.\- ]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160) || 'file';
 /** One folder level: same alphabet as file names, never leading dots (no `..`). */
 const safeFolder = (f: unknown) =>
-  clean(f, 200).normalize('NFKD').replace(/[^\w.\- ]+/g, '').replace(/\s+/g, ' ').replace(/^[.\s]+/, '').trim().slice(0, 80);
+  clean(f, 200)
+    .normalize('NFKD')
+    .replace(/[^\w.\- ]+/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[.\s]+/, '')
+    .trim()
+    .slice(0, 80);

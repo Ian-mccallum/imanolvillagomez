@@ -22,6 +22,14 @@ import { Welcome, Coach, type Step } from '@/components/art/Tour';
 import { loadDraft, saveDraft, clearDraft } from '@/components/art/draft';
 import { usePointerHeat } from '@/components/art/heat';
 import { fromDrop, fromList, type Incoming } from '@/components/art/files';
+import { WorkspaceHeader, StudioHelp, type StudioView } from '@/components/art/Workspace';
+import {
+  fileProblem,
+  formatBytes,
+  needsAttention,
+  type WorkerHeartbeat,
+} from '@/components/art/studioModel';
+import '@/components/art/studio.css';
 
 /**
  * /studio — Imanol's drop box. Unlisted, noindex, key-gated.
@@ -30,8 +38,8 @@ import { fromDrop, fromList, type Incoming } from '@/components/art/files';
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-/** DROP stays clean — the cursor glitch lives in the backdrop only. */
 const STILL = motionValue(0);
+/** DROP stays clean — the cursor glitch lives in the backdrop only. */
 const INK = '#C9C8C7';
 
 const GRAIN =
@@ -285,7 +293,9 @@ const Lock = ({
 const SaveBio = ({ onDone }: { onDone: () => void }) => {
   const [state, setState] = useState<'ask' | 'busy' | 'saved'>('ask');
   const [err, setErr] = useState('');
-  const [prepared, setPrepared] = useState<Awaited<ReturnType<typeof api.prepareSave>> | null>(null);
+  const [prepared, setPrepared] = useState<Awaited<ReturnType<typeof api.prepareSave>> | null>(
+    null
+  );
   const name = api.bioName();
   const prepare = useCallback(() => {
     api.prepareSave().then(setPrepared, () => setErr('offline'));
@@ -360,7 +370,12 @@ const SaveBio = ({ onDone }: { onDone: () => void }) => {
 const useAddShortcut = (toggle: () => void) => {
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && (e.key === '0' || e.code === 'Digit0')) {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.altKey &&
+        !e.shiftKey &&
+        (e.key === '0' || e.code === 'Digit0')
+      ) {
         e.preventDefault();
         toggle();
       }
@@ -451,7 +466,13 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
         className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#C9C8C7] text-black shadow-[0_0_0_6px_rgba(0,0,0,.55),0_0_40px_rgba(201,200,199,.35)]"
       >
-        <svg viewBox="0 0 24 24" className="h-7 w-7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <svg
+          viewBox="0 0 24 24"
+          className="h-7 w-7"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
           <path d="M12 4v16M4 12h16" />
         </svg>
       </motion.button>
@@ -460,65 +481,49 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
 };
 
 /** The empty state: DROP is the button, and tapping it offers files or a folder. */
-const DropWord = ({
-  onFiles,
-  onFolder,
-}: {
-  onFiles: () => void;
-  onFolder: () => void;
-}) => {
-  const [open, setOpen] = useState(false);
-  useAddShortcut(useCallback(() => setOpen((o) => !o), []));
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false);
-    window.addEventListener('pointerdown', close);
-    return () => window.removeEventListener('pointerdown', close);
-  }, [open]);
-  const pick = (fn: () => void) => () => {
-    setOpen(false);
-    fn();
-  };
+const DropWord = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void }) => {
+  useAddShortcut(onFiles);
   return (
-    <div ref={ref} className="relative flex h-[88svh] w-full flex-col items-center justify-center">
-      <motion.button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        animate={{ scale: open ? 0.92 : 1, opacity: open ? 0.55 : 1 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        className="text-[#C9C8C7] outline-none focus-visible:text-white"
-      >
-        <Glitch text="DROP" heat={STILL} className="text-[31vw] md:text-[24vw]" delay={0.35} />
-      </motion.button>
-      <div className="absolute top-[calc(50%+min(13vw,11rem))] flex gap-3">
-        <AnimatePresence>
-          {open &&
-            (
-              [
-                ['files', onFiles],
-                ['folder', onFolder],
-              ] as const
-            ).map(([label, fn], i) => (
-              <motion.button
-                key={label}
-                type="button"
-                onClick={pick(fn)}
-                initial={{ opacity: 0, y: -16, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.8, transition: { duration: 0.15 } }}
-                transition={{ type: 'spring', stiffness: 420, damping: 26, delay: i * 0.05 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="rounded-full bg-[#C9C8C7] px-6 py-3 font-mono text-xs uppercase tracking-[0.25em] text-black shadow-[0_0_40px_rgba(201,200,199,.3)] hover:bg-white"
-              >
-                {label}
-              </motion.button>
-            ))}
-        </AnimatePresence>
+    <section className="studio-upload-empty">
+      <div className="studio-upload-target">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M12 16V3m-5 5 5-5 5 5M4 15v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5" />
+        </svg>
+        <h1>Add new work.</h1>
+        <p>Photos, videos, or a whole folder. Drop them here, or choose what you want to add.</p>
+        <div className="studio-actions">
+          <button className="studio-button studio-button-primary" onClick={onFiles}>
+            Choose files
+          </button>
+          <button className="studio-button" onClick={onFolder}>
+            Choose folder
+          </button>
+        </div>
+        <p className="studio-upload-limit">Up to 200 files per drop · 5 GB per file</p>
       </div>
-    </div>
+      <aside className="studio-upload-guide">
+        <h2>Nothing goes live without you.</h2>
+        <ol>
+          <li>
+            <strong>Add your files</strong>Keep folders together and leave instructions.
+          </li>
+          <li>
+            <strong>Review & send</strong>Give your drop a name and tell us where it goes.
+          </li>
+          <li>
+            <strong>Approve the preview</strong>Check it first. Publish when you are happy.
+          </li>
+        </ol>
+      </aside>
+    </section>
   );
 };
 
@@ -621,6 +626,9 @@ const Room = ({
   practice = false,
   samples = 0,
   onTour,
+  onHelp,
+  onOut,
+  onBio,
 }: {
   heat: MotionValue<number>;
   onDim: (d: boolean) => void;
@@ -629,6 +637,9 @@ const Room = ({
   /** bump to drop the sample photos in */
   samples?: number;
   onTour?: (e: TourEvent) => void;
+  onHelp: () => void;
+  onOut: () => void;
+  onBio?: () => void;
 }) => {
   const [items, setItems] = useState<Item[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -642,6 +653,11 @@ const Room = ({
   const [note, setNote] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [requests, setRequests] = useState<api.ArtRequest[]>([]);
+  const [view, setView] = useState<StudioView>('upload');
+  const [worker, setWorker] = useState<WorkerHeartbeat | null>(null);
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const [uploadError, setUploadError] = useState('');
+  const [draftState, setDraftState] = useState('');
   const picker = useRef<HTMLInputElement>(null);
   const folderPicker = useRef<HTMLInputElement>(null);
   const groupsRef = useRef(groups);
@@ -654,7 +670,9 @@ const Room = ({
   const restored = useRef(false);
   useEffect(() => {
     if (practice) return;
+    let cancelled = false;
     loadDraft().then((d) => {
+      if (cancelled) return;
       if (d?.items.length) {
         setGroups(d.groups);
         setItems(d.items.map((i) => ({ ...i, url: URL.createObjectURL(i.file), loaded: 0 })));
@@ -662,23 +680,41 @@ const Room = ({
         setCity(d.city);
         setPlacement(d.placement);
         setNote(d.note);
+        setDraftState('Draft restored from this device');
       }
       restored.current = true;
     });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [practice]);
   useEffect(() => {
     if (practice || !restored.current || phase === 'sending') return;
+    if (items.length) setDraftState('Saving draft…');
     const t = setTimeout(() => {
       if (!items.length) clearDraft();
       else
         saveDraft({
-          items: items.map(({ id, file, rot, group, label, note: n }) => ({ id, file, rot, group, label, note: n })),
+          items: items.map(({ id, file, rot, group, label, note: n }) => ({
+            id,
+            file,
+            rot,
+            group,
+            label,
+            note: n,
+          })),
           groups,
           title,
           city,
           placement,
           note,
-        });
+        }).then((saved) =>
+          setDraftState(
+            saved === undefined
+              ? 'Draft could not be saved on this device'
+              : 'Draft saved on this device'
+          )
+        );
     }, 400);
     return () => clearTimeout(t);
   }, [items, groups, title, city, placement, note, phase, practice]);
@@ -692,9 +728,13 @@ const Room = ({
   const refresh = useCallback(
     () =>
       api
-        .list()
-        .then((list) => setRequests((cur) => [...cur.filter((r) => isPractice(r.id)), ...list]))
-        .catch(() => {}),
+        .desk()
+        .then(({ requests: list, worker: health }) => {
+          setRequests((cur) => [...cur.filter((r) => isPractice(r.id)), ...list]);
+          setWorker(health ?? null);
+          setConnected(true);
+        })
+        .catch(() => setConnected(false)),
     []
   );
   useEffect(() => {
@@ -711,6 +751,16 @@ const Room = ({
   const add = useCallback(
     (incoming: Incoming[]) => {
       if (!incoming.length || busy) return;
+      const problem = fileProblem(
+        incoming.map((i) => i.file),
+        items.length
+      );
+      if (problem) {
+        setUploadError(problem);
+        return;
+      }
+      setUploadError('');
+      setView('upload');
       const gs = [...groupsRef.current];
       const groupFor = (folder: string) => {
         if (!folder) return null;
@@ -731,7 +781,7 @@ const Room = ({
       setGroups(gs);
       setItems((cur) => [...cur, ...next]);
     },
-    [busy]
+    [busy, items.length]
   );
 
   // folders with nothing left in them disappear
@@ -859,9 +909,15 @@ const Room = ({
       city,
       placement,
       note,
-      files: items.map((i) => ({ name: i.file.name, key: '', size: i.file.size, type: i.file.type })),
+      files: items.map((i) => ({
+        name: i.file.name,
+        key: '',
+        size: i.file.size,
+        type: i.file.type,
+      })),
     };
     setRequests((r) => [req, ...r]);
+    setView('drops');
     setPhase('sent');
     onTour?.('sent');
     setTimeout(reset, 1900);
@@ -876,6 +932,12 @@ const Room = ({
 
   const send = async () => {
     if (!items.length || busy) return;
+    const problem = fileProblem(items.map((i) => i.file));
+    if (problem) {
+      setUploadError(problem);
+      return;
+    }
+    setUploadError('');
     setPhase('sending');
     setSelected(new Set());
     setItems((cur) => cur.map((i) => ({ ...i, loaded: 0 })));
@@ -896,6 +958,8 @@ const Room = ({
       const { id, uploads } = await api.start(
         items.map((i) => ({ file: i.file, folder: folderFor(i) }))
       );
+      if (uploads.length !== items.length)
+        throw new Error('The upload could not reserve every file. Please try again.');
       let next = 0;
       const worker = async () => {
         while (next < items.length) {
@@ -928,14 +992,29 @@ const Room = ({
           })),
       });
       setRequests((r) => [req, ...r]);
+      setView('drops');
       setPhase('sent');
       setTimeout(reset, 1900);
-    } catch {
+    } catch (e) {
+      setUploadError(
+        e instanceof api.Unauthorized
+          ? 'Your session expired. Your draft is safe; sign out and sign in again.'
+          : 'The upload did not finish. Your files are still here. Check your connection, then try sending again.'
+      );
       setPhase('error');
     }
   };
 
   useEffect(() => onDim(items.length > 0), [items.length, onDim]);
+  useEffect(() => {
+    if (!busy) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [busy]);
 
   // ── tour hooks ──
   useEffect(() => {
@@ -970,140 +1049,196 @@ const Room = ({
     </motion.div>
   );
 
+  const persistDraft = async () => {
+    if (!practice && items.length) await saveDraft({ items, groups, title, city, placement, note });
+  };
+  const changeView = (next: StudioView) => {
+    setView(next);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   return (
-    <div className="relative z-10">
-      <input
-        ref={picker}
-        type="file"
-        multiple
-        accept="video/*,image/*,.zip,.mov,.mp4,.heic"
-        className="hidden"
-        onChange={(e) => {
-          add(fromList(e.target.files));
-          e.target.value = '';
+    <div className="studio-room">
+      <WorkspaceHeader
+        view={view}
+        onView={changeView}
+        attention={requests.filter((r) => needsAttention(r.status)).length}
+        draftCount={items.length}
+        draftBytes={total}
+        worker={worker}
+        connected={connected}
+        onRefresh={refresh}
+        busy={busy}
+        onOut={async () => {
+          await persistDraft();
+          onOut();
         }}
+        onBio={onBio}
       />
-      <input
-        ref={folderPicker}
-        type="file"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          add(fromList(e.target.files));
-          e.target.value = '';
-        }}
-      />
+      {practice && (
+        <div className="studio-notice">
+          Practice mode. These files and actions never upload or publish anything.
+        </div>
+      )}
+      {uploadError && (
+        <p className="studio-error" role="alert">
+          {uploadError}
+        </p>
+      )}
+      {view === 'help' && (
+        <StudioHelp
+          onPractice={async () => {
+            await persistDraft();
+            onHelp();
+          }}
+          onNewDrop={() => changeView('upload')}
+        />
+      )}
+      <div className="studio-content" hidden={view !== 'upload'}>
+        {items.length > 0 && (
+          <div className="studio-draft-state">
+            <span>
+              {items.length} files · {formatBytes(total)}
+            </span>
+            <span role="status">
+              {practice ? 'Practice draft' : busy ? 'Uploading — keep this tab open' : draftState}
+            </span>
+          </div>
+        )}
+        <input
+          ref={picker}
+          type="file"
+          multiple
+          accept="video/*,image/*,.zip,.mov,.mp4,.heic"
+          className="hidden"
+          onChange={(e) => {
+            add(fromList(e.target.files));
+            e.target.value = '';
+          }}
+        />
+        <input
+          ref={folderPicker}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            add(fromList(e.target.files));
+            e.target.value = '';
+          }}
+        />
 
-      {/* empty: the word is the button */}
-      <AnimatePresence mode="wait">
-        {!items.length ? (
-          <motion.div
-            key="empty"
-            exit={{
-              opacity: 0,
-              scale: 0.94,
-              filter: 'blur(14px)',
-              transition: { duration: 0.45, ease: EASE },
-            }}
-            className="relative"
-          >
-<DropWord onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
-
-          </motion.div>
-        ) : (
-          <motion.div
-            key="grid"
-            className="px-3 pb-80 pt-10 md:px-6 md:pb-64 md:pt-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            {sections.map(({ g, list }, si) => {
-              const columns = Array.from({ length: cols }, (_, c) =>
-                list.filter((_, i) => i % cols === c)
-              );
-              return (
-                <motion.section
-                  key={g?.id ?? 'loose'}
-                  layout
-                  className={si ? 'mt-14 md:mt-20' : ''}
-                >
-                  {g ? (
-                    <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-1 border-b border-[#C9C8C7]/10 pb-3">
-                      <input
-                        value={g.name}
-                        onChange={(e) => patchGroup(g.id, { name: e.target.value })}
-                        disabled={locked}
-                        placeholder="folder name"
-                        aria-label="folder name"
-                        className="min-w-0 flex-1 basis-[14rem] bg-transparent font-logo text-4xl uppercase leading-none tracking-tight text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/25 md:text-6xl"
-                      />
-                      <span className="pb-1 font-mono text-[11px] tabular-nums text-[#C9C8C7]/35">
-                        {String(list.length).padStart(2, '0')}
-                      </span>
-                      <Field
-                        value={g.note}
-                        onChange={(v) => patchGroup(g.id, { note: v })}
-                        disabled={locked}
-                        placeholder="instructions for this folder"
-                        className="flex-[2] basis-[16rem]"
-                      />
-                      {!locked && (
-                        <button
-                          type="button"
-                          onClick={() => ungroup(g.id)}
-                          className="pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/30 transition-colors hover:text-[#dc2626]"
-                        >
-                          unfolder
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    groups.length > 0 && (
-                      <div className="mb-4 flex items-end gap-6 border-b border-[#C9C8C7]/10 pb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40">
-                        <span>loose</span>
-                        <span className="tabular-nums text-[#C9C8C7]/25">
+        {/* empty: the word is the button */}
+        <AnimatePresence mode="wait">
+          {!items.length ? (
+            <motion.div
+              key="empty"
+              exit={{
+                opacity: 0,
+                scale: 0.94,
+                filter: 'blur(14px)',
+                transition: { duration: 0.45, ease: EASE },
+              }}
+              className="relative"
+            >
+              <DropWord
+                onFiles={() => picker.current?.click()}
+                onFolder={() => folderPicker.current?.click()}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="grid"
+              className="studio-file-grid"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {sections.map(({ g, list }, si) => {
+                const columns = Array.from({ length: cols }, (_, c) =>
+                  list.filter((_, i) => i % cols === c)
+                );
+                return (
+                  <motion.section
+                    key={g?.id ?? 'loose'}
+                    layout
+                    className={si ? 'mt-14 md:mt-20' : ''}
+                  >
+                    {g ? (
+                      <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-1 border-b border-[#C9C8C7]/10 pb-3">
+                        <input
+                          value={g.name}
+                          onChange={(e) => patchGroup(g.id, { name: e.target.value })}
+                          disabled={locked}
+                          placeholder="folder name"
+                          aria-label="folder name"
+                          className="min-w-0 flex-1 basis-[14rem] bg-transparent font-logo text-4xl uppercase leading-none tracking-tight text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/25 md:text-6xl"
+                        />
+                        <span className="pb-1 font-mono text-[11px] tabular-nums text-[#C9C8C7]/35">
                           {String(list.length).padStart(2, '0')}
                         </span>
-                        <span className="ml-auto hidden normal-case tracking-normal text-[#C9C8C7]/25 md:inline">
-                          select some to put them in a folder
-                        </span>
+                        <Field
+                          value={g.note}
+                          onChange={(v) => patchGroup(g.id, { note: v })}
+                          disabled={locked}
+                          placeholder="instructions for this folder"
+                          className="flex-[2] basis-[16rem]"
+                        />
+                        {!locked && (
+                          <button
+                            type="button"
+                            onClick={() => ungroup(g.id)}
+                            className="pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/30 transition-colors hover:text-[#dc2626]"
+                          >
+                            unfolder
+                          </button>
+                        )}
                       </div>
-                    )
-                  )}
-                  <div className="flex gap-3 md:gap-4">
-                    {columns.map((col, c) => (
-                      <div
-                        key={c}
-                        className="min-w-0 flex-1"
-                        style={{ marginTop: c % 2 ? '2.5rem' : 0 }}
-                      >
-                        <AnimatePresence mode="popLayout">
-                          {col.map((it) => (
-                            <Tile
-                              key={it.id}
-                              item={it}
-                              index={items.indexOf(it)}
-                              busy={locked}
-                              selected={selected.has(it.id)}
-                              selecting={selecting}
-                              inherit={g?.name ?? ''}
-                              onRemove={() => remove(it.id)}
-                              onSelect={() => toggle(it.id)}
-                              onChange={(p) => patchItem(it.id, p)}
-                            />
-                          ))}
-                        </AnimatePresence>
-                      </div>
-                    ))}
-                  </div>
-                </motion.section>
-              );
-            })}
-            {!locked && <AddTiles />}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+                    ) : (
+                      groups.length > 0 && (
+                        <div className="mb-4 flex items-end gap-6 border-b border-[#C9C8C7]/10 pb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40">
+                          <span>loose</span>
+                          <span className="tabular-nums text-[#C9C8C7]/25">
+                            {String(list.length).padStart(2, '0')}
+                          </span>
+                          <span className="ml-auto hidden normal-case tracking-normal text-[#C9C8C7]/25 md:inline">
+                            select some to put them in a folder
+                          </span>
+                        </div>
+                      )
+                    )}
+                    <div className="flex gap-3 md:gap-4">
+                      {columns.map((col, c) => (
+                        <div
+                          key={c}
+                          className="min-w-0 flex-1"
+                          style={{ marginTop: c % 2 ? '2.5rem' : 0 }}
+                        >
+                          <AnimatePresence mode="popLayout">
+                            {col.map((it) => (
+                              <Tile
+                                key={it.id}
+                                item={it}
+                                index={items.indexOf(it)}
+                                busy={locked}
+                                selected={selected.has(it.id)}
+                                selecting={selecting}
+                                inherit={g?.name ?? ''}
+                                onRemove={() => remove(it.id)}
+                                onSelect={() => toggle(it.id)}
+                                onChange={(p) => patchItem(it.id, p)}
+                              />
+                            ))}
+                          </AnimatePresence>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.section>
+                );
+              })}
+              {!locked && <AddTiles />}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       {/* drag-over takeover */}
       <AnimatePresence>
         {drag && (
@@ -1133,7 +1268,7 @@ const Room = ({
             animate={{ y: 0 }}
             exit={{ y: '110%' }}
             transition={{ type: 'spring', stiffness: 140, damping: 22 }}
-            className="fixed inset-x-0 bottom-0 z-30 border-t border-[#C9C8C7]/10 bg-black/85 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur-xl md:px-8"
+            className="studio-dock"
           >
             <AnimatePresence mode="wait" initial={false}>
               {busy ? (
@@ -1142,14 +1277,16 @@ const Room = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex items-end justify-between"
+                  className="studio-upload-progress"
                 >
-                  <motion.span className="font-logo text-[22vw] leading-[0.8] tracking-[-0.05em] text-[#C9C8C7] tabular-nums md:text-[10vw]">
-                    {pctText}
-                  </motion.span>
-                  <span className="pb-2 font-mono text-[11px] uppercase tracking-[0.25em] text-[#C9C8C7]/40">
-                    keep open
+                  <div>
+                    <strong>Uploading your work</strong>
+                    <p>Keep this tab open until the upload finishes.</p>
+                  </div>
+                  <span className="studio-progress-number">
+                    <motion.span>{pctText}</motion.span>%
                   </span>
+                  <progress max={Math.max(total, 1)} value={loaded} aria-label="Upload progress" />
                 </motion.div>
               ) : selecting ? (
                 <motion.div
@@ -1211,7 +1348,7 @@ const Room = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex items-center gap-4"
+                  className="studio-dock-main"
                 >
                   <span className="font-logo text-4xl leading-none tabular-nums text-[#C9C8C7]">
                     {String(items.length).padStart(2, '0')}
@@ -1221,7 +1358,7 @@ const Room = ({
                     onClick={() => setDetailsOpen(true)}
                     className="min-w-0 flex-1 truncate text-left font-mono text-[12px] uppercase tracking-[0.15em] text-[#C9C8C7]/50 transition-colors hover:text-[#C9C8C7]"
                   >
-                    {title ? `${title}${city ? ` · ${city}` : ''}` : 'no title yet'}
+                    {title ? `${title}${city ? ` · ${city}` : ''}` : 'Add a title and instructions'}
                   </button>
                   <ClearAll
                     onClear={() => {
@@ -1236,7 +1373,7 @@ const Room = ({
                     whileTap={{ scale: 0.95 }}
                     className="rounded-full bg-[#C9C8C7] px-7 py-3 font-logo text-lg uppercase tracking-tight text-black hover:bg-white"
                   >
-                    {phase === 'error' ? 'retry' : 'details →'}
+                    {phase === 'error' ? 'Try sending again' : 'Review & send'}
                   </motion.button>
                 </motion.div>
               )}
@@ -1287,12 +1424,15 @@ const Room = ({
         )}
       </AnimatePresence>
 
-      {!items.length && (
+      {(view === 'drops' || (view === 'upload' && !items.length)) && (
         <Queue
           requests={requests}
+          onNewDrop={() => changeView('upload')}
           onChange={(r) => {
             setRequests((cur) =>
-              r.status === 'removed' ? cur.filter((c) => c.id !== r.id) : cur.map((c) => (c.id === r.id ? r : c)),
+              r.status === 'removed'
+                ? cur.filter((c) => c.id !== r.id)
+                : cur.map((c) => (c.id === r.id ? r : c))
             );
             if (isPractice(r.id) && r.status === 'live') onTour?.('shipped');
           }}
@@ -1338,8 +1478,7 @@ export const StudioPage = () => {
 
   const onOpen = async (via: 'key' | 'bio') => {
     setOpen(true);
-    if (!local.get(WELCOMED)) setWelcome(true);
-    else if (via === 'key') offerBioIfNew();
+    if (via === 'key') offerBioIfNew();
   };
 
   const endTour = () => {
@@ -1354,7 +1493,7 @@ export const StudioPage = () => {
   const steps: Step[] = [
     {
       title: 'drop your work',
-      body: 'Tap DROP (or ⌘0) and pick files or a whole folder. No files handy? Use the samples.',
+      body: 'Choose files or a whole folder (or press ⌘0). No files handy? Use the samples.',
       action: { label: 'use samples', run: () => setSamples((n) => n + 1) },
     },
     {
@@ -1364,7 +1503,7 @@ export const StudioPage = () => {
     },
     {
       title: 'the details',
-      body: 'Tap details → at the bottom. Title, city, where it goes. Next time, your past answers come back as one-tap chips.',
+      body: 'Tap Review & send at the bottom. Add a title, city, and instructions. Your past answers come back as shortcuts.',
     },
     {
       title: 'send it',
@@ -1376,7 +1515,7 @@ export const StudioPage = () => {
     },
     {
       title: 'ship it',
-      body: 'On a real drop, view preview opens the site with your work on it. This one is a test, so its preview is crossed out. When it looks right, press and hold “hold to ship”. Try it now.',
+      body: 'Open a real preview to check your work. Choose Publish to website, then confirm. This practice drop stays local. Try publishing it now.',
     },
     {
       title: "you're ready",
@@ -1402,7 +1541,7 @@ export const StudioPage = () => {
   return (
     <MotionConfig reducedMotion="user">
       <div className="relative min-h-[100svh] overflow-x-hidden bg-black text-[#C9C8C7] selection:bg-[#dc2626] selection:text-black">
-        <Backdrop field={field} intensity={dim ? 0.3 : open ? 0.8 : 1} />
+        <Backdrop field={field} intensity={open ? (dim ? 0.06 : 0.1) : 1} />
         <AnimatePresence mode="wait">
           {open ? (
             <Shutter k="room">
@@ -1413,6 +1552,16 @@ export const StudioPage = () => {
                 practice={tour !== null}
                 samples={samples}
                 onTour={onTour}
+                onHelp={() => setWelcome(true)}
+                onOut={() => {
+                  sess.set(TOKEN, '');
+                  api.setToken('');
+                  setOpen(false);
+                  setWelcome(false);
+                  setTour(null);
+                  setOfferBio(false);
+                }}
+                onBio={canBio && !local.get(BIO) ? () => setOfferBio(true) : undefined}
               />
             </Shutter>
           ) : (
@@ -1447,37 +1596,11 @@ export const StudioPage = () => {
             />
           )}
         </AnimatePresence>
-        {open && tour === null && !welcome && !dim && (
-          <button
-            type="button"
-            onClick={() => setWelcome(true)}
-            aria-label="replay the tour"
-            className="fixed bottom-4 left-4 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-[#C9C8C7]/15 bg-black/60 font-mono text-[12px] text-[#C9C8C7]/50 backdrop-blur-md transition-colors hover:text-[#C9C8C7] md:left-8"
-          >
-            ?
-          </button>
-        )}
-        {open && canBio && !offerBio && tour === null && !welcome && !local.get(BIO) && (
-          <motion.button
-            type="button"
-            onClick={() => setOfferBio(true)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            aria-label={`set up ${api.bioName()}`}
-            className="fixed left-4 top-4 z-40 flex items-center gap-2 rounded-full border border-[#C9C8C7]/15 bg-black/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-[#C9C8C7]/60 backdrop-blur-md transition-colors hover:text-[#C9C8C7] md:left-8"
-          >
-            <span className="h-3.5 w-3.5">
-              <BioGlyph scanning={false} />
-            </span>
-            {api.bioName()}
-          </motion.button>
-        )}
         {/* film grain */}
         <motion.div
           aria-hidden
           className="pointer-events-none fixed -inset-[50%] z-[60] opacity-[0.07] mix-blend-screen"
-          style={{ backgroundImage: GRAIN }}
+          style={{ backgroundImage: GRAIN, display: open ? 'none' : undefined }}
           animate={{ x: ['0%', '-4%', '3%', '-2%', '0%'], y: ['0%', '3%', '-4%', '2%', '0%'] }}
           transition={{ duration: 0.5, repeat: Infinity, ease: (t: number) => (t < 1 ? 0 : 1) }}
         />

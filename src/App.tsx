@@ -13,12 +13,22 @@ import { ThankYouPage } from '@/pages/ThankYouPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+import { STUDIO_HOST } from '@/components/art/studioModel';
 
 // Imanol's upload tool: loaded only when /studio is opened, so its code (drop UI, passkey
 // sign-in, uploads) isn't part of every visitor's download.
 const StudioPage = lazy(() => import('@/pages/StudioPage').then((m) => ({ default: m.StudioPage })));
 
 function App() {
+  if (window.location.hostname === STUDIO_HOST) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<div className="min-h-[100svh] bg-black" />}>
+          <StudioPage />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
   return (
     <ErrorBoundary>
       <ScrollToTop />

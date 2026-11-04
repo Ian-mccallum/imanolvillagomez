@@ -1,4 +1,5 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import type { WorkerHeartbeat } from './studioModel';
 
 /**
  * Client for /api/art — Imanol's drop box. Files PUT straight to R2 via
@@ -30,6 +31,7 @@ export interface ArtRequest {
   groups?: ArtGroup[];
   questions?: string[];
   answers?: { at: string; text: string }[];
+  revisions?: { at: string; text: string }[];
   previewUrl?: string;
   summary?: string;
   error?: string;
@@ -159,7 +161,8 @@ export const bioName = () => {
   return 'passkey';
 };
 
-export const list = () => call<{ requests?: ArtRequest[] }>('list').then((r) => r.requests ?? []);
+export const desk = () => call<{ requests: ArtRequest[]; worker?: WorkerHeartbeat | null }>('list');
+export const list = () => desk().then((r) => r.requests ?? []);
 
 /** Reserve a drop and get one presigned PUT per file, in the same order. */
 export const start = (files: { file: File; folder: string }[]) =>
@@ -187,6 +190,12 @@ export const reply = (id: string, text: string) =>
 
 export const approve = (id: string) =>
   call<{ request: ArtRequest }>('approve', { id }).then((r) => r.request);
+
+export const revise = (id: string, text: string) =>
+  call<{ request: ArtRequest }>('revise', { id, text }).then((r) => r.request);
+
+export const retry = (id: string) =>
+  call<{ request: ArtRequest }>('retry', { id }).then((r) => r.request);
 
 /** Clear a question / preview / failed drop from the list; the runner deletes its files. */
 export const remove = (id: string) =>
