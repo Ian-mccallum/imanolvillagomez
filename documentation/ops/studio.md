@@ -91,8 +91,11 @@ mid-run, VPS restarted) goes back to `pending`.
 
 ### Vercel environment (Production + Preview)
 
-`ART_KEY`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
-`R2_BUCKET_NAME`, `R2_PUBLIC_URL`. Mark `ART_KEY` and the secret as Sensitive.
+`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
+`R2_BUCKET_NAME`, `R2_PUBLIC_URL` are configured for both environments. `ART_KEY`
+is currently Production only; preview deployments intentionally cannot sign in to
+the live Studio. Exercise authenticated UI with an isolated local fixture and
+smoke-test the production API after release. Mark `ART_KEY` and the secret as Sensitive.
 Redeploy after changing them.
 
 Deployment Protection → Vercel Authentication must be **off** for previews, or

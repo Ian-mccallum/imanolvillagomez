@@ -404,8 +404,8 @@ const ClearAll = ({ onClear }: { onClear: () => void }) => {
       whileTap={{ scale: 0.94 }}
       className={`whitespace-nowrap rounded-full border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${
         armed
-          ? 'border-[#dc2626] bg-[#dc2626] text-black'
-          : 'border-[#C9C8C7]/20 text-[#C9C8C7]/50 hover:border-[#C9C8C7]/50 hover:text-[#C9C8C7]'
+          ? 'border-[#ef6058] bg-[#ef6058] text-black'
+          : 'border-[#C9C8C7]/30 text-[#C9C8C7]/80 hover:border-[#C9C8C7]/50 hover:text-[#C9C8C7]'
       }`}
     >
       {armed ? 'tap to clear all' : 'clear all'}
@@ -572,7 +572,7 @@ const Field = ({
     placeholder={placeholder}
     aria-label={placeholder}
     disabled={disabled}
-    className={`min-w-0 border-b border-[#C9C8C7]/15 bg-transparent py-2 font-mono text-[13px] text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/30 focus:border-[#dc2626] disabled:opacity-50 ${className}`}
+    className={`min-w-0 border-b border-[#C9C8C7]/15 bg-transparent py-2 font-mono text-[13px] text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/80 focus:border-[#dc2626] disabled:opacity-50 ${className}`}
   />
 );
 
@@ -1154,9 +1154,9 @@ const Room = ({
                           disabled={locked}
                           placeholder="folder name"
                           aria-label="folder name"
-                          className="min-w-0 flex-1 basis-[14rem] bg-transparent font-logo text-4xl uppercase leading-none tracking-tight text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/25 md:text-6xl"
+                          className="min-w-0 flex-1 basis-[14rem] bg-transparent font-sans text-xl font-medium leading-tight tracking-tight text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/60"
                         />
-                        <span className="pb-1 font-mono text-[11px] tabular-nums text-[#C9C8C7]/35">
+                        <span className="pb-1 font-mono text-xs tabular-nums text-[#C9C8C7]/80">
                           {String(list.length).padStart(2, '0')}
                         </span>
                         <Field
@@ -1170,9 +1170,9 @@ const Room = ({
                           <button
                             type="button"
                             onClick={() => ungroup(g.id)}
-                            className="pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/30 transition-colors hover:text-[#dc2626]"
+                            className="pb-2 text-[13px] text-[#C9C8C7]/80 transition-colors hover:text-[#dc2626]"
                           >
-                            unfolder
+                            Ungroup files
                           </button>
                         )}
                       </div>
@@ -1280,7 +1280,7 @@ const Room = ({
                   exit={{ opacity: 0, y: -20 }}
                   className="flex flex-wrap items-end gap-x-6 gap-y-3"
                 >
-                  <span className="font-logo text-5xl leading-[0.8] tabular-nums text-[#dc2626]">
+                  <span className="font-sans text-xl font-medium leading-none tabular-nums text-[#ef6058]">
                     {String(selected.size).padStart(2, '0')}
                   </span>
                   <form

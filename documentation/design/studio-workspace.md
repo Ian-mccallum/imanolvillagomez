@@ -4,7 +4,7 @@ Scope: the authenticated operational workspace. This records current behavior; t
 
 ## Task and composition
 
-Imanol adds work, supplies context, follows preparation and chooses when an approved preview goes live. The header displays actual connection/worker state. New drop, Your drops and How it works remain available when views change. The empty New drop view exposes Choose files and Choose folder beside a short three-step explanation. Selected files keep editable grouping and notes, local draft feedback and a fixed Review & send dock.
+Imanol adds work, supplies context, follows preparation and chooses when an approved preview goes live. The header displays actual connection/worker state. New drop, Your drops and Help remain available in fixed desktop side navigation or fixed mobile bottom navigation. New drop exposes one upload canvas with Choose files and Choose folder; Help owns the tutorial. The queue appears only in Your drops. The authenticated workspace has no animated Backdrop. Selected files keep editable grouping and notes, local draft feedback and a fixed Review & send dock.
 
 ## Workflow boundaries
 
@@ -16,8 +16,8 @@ Imanol adds work, supplies context, follows preparation and chooses when an appr
 
 ## Responsive and accessibility evidence
 
-Desktop uses a centered workspace and upload/guide columns. Mobile stacks these sections, gives search full width, places status above drop titles and wraps actions. Visible focus, semantic status/alert text, labeled search, pressed filters and a focus-managed details dialog are implemented. Reduced-motion preferences are supported through workspace CSS and MotionConfig.
+Desktop has compact side navigation, a small Archivo NOL wordmark and normal-case Arial headings/drop names. Folder-name inputs and selection counts use Arial (20px). Enabled draft instructions, caption metadata, generic-field placeholders, folder counts, Ungroup files and Clear all use warm gray at 80% opacity. Add instructions is (12px), Ungroup files (13px); armed Clear all uses action red/dark text and retains its two-tap confirmation. Mobile puts navigation at the bottom and the draft dock above it; search expands and actions wrap. Statuses are unboxed text; replies and confirmations use a left rule. Visible focus, semantic status/alert text, labeled search, pressed filters and a focus-managed details dialog are implemented. Reduced-motion preferences are supported.
 
-Review captures: `.impeccable/review/desktop.jpg` (1280 × 700) and `.impeccable/review/mobile.jpg` (390 × 600). These are synthetic-fixture UI evidence, not real worker, upload or publish verification. Do not use the cropped `details.jpg` as a valid dialog capture. Source behavior remains authoritative when a capture is incomplete.
+Current desktop captures: `.impeccable/review/desktop-rebuilt.jpg` (1280 × 700) and `desktop-actual-rebuilt.jpg` (1268 × 713). Valid mobile captures are `mobile-rebuilt.jpg` and `mobile-draft-rebuilt.jpg`, both (390 × 713), in the same directory. `mobile-draft-final.jpg` (390 × 713) supersedes the draft capture for the corrected enabled controls; the empty mobile and desktop captures remain valid layout evidence. In the mobile draft, DOM measurements put navigation at y=645.14 and the dock bottom at y=635.14: a (10px) gap, with no horizontal overflow. The shorter (390 × 600) viewport has DOM checks only. Earlier `desktop.jpg` and `mobile.jpg` show the superseded layout; cropped `details.jpg` remains invalid dialog evidence. Independent bounded verdict: ship; both final file-control contrast and Clear-all findings were resolved. This does not establish visual approval of uncaptured queue/details states or 390 × 600. These fixture captures do not establish production upload/publication or full visual approval.
 
 Sources: `src/components/art/studio.css`, `Workspace.tsx`, `Queue.tsx`, `Details.tsx`, `draft.ts`, and `src/pages/StudioPage.tsx`.

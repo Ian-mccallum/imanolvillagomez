@@ -1,165 +1,164 @@
 ---
 name: NOL Studio
-description: NOL's operational workspace for adding work and approving website previews.
+description: Compact publishing workspace for adding work, reviewing previews and approving publication.
 colors:
-  ink: "#111"
-  warmgray: "#c9c8c7"
-  muted: "#aaa9a7"
-  divider: "#373735"
-  panel: "#111110"
-  primary: "#ef6058"
-  primary-hover: "#ff7972"
-  control-border: "#5b5a56"
-  control-hover: "#282826"
-  control-hover-border: "#a6a49e"
-  placeholder: "#a5a39e"
-  selected-filter: "#30302d"
-  status: "#292927"
-  status-failed: "#462725"
-  status-failed-text: "#ffb3ab"
-  feedback-panel: "#1a1a18"
-  dock: "#151513"
+  ink: '#111'
+  warmgray: '#c9c8c7'
+  foreground: '#dedede'
+  muted: '#969696'
+  divider: '#282828'
+  panel: '#0d0d0d'
+  upload-canvas: '#090909'
+  primary: '#ef6058'
+  primary-hover: '#ff7972'
+  control-border: '#5b5a56'
+  control-hover: '#282826'
+  control-hover-border: '#a6a49e'
+  placeholder: '#a5a39e'
+  selected-filter: '#30302d'
+  status: '#a6a6a6'
+  status-failed-text: '#ef9d96'
+  nav-active: '#1b1b1b'
+  dock: '#151513'
 typography:
-  display:
-    fontFamily: "'Archivo Black', sans-serif"
-    fontSize: "38px"
-    lineHeight: 1.12
-    letterSpacing: "-0.03em"
+  wordmark:
+    fontFamily: '''Archivo Black'', sans-serif'
+    fontSize: 23px
+    lineHeight: 1
+    letterSpacing: -0.04em
   headline:
-    fontFamily: "'Archivo Black', sans-serif"
-    fontSize: "28px"
-    lineHeight: 1.2
-    letterSpacing: "-0.025em"
+    fontFamily: Arial, Helvetica, sans-serif
+    fontSize: 24px
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: -0.035em
   title:
-    fontFamily: "'Archivo Black', sans-serif"
-    fontSize: "21px"
-    lineHeight: 1.3
-    letterSpacing: "-0.02em"
+    fontFamily: Arial, Helvetica, sans-serif
+    fontSize: 16px
+    fontWeight: 500
+    lineHeight: 1.4
+    letterSpacing: -0.015em
   body:
-    fontFamily: "Arial, Helvetica, sans-serif"
-    fontSize: "15px"
+    fontFamily: Arial, Helvetica, sans-serif
+    fontSize: 14px
     lineHeight: 1.5
   label:
-    fontFamily: "Arial, Helvetica, sans-serif"
-    fontSize: "14px"
-    fontWeight: 600
+    fontFamily: Arial, Helvetica, sans-serif
+    fontSize: 13px
+    fontWeight: 500
     lineHeight: 1.35
 rounded:
-  status: "5px"
-  field: "6px"
-  button: "7px"
-  feedback: "8px"
-  panel: "12px"
+  control: 4px
+  navigation: 5px
+  dock: 5px
 spacing:
-  action-gap: "12px"
-  section-gap: "24px"
-  desktop-gutter: "36px"
-  mobile-gutter: "20px"
+  action-gap: 12px
+  desktop-gutter: 48px
+  desktop-content-offset: 244px
+  mobile-gutter: 20px
 components:
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.ink}"
-    typography: "{typography.label}"
-    rounded: "{rounded.button}"
-    padding: "10px 18px"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.ink}'
+    typography: '{typography.label}'
+    rounded: '{rounded.control}'
+    padding: 9px 14px
   button-primary-hover:
-    backgroundColor: "{colors.primary-hover}"
-    textColor: "{colors.ink}"
+    backgroundColor: '{colors.primary-hover}'
+    textColor: '{colors.ink}'
   button-secondary:
-    backgroundColor: "transparent"
-    textColor: "{colors.warmgray}"
-    typography: "{typography.label}"
-    rounded: "{rounded.button}"
-    padding: "10px 18px"
+    backgroundColor: transparent
+    textColor: '{colors.warmgray}'
+    typography: '{typography.label}'
+    rounded: '{rounded.control}'
+    padding: 9px 14px
   search:
-    backgroundColor: "{colors.panel}"
-    textColor: "{colors.warmgray}"
-    rounded: "{rounded.field}"
-    padding: "10px 12px"
-    width: "240px"
+    backgroundColor: '{colors.panel}'
+    textColor: '{colors.warmgray}'
+    rounded: '{rounded.control}'
+    padding: 8px 10px
+    width: 240px
   status:
-    backgroundColor: "{colors.status}"
-    textColor: "{colors.warmgray}"
-    rounded: "{rounded.status}"
-    padding: "5px 9px"
+    backgroundColor: transparent
+    textColor: '{colors.status}'
+    padding: '0'
+    rounded: '0'
 ---
 
 # Design System: NOL Studio
 
 ## Overview
 
-This captures the implemented **Studio workspace only**. It does not prescribe the public portfolio, sign-in, or onboarding identity. The existing NOL identity supplies dark ink, warm gray, Archivo Black and a red action accent; readable Arial carries the operational interface.
-
-The workspace keeps the next task visible: add files, follow preparation, review a preview and explicitly approve publication. It uses a restrained, mostly flat interface with strong headings and plain instructions. This is an extraction of the built system, not a new visual identity proposal.
+This is the implemented **authenticated Studio workspace**, not the public portfolio, sign-in or onboarding identity. The small NOL wordmark retains Archivo Black. Normal-case Arial headings and drop names keep the working surface quiet and compact. There is no animated Backdrop in the authenticated workspace.
 
 **Key Characteristics:**
-- Archivo Black for NOL and major headings; Arial for routine reading and actions.
-- Warm gray text, quiet dividers and red primary actions.
-- Persistent navigation and visible upload choices.
-- Plain-language status and explicit approval controls.
+- Fixed desktop side navigation and fixed mobile bottom navigation.
+- One upload canvas; Help owns the tutorial.
+- Unboxed status text, divided drop rows and understated inline replies.
+- Red actions, visible upload choices and explicit publication approval.
 
-Source authority: `src/components/art/studio.css`, `Workspace.tsx`, `Queue.tsx`, `Details.tsx`, and `src/pages/StudioPage.tsx`. Tokens above are normative for the extracted workspace primitives. Modal and inherited file-grid exceptions are described below rather than presented as a unified system that does not yet exist.
+Source authority is the final CSS cascade in `src/components/art/studio.css`, plus `Workspace.tsx`, `Queue.tsx`, `Details.tsx` and `src/pages/StudioPage.tsx`. The frontmatter records actual workspace primitives. Earlier declarations superseded by the appended compact-workspace section are not current design rules.
 
 ## Colors
 
 ### Primary
 
-Warm action red identifies primary upload, reply and publish controls, with dark ink text. The hover red is brighter. It also supplies the workspace keyboard focus outline.
+Warm action red marks primary upload, reply and publication controls, with dark ink text and brighter hover. The workspace focus outline uses the same red.
 
 ### Neutral
 
-Warm gray is the main foreground; muted gray supports metadata and instructions. Near-black panels, quiet dividers and visible control borders separate tasks without turning the drop list into floating cards. Preview/question badges invert to warm gray with dark text; failure badges use a dark red surface and pale red text.
-
-**The Action Rule.** Preserve red for purposeful controls and state emphasis; use text alongside color to explain status.
+The foreground is light neutral gray; NOL and selected controls retain warm gray. Muted gray carries supporting information. Near-black fields and upload canvas sit against the dark page, with quiet dividers and visible borders. Status is unboxed text: preview/questions are brighter, failures pale red. Never rely on color alone to explain state.
 
 ## Typography
 
-Archivo Black supplies the wordmark, upload/help heading, queue heading and uppercase drop titles. Arial, Helvetica, sans-serif is the workspace body stack. Body copy uses the frontmatter body role; buttons use its label role. Metadata and navigation support copy commonly use smaller text (13px), and status badges use compact text (12px).
+The wordmark role applies to the small NOL signature. Workspace page headings, upload labels and drop titles use Arial in normal case. Folder-name inputs and selection counts use Arial (20px), rather than Archivo display lettering. Headings reduce to (22px) on mobile; drop titles reduce to (15px). Supporting copy is commonly (13px), metadata (12–13px), and compact mobile navigation (11px).
 
-Upload/help display headings reduce to (30px) on mobile, queue headings to (26px). The NOL wordmark changes from (30px) to (26px). Instructions use comfortable line lengths: upload introduction (42ch), drop explanations and help copy (70ch).
-
-The details modal retains small monospace chips/labels and larger form text; the file-grid override converts inherited monospace text to Arial. Treat these as existing scoped exceptions, not permission to spread dense uppercase monospace through the workspace.
+The details dialog and inherited file-editing controls retain some existing monospace/pill styling; the file-grid override converts its monospace text to Arial. Those scoped exceptions are not a new heading or body typography direction.
 
 ## Layout
 
-The centered workspace has a maximum width of (1240px), desktop gutters from the spacing tokens and bottom clearance (120px). Header, navigation and content read vertically. The empty upload view is a main target plus a guide column (280px), with a generous gap (60px). The intermediate breakpoint (850px) reduces that column and spacing.
+Desktop reserves a left rail for fixed navigation, with content offset and right gutter defined in frontmatter. The wordmark is fixed above the rail. Header actions align right above a divider. Navigation has three choices: New drop, Your drops, Help. Only Your drops mounts the queue.
 
-At the mobile breakpoint (640px), gutters narrow, the upload target and guide stack, drop headers stack with status first, search becomes full width and actions wrap. The desktop website shortcut and navigation's draft-size annotation hide; the three navigation choices remain. Navigation is persistent across views, not a sticky scroll element.
+New drop uses a single broad upload canvas, centered within a maximum width (1100px), with a page heading above and one approval reminder below. The tutorial lives in Help. Selected files replace the empty canvas with editing controls and a fixed bottom review dock.
 
-With selected files, a fixed bottom dock keeps Review & send reachable and accounts for the safe-area inset. Mobile hides its title shortcut while retaining the main action. The details dialog is centered on desktop and bottom-aligned on mobile, with scrollable content and maximum height (92svh).
+The intermediate range (701–1000px) narrows the rail and content offset. At (700px) and below, the wordmark returns to the header and navigation becomes a fixed three-column bottom bar, minimum height (68px), respecting safe-area padding. The draft dock sits above it, with bottom offset `calc(78px + env(safe-area-inset-bottom))`. Search becomes full width at the existing (640px) field breakpoint. Mobile drop titles and statuses remain side by side; actions wrap without stretching each button to fill the row.
+
+The details dialog is centered on desktop and bottom-aligned on mobile, with scrollable content and maximum height (92svh). Keep content clear of the fixed navigation and draft dock.
 
 ## Elevation & Depth
 
-Workspace rows and panels use tonal differences and borders without shadows. The fixed dock sits above content. The details dialog is the exception: a blurred dark backdrop and a deep shadow establish its modal layer. Exact shadow, focus, motion and breakpoint details live in `.impeccable/design.json`.
+Rows and reply/confirmation groups remain flat. Replies and confirmations use a quiet left border, without filled cards. The upload canvas has a subtle dashed border. The dock is a bordered dark layer. Only the details dialog uses a blurred backdrop and deep shadow; exact shadow and motion values are in `.impeccable/design.json`.
 
 ## Shapes
 
-Use the compact radius vocabulary in frontmatter for ordinary controls, badges, feedback and upload panels. The upload target has a dashed outline. Drop rows use horizontal rules rather than separate rounded cards. The existing details modal has larger rounded corners (24px), pill controls and pill-shaped send action; keep that exception scoped to the dialog.
+Ordinary buttons, search, filters and upload canvas use compact control corners. Navigation and dock have slightly larger compact corners. Status labels have no badge container. The existing details dialog retains larger corners and pill controls; keep these scoped to that dialog.
 
 ## Components
 
-**Buttons.** Primary and secondary buttons share compact geometry and minimum height (44px). Secondary controls have a visible border and tonal hover; primary hover brightens the red. Workspace keyboard focus is a solid outline (2px) offset (5px). Disabled buttons use reduced opacity (0.5) and a not-allowed cursor.
+**Buttons.** Compact controls have minimum height (38px), medium-weight Arial, red primary fill or a bordered secondary treatment. Primary hover brightens; secondary hover changes tone and border. Workspace focus is an outline (2px) offset (5px). Disabled buttons use opacity (0.5) and a not-allowed cursor.
 
-**Upload target.** Keep Choose files and Choose folder visible together, plus file-limit text. Dragging and keyboard shortcuts supplement these controls. Selected files reveal the persistent draft status and bottom review dock.
+**Upload canvas.** A file icon, Drop files here label, visible Choose files and Choose folder actions and file-limit text share one centered target. Dragging and keyboard shortcuts supplement visible controls.
 
-**Navigation.** New drop, Your drops and How it works remain available. The active item has a light underline and brighter text. Counts distinguish files in draft from drops needing attention.
+**Navigation.** Small line icons accompany New drop, Your drops and Help. Desktop selection uses a quiet filled row; mobile selection brightens the item without a filled card. Counts are plain small text beside the destination, positioned as small annotations on mobile.
 
-**Search, filters and rows.** Search is a bordered dark field. Selected filters use a quiet filled surface with `aria-pressed`; drop rows use named status badges and explanatory text. Feedback, answers and publish confirmation expand inline. Removal stays in Drop details and requires confirmation.
+**Queue.** Search and pressed filters operate on the loaded recent-drop list. Drop names are normal case; statuses are unboxed text, with a dot for attention states. Feedback and confirmation expand inline against a left rule. Removal remains inside Drop details and requires confirmation.
 
-**Details dialog.** Title, city, placement and instructions precede sending. Recent answers and Same as last are local shortcuts. Focus enters the dialog, Tab is contained, Escape closes it and focus returns to the previous control. Sending the drop does not publish it.
+**Draft editing.** Enabled file instructions, caption metadata, generic-field placeholders, folder counts, Ungroup files and Clear all use warm gray at (80% opacity). Add instructions uses (12px); Ungroup files uses (13px). Clear all retains two-tap confirmation; its armed state uses action red with dark text. These are enabled controls, not disabled metadata.
+
+**Details.** Title, city, placement and instructions precede sending. Recent answers and Same as last are origin-local shortcuts. Focus enters the dialog, Tab stays inside, Escape closes it and focus returns. Sending does not publish.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** preserve the NOL identity while using readable workspace body text.
-- **Do** keep visible file/folder actions, navigation and a reachable review action.
-- **Do** pair worker/drop state with truthful words and a relevant next action.
-- **Do** preserve preview review, revision and explicit publish confirmation.
-- **Do** describe drafts as saved on this device and origin, with storage-failure feedback.
+- **Do** keep the NOL wordmark small and workspace headings in normal-case Arial.
+- **Do** preserve visible file/folder actions and the separate New drop, Your drops and Help destinations.
+- **Do** preserve truthful worker/drop status, revision, retry and explicit publish confirmation.
+- **Do** describe drafts as device- and origin-local, with storage-failure feedback.
+- **Do** keep the mobile draft dock above bottom navigation.
 
 ### Don't:
-- **Don't** apply this workspace extraction as a redesign of the public portfolio.
-- **Don't** imply that sending, retrying or requesting changes publishes work.
-- **Don't** present local drafts or local recent answers as cross-device synchronization.
-- **Don't** replace live connection/worker state with an always-ready decorative indicator.
-- **Don't** treat fixture screenshots as evidence of a production upload or publication.
+- **Don't** restore the large editorial headings, top tab bar or upload tutorial sidebar.
+- **Don't** turn statuses and replies into prominent filled cards.
+- **Don't** add the animated Backdrop to the authenticated workspace.
+- **Don't** imply sending, retrying or requesting changes publishes work.
+- **Don't** claim cross-device draft synchronization or full visual approval from incomplete captures.
