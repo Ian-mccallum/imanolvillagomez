@@ -71,6 +71,8 @@ export interface ArtRequest {
   previewUrl?: string;
   summary?: string;
   error?: string;
+  /** set by the runner when other work went live after this drop's preview */
+  siteChanged?: boolean;
 }
 
 interface Passkey {

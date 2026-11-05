@@ -223,6 +223,11 @@ export function StudioHelp({
         <h2>A few useful things</h2>
         <ul>
           <li>
+            Two artists at once? Send them in one drop: make a folder for each artist, name it,
+            add its instructions, and use the arrows to put the folders in the order you want on
+            your site, top first.
+          </li>
+          <li>
             Up to 200 files per drop, and 5 GB per file. Split larger collections into multiple
             drops.
           </li>

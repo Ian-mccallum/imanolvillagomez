@@ -835,6 +835,15 @@ const Room = ({
     setItems((cur) => cur.map((i) => (i.id === id ? { ...i, ...patch } : i)));
   const patchGroup = (id: string, patch: Partial<Group>) =>
     setGroups((cur) => cur.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+  const moveGroup = (id: string, by: -1 | 1) =>
+    setGroups((cur) => {
+      const i = cur.findIndex((g) => g.id === id);
+      const j = i + by;
+      if (i < 0 || j < 0 || j >= cur.length) return cur;
+      const next = [...cur];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
 
   const toggle = (id: string) =>
     setSelected((cur) => {
@@ -1145,10 +1154,16 @@ const Room = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
+              {groups.length > 1 && (
+                <p className="mb-6 text-[13px] text-[#C9C8C7]/80">
+                  Folders go on your site in this order, top first. Use the arrows to change it.
+                </p>
+              )}
               {sections.map(({ g, list }, si) => {
                 const columns = Array.from({ length: cols }, (_, c) =>
                   list.filter((_, i) => i % cols === c)
                 );
+                const gi = g ? groups.indexOf(g) : -1;
                 return (
                   <motion.section
                     key={g?.id ?? 'loose'}
@@ -1175,6 +1190,22 @@ const Room = ({
                           placeholder="instructions for this folder"
                           className="flex-[2] basis-[16rem]"
                         />
+                        {!locked && groups.length > 1 && (
+                          <div className="flex gap-1" role="group" aria-label="Folder order">
+                            {([-1, 1] as const).map((by) => (
+                              <button
+                                key={by}
+                                type="button"
+                                onClick={() => moveGroup(g.id, by)}
+                                disabled={gi + by < 0 || gi + by >= groups.length}
+                                aria-label={`Move ${g.name || 'folder'} ${by < 0 ? 'up' : 'down'}`}
+                                className="flex h-11 w-11 items-center justify-center rounded-full text-[#C9C8C7]/80 transition-colors hover:bg-[#C9C8C7]/10 hover:text-[#C9C8C7] disabled:opacity-30 disabled:hover:bg-transparent"
+                              >
+                                <span aria-hidden>{by < 0 ? '↑' : '↓'}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                         {!locked && (
                           <button
                             type="button"
