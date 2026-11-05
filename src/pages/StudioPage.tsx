@@ -13,6 +13,7 @@ import {
 import { useMetaTags } from '@/hooks/useMetaTags';
 import { Glitch } from '@/components/art/Glitch';
 import { Tile, type Item } from '@/components/art/Tile';
+import { previewBlob } from '@/components/art/mediaPreview';
 import { Queue } from '@/components/art/Queue';
 import * as api from '@/components/art/artApi';
 import { Backdrop } from '@/components/art/Backdrop';
@@ -660,7 +661,9 @@ const Room = ({
       if (cancelled) return;
       if (d?.items.length) {
         setGroups(d.groups);
-        setItems(d.items.map((i) => ({ ...i, url: URL.createObjectURL(i.file), loaded: 0 })));
+        setItems(
+          d.items.map((i) => ({ ...i, url: URL.createObjectURL(previewBlob(i.file)), loaded: 0 }))
+        );
         setTitle(d.title);
         setCity(d.city);
         setPlacement(d.placement);
@@ -756,7 +759,7 @@ const Room = ({
       const next: Item[] = incoming.map(({ file, folder }) => ({
         id: `${file.name}-${file.size}-${uid()}`,
         file,
-        url: URL.createObjectURL(file),
+        url: URL.createObjectURL(previewBlob(file)),
         rot: (Math.random() - 0.5) * 3,
         loaded: 0,
         group: groupFor(folder),
@@ -1100,7 +1103,6 @@ const Room = ({
           ref={picker}
           type="file"
           multiple
-          accept="video/*,image/*,.zip,.mov,.mp4,.heic"
           className="hidden"
           onChange={(e) => {
             add(fromList(e.target.files));

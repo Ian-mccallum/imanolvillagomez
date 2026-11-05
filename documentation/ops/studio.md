@@ -26,6 +26,21 @@ belong to their website address: a draft at `www` does not move to the studio
 subdomain. Finish it at the original address. Refreshing during an upload keeps
 the draft files but restarts the upload.
 
+Camera previews infer missing MIME types from filenames. HEIC/HEIF uses a lazy
+worker decoder; TIFF uses a lazy decoder; RAW files first try an embedded JPEG.
+Heavy conversions run one at a time. Decoding limits (64 MiB conversion input,
+24 megapixel TIFF, first 192 MiB RAW scan) protect browser memory. Unsupported,
+corrupt or larger files show an explicit fallback and can still be sent. The
+original File bytes are uploaded, never the generated thumbnail. Decoder notices
+and source links are available under `/licenses/`.
+
+Existing open tabs keep their current code and upload session when a deployment
+ships. Do not tell someone to refresh or switch origins during an active upload.
+New preview behavior takes effect on their next visit. Generated Vercel portfolio
+previews are public; Studio credentials remain production-only. Preview readiness
+requires a READY deployment URL matching the exact pushed commit and branch; a
+missing/failed deployment produces a retryable failure rather than a dead preview.
+
 The header uses the runner’s real `queue/nol-heartbeat.json`. An idle heartbeat
 older than six minutes, a working heartbeat older than four hours, or an error
 shows the worker as unavailable. Uploads can still queue while it is offline.
