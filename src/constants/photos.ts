@@ -223,10 +223,10 @@ const photosArchive: Photo[] = [
  * shoots listed most-recent-first.
  */
 const photosChronological: Photo[] = [
+  // LIGHT REMOVAL (shot Oct 22) — on top of ESDEEKID; frame order, repeat frames removed; no tour given, so untagged
+  ...(shootNov2026 as Photo[]),
   // ESDEEKID (shot Sep 26) — array order is the client's requested sequence; no tour given, so untagged
   ...(shootLateSept2026 as Photo[]),
-  // LIGHT REMOVAL (shot Oct 22) — directly after ESDEEKID; frame order, no tour given, so untagged
-  ...(shootNov2026 as Photo[]),
   // YE (shot Sep 3) — array order leads with the B&W masked portrait, not frame number
   ...(shootSept2026 as Photo[]).map((p) => ({
     ...p,

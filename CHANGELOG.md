@@ -13,9 +13,10 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **LIGHT REMOVAL** — 14 photos from the Oct 22 shoot, placed directly after ESDEEKID
-  so they are the next set when the site opens. No tour tag given, so they sit under
-  artist and year. Frame order, since no sequence was specified.
+- **LIGHT REMOVAL** — 10 photos from the Oct 22 shoot, above ESDEEKID so they are
+  the first set when the site opens. Repeat frames of the same moment were left out
+  (one of the raised-arm pair, two of the three-frame crouch burst, and one of the
+  magenta pair). No tour tag given, so they sit under artist and year. Frame order.
 
 ## 2026-09-30
 
