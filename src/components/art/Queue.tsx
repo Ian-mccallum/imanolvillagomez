@@ -244,36 +244,52 @@ function DropRow({ r, onChange }: { r: api.ArtRequest; onChange: (r: api.ArtRequ
         </p>
       )}
       <details className="studio-drop-details">
-        <summary>Drop details</summary>
-        {r.note && <p className="studio-preserve">{r.note}</p>}
-        <ul>
-          {r.files.map((f, i) => (
-            <li key={`${f.key}-${i}`}>
-              {f.label || f.name}
-              {f.note ? ` — ${f.note}` : ''}
-            </li>
+        <summary>
+          <span>Files &amp; notes</span>
+          <span className="studio-details-toggle" aria-hidden>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M3 8h10M8 3v10" />
+            </svg>
+          </span>
+        </summary>
+        <div className="studio-details-body">
+          {r.note && <p className="studio-preserve">{r.note}</p>}
+          <ul>
+            {r.files.map((f, i) => (
+              <li key={`${f.key}-${i}`}>
+                {f.label || f.name}
+                {f.note ? ` — ${f.note}` : ''}
+              </li>
+            ))}
+          </ul>
+          {r.revisions?.map((v) => (
+            <p key={v.at}>
+              <strong>Changes requested:</strong> {v.text}
+            </p>
           ))}
-        </ul>
-        {r.revisions?.map((v) => (
-          <p key={v.at}>
-            <strong>Changes requested:</strong> {v.text}
-          </p>
-        ))}
-        {r.answers?.map((a) => (
-          <p key={a.at}>
-            <strong>Your answer:</strong> {a.text}
-          </p>
-        ))}
-        <p className="studio-muted">Last update: {date(r.updatedAt)}</p>
-        {removable && (
-          <button
-            className="studio-text-link studio-danger"
-            disabled={!!busy}
-            onClick={() => setConfirm('remove')}
-          >
-            Remove drop
-          </button>
-        )}
+          {r.answers?.map((a) => (
+            <p key={a.at}>
+              <strong>Your answer:</strong> {a.text}
+            </p>
+          ))}
+          <p className="studio-muted">Last update: {date(r.updatedAt)}</p>
+          {removable && (
+            <button
+              className="studio-text-link studio-danger"
+              disabled={!!busy}
+              onClick={() => setConfirm('remove')}
+            >
+              Remove drop
+            </button>
+          )}
+        </div>
       </details>
     </article>
   );

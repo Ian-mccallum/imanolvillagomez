@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-05T00:53:35.217136+00:00",
+  "generatedAt": "2026-11-05T01:32:54.554509+00:00",
   "title": "Design System: NOL Studio",
   "extensions": {
     "colorMeta": {
@@ -225,6 +225,22 @@
       "nav-active": {
         "role": "neutral",
         "displayName": "Nav Active"
+      },
+      "file-warmgray": {
+        "role": "neutral",
+        "displayName": "File Warmgray"
+      },
+      "status-live": {
+        "role": "neutral",
+        "displayName": "Status Live"
+      },
+      "status-working": {
+        "role": "neutral",
+        "displayName": "Status Working"
+      },
+      "status-attention": {
+        "role": "neutral",
+        "displayName": "Status Attention"
       }
     },
     "typographyMeta": {
@@ -255,16 +271,6 @@
     ],
     "motion": [
       {
-        "name": "control-transition",
-        "value": "background 0.16s, border-color 0.16s",
-        "purpose": "Workspace button hover."
-      },
-      {
-        "name": "workspace-reduced-motion",
-        "value": "animation-duration:0.01ms;transition-duration:0.01ms;scroll-behavior:auto",
-        "purpose": "Applied under prefers-reduced-motion:reduce."
-      },
-      {
         "name": "details-spring",
         "value": "stiffness:260;damping:28",
         "purpose": "Existing details dialog spring."
@@ -273,6 +279,31 @@
         "name": "session-fade",
         "value": "120ms",
         "purpose": "Sign-in/out fade replaces the shutter wipe."
+      },
+      {
+        "name": "control-transition",
+        "value": "background 150ms, border-color 150ms, color 150ms, transform 100ms",
+        "purpose": "Finite control feedback; pressed controls scale to .97."
+      },
+      {
+        "name": "workspace-view",
+        "value": "180ms ease-out; opacity .6 \u2192 1",
+        "purpose": "Opacity only: preserve viewport positioning of fixed docks."
+      },
+      {
+        "name": "detail-reveal",
+        "value": "150ms ease-out; opacity .3 \u2192 1; translateY(-4px) \u2192 0",
+        "purpose": "Native Files & notes and account panel reveal."
+      },
+      {
+        "name": "sheet-feedback",
+        "value": "240ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Stacked upload-sheet hover fan; no looping decoration."
+      },
+      {
+        "name": "workspace-reduced-motion",
+        "value": "animation:none; decorative spatial transforms:none; transition-duration:0.01ms",
+        "purpose": "Respect reduced motion for workspace feedback."
       }
     ],
     "breakpoints": [
@@ -305,7 +336,7 @@
       "refersTo": "button-secondary",
       "description": "Workspace action; primary red or bordered secondary.",
       "html": "<button class=\"ds-button-secondary\">Choose folder</button>",
-      "css": ".ds-button-secondary{font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500;line-height:1.35;min-height:38px;padding:9px 14px;border:1px solid #5b5a56;border-radius:4px;color:#c9c8c7;background:transparent;transition:background .16s,border-color .16s;}.ds-button-secondary:hover{background:#282826;border-color:#a6a49e;}.ds-button-secondary:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed;}"
+      "css": ".ds-button-secondary{font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:500;line-height:1.35;min-height:38px;padding:9px 14px;border:1px solid #5b5a56;border-radius:4px;color:#e0d9cf;background:transparent;transition:background .16s,border-color .16s;}.ds-button-secondary:hover{background:#282826;border-color:#a6a49e;}.ds-button-secondary:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed;}"
     },
     {
       "name": "Search drops",
@@ -313,28 +344,28 @@
       "refersTo": "search",
       "description": "Search the loaded recent-drop list.",
       "html": "<input class=\"ds-search\" type=\"search\" aria-label=\"Search drops\" placeholder=\"Search drops\u2026\">",
-      "css": ".ds-search{font-family:Arial,Helvetica,sans-serif;width:240px;max-width:100%;padding:8px 10px;font-size:13px;background:#0d0d0d;color:#c9c8c7;border:1px solid #333;border-radius:4px}.ds-search::placeholder{color:#a5a39e}.ds-search:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}"
+      "css": ".ds-search{font-family:Arial,Helvetica,sans-serif;width:240px;max-width:100%;padding:8px 10px;font-size:13px;background:#0d0d0d;color:#e0d9cf;border:1px solid #333;border-radius:4px}.ds-search::placeholder{color:#a5a39e}.ds-search:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}"
     },
     {
       "name": "Studio navigation",
       "kind": "nav",
       "description": "Compact vertical desktop navigation; fixed bottom navigation on mobile.",
       "html": "<nav class=\"ds-nav\" aria-label=\"Studio\"><button aria-current=\"page\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 16V4m-4 4 4-4 4 4M5 15v5h14v-5\"/></svg>New drop</button><button><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 5h14v14H5zM5 10h14M10 10v9\"/></svg>Your drops</button><button><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"8\"/><path d=\"M10 9a2 2 0 1 1 3 1.7c-1 .6-1 1.3-1 2.3M12 16h.01\"/></svg>Help</button></nav>",
-      "css": ".ds-nav{display:flex;flex-direction:column;gap:5px;width:188px;font-family:Arial,Helvetica,sans-serif}.ds-nav button{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px 12px;text-align:left;font-size:13px;font-weight:400;border:0;border-radius:5px;background:none;color:#969696}.ds-nav button:hover{background:#141414}.ds-nav button[aria-current]{background:#1b1b1b;color:#eee}.ds-nav button:focus-visible{outline:2px solid #ef6058;outline-offset:5px}@media(max-width:700px){.ds-nav{display:grid;grid-template-columns:repeat(3,1fr);width:auto;min-height:68px;background:#0c0c0c;border-top:1px solid #282828;padding:7px 12px}.ds-nav button{flex-direction:column;justify-content:center;gap:4px;min-height:48px;padding:5px;font-size:11px}.ds-nav button[aria-current]{background:none;color:#fff}}"
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:5px;width:188px;font-family:Arial,Helvetica,sans-serif}.ds-nav button{display:flex;align-items:center;gap:11px;min-height:44px;padding:10px 12px;text-align:left;font-size:13px;font-weight:400;border:0;border-radius:5px;background:none;color:#969696}.ds-nav button:hover{background:#141414}.ds-nav button[aria-current]{background:#1b1b1b;color:#eee}.ds-nav button:focus-visible{outline:2px solid #ef6058;outline-offset:5px}@media(max-width:700px){.ds-nav{display:grid;grid-template-columns:repeat(3,1fr);width:auto;min-height:68px;background:#0c0c0c;border-top:1px solid #282828;padding:7px 12px}.ds-nav button{flex-direction:column;justify-content:center;gap:4px;min-height:48px;padding:5px;font-size:11px}.ds-nav button[aria-current]{background:none;color:#fff}} .ds-nav button{position:relative}.ds-nav button[aria-current] svg{color:#ef6058}.ds-nav button[aria-current]:before{content:\"\";position:absolute;left:0;top:12px;bottom:12px;width:2px;background:#ef6058}@media(max-width:700px){.ds-nav button[aria-current]:before{left:calc(50% - 9px);top:0;bottom:auto;width:18px;height:2px}}"
     },
     {
       "name": "Drop filter",
       "kind": "chip",
       "description": "Selected search filter uses a quiet filled surface.",
       "html": "<button class=\"ds-filter\" aria-pressed=\"true\">Needs you (2)</button>",
-      "css": ".ds-filter{font-family:Arial,Helvetica,sans-serif;border:0;border-radius:4px;padding:6px 10px;min-height:34px;font-size:12px;color:#969696;background:transparent}.ds-filter[aria-pressed=\"true\"]{color:#c9c8c7;background:#30302d}.ds-filter:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}"
+      "css": ".ds-filter{font-family:Arial,Helvetica,sans-serif;border:0;border-radius:4px;padding:6px 10px;min-height:34px;font-size:12px;color:#b1aaa0;background:transparent}.ds-filter[aria-pressed=\"true\"]{color:#e0d9cf;background:#30302d}.ds-filter:focus-visible{outline:2px solid #ef6058;outline-offset:5px;}"
     },
     {
       "name": "Drop row",
       "kind": "custom",
-      "description": "Flat divided row, normal-case Arial name and unboxed status text.",
+      "description": "Flat divided row, normal-case Arial name and unboxed named status. Attention uses pale coral; Live sage; working/publishing amber.",
       "html": "<article class=\"ds-drop\"><header><h3>New work</h3><span>Ready to review</span></header><p>3 files \u00b7 Chicago</p></article>",
-      "css": ".ds-drop{font-family:Arial,Helvetica,sans-serif;color:#dedede;border-top:1px solid #282828;padding:23px 0}.ds-drop header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.ds-drop h3{font:500 16px/1.4 Arial,Helvetica,sans-serif;letter-spacing:-.015em;margin:0 0 6px}.ds-drop span{font-size:12px;padding:0;border-radius:0;background:none;color:#dedede;font-weight:400}.ds-drop span:before{content:\"\u2022\";padding-right:6px}.ds-drop p{font-size:13px;color:#969696;margin:0}@media(max-width:700px){.ds-drop header{gap:12px}.ds-drop h3{font-size:15px}.ds-drop span{font-size:11px;max-width:100px;text-align:right}}"
+      "css": ".ds-drop{font-family:Arial,Helvetica,sans-serif;color:#dedede;border-top:1px solid #282828;padding:23px 0}.ds-drop header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.ds-drop h3{font:500 16px/1.4 Arial,Helvetica,sans-serif;letter-spacing:-.015em;margin:0 0 6px}.ds-drop span{font-size:12px;padding:0;border-radius:0;background:none;color:#dedede;font-weight:400}.ds-drop span:before{content:\"\u2022\";padding-right:6px}.ds-drop p{font-size:13px;color:#b1aaa0;margin:0}@media(max-width:700px){.ds-drop header{gap:12px}.ds-drop h3{font-size:15px}.ds-drop span{font-size:11px;max-width:100px;text-align:right}}"
     },
     {
       "name": "Account disclosure",
@@ -342,6 +373,13 @@
       "description": "Native Nol disclosure for idle processing status, optional quick sign-in setup and sign-out. Escape closes and returns focus; outside click closes. Sign-out waits for draft saving and stays open on failure. Active work/problems stay in the header.",
       "html": "<details class=\"ds-account\"><summary>Nol <span aria-hidden=\"true\">\u2304</span></summary><div class=\"ds-account-panel\"><p>Nol\u2019s studio</p><dl><dt>Processing</dt><dd>Studio is ready</dd></dl><button>Sign out</button></div></details>",
       "css": ".ds-account{position:relative;font-family:Arial,Helvetica,sans-serif;color:#dedede}.ds-account>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;color:#dedede;font-size:13px;min-height:36px;padding:6px 9px;border:1px solid transparent;border-radius:4px}.ds-account>summary::-webkit-details-marker{display:none}.ds-account>summary:hover,.ds-account[open]>summary{background:#171717;border-color:#303030}.ds-account-panel{position:absolute;top:calc(100% + 8px);right:0;width:min(260px,calc(100vw - 40px));padding:16px;border:1px solid #353535;border-radius:5px;background:#151515;box-shadow:0 12px 36px #0008}.ds-account-panel p{font-size:13px;font-weight:600;margin:0 0 14px}.ds-account-panel dl{display:flex;justify-content:space-between;gap:16px;font-size:12px;margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid #333}.ds-account-panel dt{color:#aaa}.ds-account-panel dd{text-align:right;margin:0}.ds-account-panel button{display:block;width:100%;min-height:40px;padding:8px;text-align:left;border:0;border-radius:3px;background:none;color:inherit;font-family:inherit;font-size:13px}.ds-account-panel button:hover:not(:disabled){background:#242424}.ds-account summary:focus-visible,.ds-account button:focus-visible{outline:2px solid #ef6058;outline-offset:5px}.ds-account button:disabled{opacity:.5;cursor:not-allowed}@media(max-width:700px){.ds-account>summary{font-size:12px;padding-right:0}}"
+    },
+    {
+      "name": "Files & notes",
+      "kind": "custom",
+      "description": "Native disclosure: browser marker removed, coral plus rotates to a cross, 44px summary target. Pointer and Enter behavior remain native.",
+      "html": "<details class=\"ds-files\"><summary><span>Files &amp; notes</span><span class=\"ds-toggle\" aria-hidden=\"true\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"M3 8h10M8 3v10\"/></svg></span></summary><div class=\"ds-files-body\">File names, instructions and revision history.</div></details>",
+      "css": ".ds-files{font:12px/1.5 Arial,Helvetica,sans-serif;color:#b1aaa0}.ds-files summary{display:inline-flex;align-items:center;gap:12px;min-height:44px;list-style:none;color:#c7b9a7;cursor:pointer;transition:color 140ms}.ds-files summary::marker{content:\"\"}.ds-files summary::-webkit-details-marker{display:none}.ds-files summary:hover,.ds-files[open] summary{color:#f1c4b6}.ds-toggle{display:grid;place-items:center;color:#ef6058;transition:transform 180ms cubic-bezier(.16,1,.3,1)}.ds-files[open] .ds-toggle{transform:rotate(45deg)}.ds-files-body{border-left:1px solid #664b40;margin:6px 0 0 1px;padding-left:16px}.ds-files[open] .ds-files-body{animation:ds-detail-in 150ms ease-out both}.ds-files summary:focus-visible{outline:2px solid #ef6058;outline-offset:5px}@keyframes ds-detail-in{from{opacity:.3;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.ds-files *{animation:none!important;transition-duration:.01ms!important}}"
     }
   ],
   "narrative": {

@@ -1044,7 +1044,7 @@ const Room = ({
   };
 
   return (
-    <div className="studio-room">
+    <div className="studio-room" data-dragging={drag || undefined}>
       <WorkspaceHeader
         view={view}
         onView={changeView}

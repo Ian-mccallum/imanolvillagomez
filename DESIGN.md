@@ -3,12 +3,12 @@ name: NOL Studio
 description: Compact publishing workspace for adding work, reviewing previews and approving publication.
 colors:
   ink: '#111'
-  warmgray: '#c9c8c7'
-  foreground: '#dedede'
-  muted: '#969696'
+  warmgray: '#e0d9cf'
+  foreground: '#e0d9cf'
+  muted: '#b1aaa0'
   divider: '#282828'
   panel: '#0d0d0d'
-  upload-canvas: '#090909'
+  upload-canvas: '#0c0b0a'
   primary: '#ef6058'
   primary-hover: '#ff7972'
   control-border: '#5b5a56'
@@ -20,6 +20,10 @@ colors:
   status-failed-text: '#ef9d96'
   nav-active: '#1b1b1b'
   dock: '#151513'
+  file-warmgray: '#c9c8c7'
+  status-live: '#becaa0'
+  status-working: '#e5c58f'
+  status-attention: '#f2b1a5'
 typography:
   wordmark:
     fontFamily: '''Archivo Black'', sans-serif'
@@ -107,7 +111,7 @@ Warm action red marks primary upload, reply and publication controls, with dark 
 
 ### Neutral
 
-The foreground is light neutral gray; NOL and selected controls retain warm gray. Muted gray carries supporting information. Near-black fields and upload canvas sit against the dark page, with quiet dividers and visible borders. Status is unboxed text: preview/questions are brighter, failures pale red. Never rely on color alone to explain state.
+Warm paper gray supplies the workspace foreground; muted warm gray carries supporting information. Some file-editing controls retain the separate file-warmgray literal. Near-black fields and upload canvas sit against the dark page, with quiet dividers and visible borders. Status remains unboxed text: attention is pale coral, Live is sage and working/publishing is amber. Never rely on color alone to explain state.
 
 ## Typography
 
@@ -127,13 +131,15 @@ The details dialog is centered on desktop and bottom-aligned on mobile, with scr
 
 ## Elevation & Depth
 
-Rows and reply/confirmation groups remain flat. Replies and confirmations use a quiet left border, without filled cards. The upload canvas has a subtle dashed border. The dock is a bordered dark layer. The account disclosure has a compact floating panel shadow; the details dialog uses a blurred backdrop and deeper shadow. Exact shadow and motion values are in `.impeccable/design.json`.
+Rows and reply/confirmation groups remain flat. Replies and confirmations use a quiet left border, without filled cards. The upload canvas has a subtle dashed border with coral registration corners and a stacked-sheet mark that fans on hover. Hover and dragging warm the canvas; active navigation has a coral icon and registration line. The dock is a bordered dark layer. The account disclosure has a compact floating panel shadow; the details dialog uses a blurred backdrop and deeper shadow. Exact shadow and motion values are in `.impeccable/design.json`.
 
 ## Shapes
 
 Ordinary buttons, search, filters and upload canvas use compact control corners. Navigation and dock have slightly larger compact corners. Status labels have no badge container. The existing details dialog retains larger corners and pill controls; keep these scoped to that dialog.
 
 ## Components
+
+**Feedback.** Keep feedback finite: controls respond within (100–240ms); views fade in (180ms) using opacity only so fixed docks keep their viewport positioning. Account and file-details reveals use (150ms). Reduced-motion preferences remove these animations and disable decorative spatial transforms. Dragging highlights the upload canvas.
 
 **Account.** Use a small native disclosure in the header for sign-out and quick sign-in setup. Keep idle processing availability inside it; show active work and connection problems in the header. Escape returns focus to the trigger. Save a draft before signing out and keep it open on save failure. Sign-in/out use a brief fade.
 
@@ -143,7 +149,7 @@ Ordinary buttons, search, filters and upload canvas use compact control corners.
 
 **Navigation.** Small line icons accompany New drop, Your drops and Help. Desktop selection uses a quiet filled row; mobile selection brightens the item without a filled card. Counts are plain small text beside the destination, positioned as small annotations on mobile.
 
-**Queue.** Search and pressed filters operate on the loaded recent-drop list. Drop names are normal case; statuses are unboxed text, with a dot for attention states. Feedback and confirmation expand inline against a left rule. Removal remains inside Drop details and requires confirmation.
+**Queue.** Search and pressed filters operate on the loaded recent-drop list. Drop names are normal case; statuses are unboxed text, with a dot for attention states. Feedback and confirmation expand inline against a left rule. Files & notes uses native disclosure semantics with the browser marker hidden, a coral plus that rotates into a cross, and a minimum (44px) summary hit area. Its body is indented against a left rule. Removal remains inside this disclosure and requires confirmation.
 
 **Draft editing.** Enabled file instructions, caption metadata, generic-field placeholders, folder counts, Ungroup files and Clear all use warm gray at (80% opacity). Add instructions uses (12px); Ungroup files uses (13px). Clear all retains two-tap confirmation; its armed state uses action red with dark text. These are enabled controls, not disabled metadata.
 
