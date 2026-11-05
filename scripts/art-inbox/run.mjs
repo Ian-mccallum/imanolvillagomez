@@ -405,10 +405,20 @@ async function handlePending(r) {
   const { branch } = worktree(r.id);
 
   // ART_DRY=1 exercises download/worktree/status without running Claude.
+  const started = Date.now();
   const run = process.env.ART_DRY
     ? (writeFileSync(resultPath, JSON.stringify({ status: 'question', questions: ['dry run'] })), { stdout: 'dry', stderr: '' })
     : runClaude(r.id, ['-p', prompt(r, filesDir, resultPath), '--permission-mode', 'acceptEdits', '--allowedTools', 'Bash,Read,Edit,Write,Glob,Grep,Skill', '--add-dir', base]);
   writeFileSync(join(LOGS, `${r.id}-claude.log`), `${run.stdout ?? ''}\n${run.stderr ?? ''}`);
+  // A quick exit with no result is the worker itself (sandbox, login, quota), not the drop.
+  if (!existsSync(resultPath) && Date.now() - started < 120_000) {
+    r.status = 'pending';
+    try { rmSync(base, { recursive: true, force: true }); } catch {}
+    await writeReq(r);
+    await notify(`AI worker exited without a result; ${r.id} and later drops stay queued. See .art-inbox/logs/${r.id}-claude.log`);
+    log(`  = pending (worker down)`);
+    return 'worker-down';
+  }
   const result = readResult(resultPath);
 
   if (result.status === 'question') {
@@ -534,6 +544,7 @@ async function main() {
     mkdirSync(REQ, { recursive: true });
     const out = await s3.send(new ListObjectsV2Command({ Bucket, Prefix: INBOX, Delimiter: '/' }));
     const ids = (out.CommonPrefixes ?? []).map((p) => p.Prefix.slice(INBOX.length, -1)).filter((id) => ID.test(id)).sort();
+    let workerDown = false;
     for (const id of ids) {
       let r;
       try { r = await readReq(id); } catch { continue; }
@@ -541,7 +552,7 @@ async function main() {
       // A run that died mid-way (laptop closed, VPS restarted) goes back in the queue.
       if (r.status === 'working' && Date.now() - Date.parse(r.updatedAt) > 3.5 * 3600e3) r.status = 'pending';
       try {
-        if (r.status === 'pending') await handlePending(r);
+        if (r.status === 'pending') { if (!workerDown) workerDown = (await handlePending(r)) === 'worker-down'; }
         else if (r.status === 'approved') await handleApproved(r);
         else if (r.status === 'removed') await handleRemoved(r);
       } catch (e) {
@@ -553,6 +564,12 @@ async function main() {
       }
     }
     pruneOrphans(ids);
+    if (workerDown) {
+      // Studio shows the worker as unavailable; uploads still queue.
+      await heartbeat('error');
+      process.exitCode = 1;
+      return;
+    }
     if (process.env.ART_HEALTHCHECK_URL) await fetch(process.env.ART_HEALTHCHECK_URL, { signal: AbortSignal.timeout(10_000) }).catch(() => {});
   } finally {
     if (process.exitCode !== 1) await heartbeat('idle');

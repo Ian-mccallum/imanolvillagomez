@@ -193,14 +193,26 @@ Cursor runs with its sandbox enabled. Ubuntu's user namespace restrictions need
 an AppArmor profile for its exact `cursorsandbox` executable. The installed
 `/etc/apparmor.d/nol-cursor-sandbox` uses Ubuntu's `bwrap-userns-restrict` policy,
 with only the executable and profile names changed; child capabilities stay denied.
-A Cursor upgrade that changes the executable path needs that profile updated.
+Cursor updates itself (no off switch) into a new `versions/<v>/` directory, so the
+profile matches `/home/nolai/.local/share/cursor-agent/versions/*/cursorsandbox`.
+This grants nothing extra: nolai owns those files either way. A profile pinned to
+one version broke every drop after an update on Nov 5, 2026 (drops failed in
+seconds with "Sandbox mode is enabled but not available" in the drop's log).
+`nol-studio-doctor` fails if the profile isn't the versioned glob.
 The global `kernel.apparmor_restrict_unprivileged_userns` remains enabled.
 
 When switching providers, stop `nol-studio.timer`, wait for any active service to
 finish, install the updated root-owned wrapper, authenticate the selected provider,
 then restart the timer. Keep the laptop timer off. Verify a sandboxed prompt and
 result-file write before resuming. Do not send real drops through an exhausted
-provider. The provider is selected explicitly; there is no automatic paid fallback.
+provider.
+
+**Claude backup:** when Cursor or Codex exits without writing `result.json`
+(self-update, sandbox, login, quota), `nolai-run` runs Claude Code in the same
+worktree with the original prompt, on the subscription token in `nolai.env`
+(API keys are always unset, so it never bills usage credits). If that also
+exits within two minutes without a result, the runner keeps the drop `pending`,
+stops taking new drops that run, marks the worker unavailable and emails Ian.
 
 ## Operating it
 

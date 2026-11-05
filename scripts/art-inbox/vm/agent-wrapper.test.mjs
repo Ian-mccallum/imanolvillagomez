@@ -16,12 +16,23 @@ const src = readFileSync(new URL('./nolai-run', import.meta.url), 'utf8')
   .replace('PATH=/home/nolai/.local/bin:/usr/local/bin:/usr/bin:/bin', `PATH=${bin}:/usr/bin:/bin`);
 const wrapper = join(root, 'wrapper');
 writeFileSync(wrapper, src);
-for (const name of ['agent', 'codex', 'claude'])
+for (const name of ['agent', 'codex'])
   writeFileSync(
     join(bin, name),
-    '#!/usr/bin/python3\nimport json,sys\nprint(json.dumps(sys.argv[1:]))\n',
+    `#!/usr/bin/python3
+import json,os,sys
+a=sys.argv[1:]
+print(json.dumps(a))
+if os.environ.get('FAKE_RESULT'): open(os.path.join(a[a.index('--add-dir')+1],'result.json'),'w').write('{}')
+sys.exit(int(os.environ.get('FAKE_EXIT','0')))
+`,
     { mode: 0o755 }
   );
+writeFileSync(
+  join(bin, 'claude'),
+  '#!/usr/bin/python3\nimport json,sys\nprint(json.dumps(sys.argv[1:]))\n',
+  { mode: 0o755 }
+);
 const prompt = '/imanol-publish\nTitle: test $literal `code` "quotes"';
 const args = [
   '-p',
@@ -50,6 +61,26 @@ try {
       );
     }
     console.log(`PASS ${provider}: arguments, skill, and sandbox`);
+  }
+  for (const provider of ['cursor', 'codex']) {
+    writeFileSync(join(root, 'env'), `ART_AGENT=${provider}\nCLAUDE_CODE_OAUTH_TOKEN=test\n`);
+    const run = (env) => {
+      rmSync(join(extra, 'result.json'), { force: true });
+      const r = spawnSync('bash', [wrapper, wt, 'claude', ...args], {
+        encoding: 'utf8',
+        env: { ...process.env, ...env },
+      });
+      return { ...r, lines: r.stdout.trim().split('\n').map((l) => JSON.parse(l)) };
+    };
+    const died = run({ FAKE_EXIT: '1' });
+    assert.equal(died.status, 0, died.stderr);
+    assert.equal(died.lines.length, 2);
+    assert.deepEqual(died.lines[1], args);
+    assert.match(died.stderr, /running Claude instead/);
+    const finished = run({ FAKE_EXIT: '1', FAKE_RESULT: '1' });
+    assert.equal(finished.status, 1);
+    assert.equal(finished.lines.length, 1);
+    console.log(`PASS ${provider}: Claude takes over only when there is no result`);
   }
   writeFileSync(join(root, 'env'), 'ART_AGENT=invalid\n');
   assert.equal(spawnSync('bash', [wrapper, wt, 'claude', ...args]).status, 64);
