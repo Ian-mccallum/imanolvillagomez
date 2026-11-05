@@ -127,13 +127,15 @@ The details dialog is centered on desktop and bottom-aligned on mobile, with scr
 
 ## Elevation & Depth
 
-Rows and reply/confirmation groups remain flat. Replies and confirmations use a quiet left border, without filled cards. The upload canvas has a subtle dashed border. The dock is a bordered dark layer. Only the details dialog uses a blurred backdrop and deep shadow; exact shadow and motion values are in `.impeccable/design.json`.
+Rows and reply/confirmation groups remain flat. Replies and confirmations use a quiet left border, without filled cards. The upload canvas has a subtle dashed border. The dock is a bordered dark layer. The account disclosure has a compact floating panel shadow; the details dialog uses a blurred backdrop and deeper shadow. Exact shadow and motion values are in `.impeccable/design.json`.
 
 ## Shapes
 
 Ordinary buttons, search, filters and upload canvas use compact control corners. Navigation and dock have slightly larger compact corners. Status labels have no badge container. The existing details dialog retains larger corners and pill controls; keep these scoped to that dialog.
 
 ## Components
+
+**Account.** Use a small native disclosure in the header for sign-out and quick sign-in setup. Keep idle processing availability inside it; show active work and connection problems in the header. Escape returns focus to the trigger. Save a draft before signing out and keep it open on save failure. Sign-in/out use a brief fade.
 
 **Buttons.** Compact controls have minimum height (38px), medium-weight Arial, red primary fill or a bordered secondary treatment. Primary hover brightens; secondary hover changes tone and border. Workspace focus is an outline (2px) offset (5px). Disabled buttons use opacity (0.5) and a not-allowed cursor.
 

@@ -1149,3 +1149,104 @@
     padding-left: 36px;
   }
 }
+.studio-header-status {
+  font-size: 12px;
+  color: #bbb;
+}
+.studio-account {
+  position: relative;
+}
+.studio-account > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #dedede;
+  font-size: 13px;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.studio-account > summary::-webkit-details-marker {
+  display: none;
+}
+.studio-account > summary:hover,
+.studio-account[open] > summary {
+  background: #171717;
+  border-color: #303030;
+}
+.studio-account-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: min(260px, calc(100vw - 40px));
+  padding: 16px;
+  background: #151515;
+  border: 1px solid #353535;
+  border-radius: 5px;
+  box-shadow: 0 12px 36px #0008;
+  color: #dedede;
+}
+.studio-account-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.studio-account-panel dl {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #333;
+}
+.studio-account-panel dt {
+  color: #aaa;
+}
+.studio-account-panel dd {
+  text-align: right;
+}
+.studio-account-panel button {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  text-align: left;
+  border-radius: 3px;
+  font-size: 13px;
+}
+.studio-account-panel button:hover:not(:disabled) {
+  background: #242424;
+}
+.studio-account-note {
+  font-size: 12px;
+  color: #aaa;
+  margin: 8px 8px 0;
+  line-height: 1.5;
+}
+.studio-account-error {
+  font-size: 12px;
+  color: #ffb3ab;
+  margin: 12px 8px 0;
+}
+@media (max-width: 700px) {
+  .studio-header-actions {
+    gap: 12px;
+  }
+  .studio-header-status {
+    max-width: 120px;
+    text-align: right;
+    font-size: 11px;
+  }
+  .studio-account > summary {
+    font-size: 12px;
+    padding-right: 0;
+  }
+  .studio-account-panel {
+    right: 0;
+  }
+}
