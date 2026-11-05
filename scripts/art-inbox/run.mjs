@@ -30,6 +30,7 @@ import {
 import { dirname, join, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
+import { preparePreview } from './preview-state.mjs';
 
 const SCRIPT = fileURLToPath(import.meta.url);
 const REPO = resolve(dirname(SCRIPT), '../..');
@@ -387,24 +388,6 @@ function readResult(path) {
 }
 const str = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
 
-// Vercel reports builds as commit statuses, not GitHub deployments, and its
-// branch aliases get hashed when long — so ask Vercel for the real URL.
-async function previewUrl(branch) {
-  const token = process.env.VERCEL_TOKEN;
-  if (!token) return null;
-  const q = new URLSearchParams({ app: 'imanolvillagomez', limit: '1', 'meta-githubCommitRef': branch });
-  for (let i = 0; i < 60; i++) {
-    try {
-      const res = await fetch(`https://api.vercel.com/v6/deployments?${q}`, { headers: { Authorization: `Bearer ${token}` } });
-      const d = (await res.json()).deployments?.[0];
-      if (d?.state === 'READY') return `https://${d.url}`;
-      if (d?.state === 'ERROR' || d?.state === 'CANCELED') return null;
-    } catch { /* network blip — retry */ }
-    await new Promise((res) => setTimeout(res, 15000));
-  }
-  return null;
-}
-
 // ─── states ─────────────────────────────────────────────────────────────────
 
 async function handlePending(r) {
@@ -446,12 +429,13 @@ async function handlePending(r) {
       await notify(`${r.id} blocked before preview:\n${problems.slice(0, 20).join('\n')}`);
     } else {
       git(REPO, 'push', '-q', '--force-with-lease', '-u', 'origin', branch);
-      r.status = 'preview';
       r.summary = summary;
       r.uploaded = [...new Set([...(r.uploaded ?? []), ...videos.uploaded])];
-      r.previewSha = git(REPO, 'rev-parse', branch);
-      r.previewUrl = (await previewUrl(branch)) ?? undefined;
-      await notify(`${r.id} preview ready${videos.uploaded.length ? ` (${videos.uploaded.length} video${videos.uploaded.length > 1 ? 's' : ''} uploaded)` : ''}`);
+      const previewError = await preparePreview(r, {
+        branch, sha: git(REPO, 'rev-parse', branch), token: process.env.VERCEL_TOKEN,
+      });
+      if (previewError) await notify(`${r.id} preview failed: ${previewError}`);
+      else await notify(`${r.id} preview ready${videos.uploaded.length ? ` (${videos.uploaded.length} video${videos.uploaded.length > 1 ? 's' : ''} uploaded)` : ''}`);
     }
   } else {
     r.status = 'failed';

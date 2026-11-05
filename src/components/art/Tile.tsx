@@ -1,5 +1,7 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { mediaKind } from './mediaPreview';
+import { recoverImagePreview } from './imageDecoders';
 
 export interface Item {
   id: string;
@@ -14,9 +16,6 @@ export interface Item {
   /** instructions for just this file */
   note: string;
 }
-
-const kind = (f: File) =>
-  f.type.startsWith('video/') ? 'video' : f.type.startsWith('image/') ? 'image' : 'other';
 
 const SPRING = { type: 'spring', stiffness: 170, damping: 20, mass: 0.9 } as const;
 
@@ -48,7 +47,41 @@ export const Tile = forwardRef<
   }
 >(({ item, index, busy, selected, selecting, inherit, onRemove, onSelect, onChange }, ref) => {
   const [noteOpen, setNoteOpen] = useState(!!item.note);
-  const k = kind(item.file);
+  const k = mediaKind(item.file);
+  const [preview, setPreview] = useState<'loading' | 'ready' | 'unavailable'>(
+    k === 'other' ? 'unavailable' : 'loading'
+  );
+  const [previewUrl, setPreviewUrl] = useState(item.url);
+  const attempted = useRef(false);
+  const generated = useRef<string>();
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (generated.current) URL.revokeObjectURL(generated.current);
+    };
+  }, []);
+  const recover = async () => {
+    if (attempted.current || k !== 'image') {
+      setPreview('unavailable');
+      return;
+    }
+    attempted.current = true;
+    try {
+      const blob = await recoverImagePreview(item.file);
+      if (!mounted.current) return;
+      if (!blob) {
+        setPreview('unavailable');
+        return;
+      }
+      generated.current = URL.createObjectURL(blob);
+      setPreviewUrl(generated.current);
+    } catch (error) {
+      console.warn('Studio preview decoder failed:', error);
+      if (mounted.current) setPreview('unavailable');
+    }
+  };
   const p = item.file.size ? item.loaded / item.file.size : 0;
   const done = p >= 1;
   const ext = item.file.name.split('.').pop()?.toUpperCase().slice(0, 4) ?? '';
@@ -78,23 +111,42 @@ export const Tile = forwardRef<
       className={`group relative mb-3 overflow-hidden bg-[#111] outline outline-2 -outline-offset-2 transition-[outline-color] md:mb-4 ${selected ? 'outline-[#dc2626]' : 'outline-transparent'}`}
     >
       <div className="relative" onClick={selecting && !busy ? onSelect : undefined}>
-        {k === 'video' ? (
-          <video
-            src={item.url}
-            muted
-            loop
-            playsInline
-            autoPlay
-            preload="metadata"
-            className="block w-full"
-          />
-        ) : k === 'image' ? (
-          <img src={item.url} alt="" className="block w-full" />
-        ) : (
-          <div className="flex aspect-[4/5] items-center justify-center font-logo text-[18vw] leading-none text-[#C9C8C7]/90 sm:text-[9vw] lg:text-[5.5vw]">
-            {ext}
-          </div>
-        )}
+        <div className={`studio-media-preview ${preview !== 'ready' ? 'has-placeholder' : ''}`}>
+          {preview === 'unavailable' ? (
+            <div className="studio-preview-fallback">
+              <span className="studio-preview-extension">{ext || 'FILE'}</span>
+              <p>Preview unavailable in this browser.</p>
+              <p>Your original file can still be sent.</p>
+              <a href={item.url} download={item.file.name} onClick={(e) => e.stopPropagation()}>
+                Open original
+              </a>
+            </div>
+          ) : k === 'video' ? (
+            <video
+              src={previewUrl}
+              muted
+              playsInline
+              controls
+              preload="metadata"
+              onLoadedMetadata={() => setPreview('ready')}
+              onLoadedData={() => setPreview('ready')}
+              onError={recover}
+              className="block w-full"
+              aria-label={`Preview of ${item.file.name}`}
+            />
+          ) : (
+            <img
+              src={previewUrl}
+              alt={`Preview of ${item.file.name}`}
+              className="block w-full"
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setPreview('ready')}
+              onError={recover}
+            />
+          )}
+          {preview === 'loading' && <div className="studio-preview-loading">Loading preview…</div>}
+        </div>
 
         {/* veil — lifts from the bottom with upload progress */}
         <motion.div
