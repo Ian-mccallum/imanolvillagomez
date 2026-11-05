@@ -27,3 +27,9 @@ Sources: `src/components/art/studio.css`, `Workspace.tsx`, `Queue.tsx`, `Details
 Idle availability lives in the account disclosure rather than a persistent “Studio is ready” banner. Processing and connection problems remain visible in the header. The native account disclosure supports Escape and outside-click dismissal; sign-out waits for draft persistence, shows pending/error feedback, and refuses to leave if an unsent draft cannot be saved. A 120ms fade replaces the shutter wipe.
 
 Account captures: `.impeccable/review/account-desktop.jpg` (1268 × 713, closed header) and `account-mobile.jpg` (390 × 713, open panel). Escape/focus return and sign-out browser checks passed; build and touched-file lint passed. These checks do not imply whole-interface visual approval.
+
+## Character finish
+
+The final surface adds warm foreground/muted grays, coral upload registration corners and active-navigation accents, a stacked-sheet hover fan, sage Live and amber working/publishing status. Files & notes hides the browser marker and uses a coral plus-to-cross indicator with a (44px) summary target. Pointer and Enter toggles, the hidden marker and no overflow at (390px) were verified. Finite feedback runs (100–240ms); view fades are opacity-only (180ms), disclosure/account reveals (150ms). Reduced motion removes animations and decorative spatial transforms.
+
+Current character captures: `.impeccable/review/character-desktop.jpg`, `character-mobile.jpg` and `character-upload-desktop.jpg` (synthetic fixtures). Independent `character_finish_review` verdict: ship, with no material findings; the minor target-size finding was corrected to (44px). The detector still reports (92) findings, mostly legacy surfaces, docs and Arial; do not claim a clean detector result or production upload/publication verification.
