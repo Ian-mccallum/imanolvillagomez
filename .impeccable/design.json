@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-04T21:45:17.366139+00:00",
+  "generatedAt": "2026-11-05T00:53:35.217136+00:00",
   "title": "Design System: NOL Studio",
   "extensions": {
     "colorMeta": {
@@ -246,6 +246,11 @@
         "name": "details-modal",
         "value": "0 40px 120px rgba(0,0,0,.8)",
         "purpose": "Details dialog only; workspace panels stay flat."
+      },
+      {
+        "name": "account-panel",
+        "value": "0 12px 36px #0008",
+        "purpose": "Compact floating native account disclosure panel."
       }
     ],
     "motion": [
@@ -263,6 +268,11 @@
         "name": "details-spring",
         "value": "stiffness:260;damping:28",
         "purpose": "Existing details dialog spring."
+      },
+      {
+        "name": "session-fade",
+        "value": "120ms",
+        "purpose": "Sign-in/out fade replaces the shutter wipe."
       }
     ],
     "breakpoints": [
@@ -325,6 +335,13 @@
       "description": "Flat divided row, normal-case Arial name and unboxed status text.",
       "html": "<article class=\"ds-drop\"><header><h3>New work</h3><span>Ready to review</span></header><p>3 files \u00b7 Chicago</p></article>",
       "css": ".ds-drop{font-family:Arial,Helvetica,sans-serif;color:#dedede;border-top:1px solid #282828;padding:23px 0}.ds-drop header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.ds-drop h3{font:500 16px/1.4 Arial,Helvetica,sans-serif;letter-spacing:-.015em;margin:0 0 6px}.ds-drop span{font-size:12px;padding:0;border-radius:0;background:none;color:#dedede;font-weight:400}.ds-drop span:before{content:\"\u2022\";padding-right:6px}.ds-drop p{font-size:13px;color:#969696;margin:0}@media(max-width:700px){.ds-drop header{gap:12px}.ds-drop h3{font-size:15px}.ds-drop span{font-size:11px;max-width:100px;text-align:right}}"
+    },
+    {
+      "name": "Account disclosure",
+      "kind": "custom",
+      "description": "Native Nol disclosure for idle processing status, optional quick sign-in setup and sign-out. Escape closes and returns focus; outside click closes. Sign-out waits for draft saving and stays open on failure. Active work/problems stay in the header.",
+      "html": "<details class=\"ds-account\"><summary>Nol <span aria-hidden=\"true\">\u2304</span></summary><div class=\"ds-account-panel\"><p>Nol\u2019s studio</p><dl><dt>Processing</dt><dd>Studio is ready</dd></dl><button>Sign out</button></div></details>",
+      "css": ".ds-account{position:relative;font-family:Arial,Helvetica,sans-serif;color:#dedede}.ds-account>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;color:#dedede;font-size:13px;min-height:36px;padding:6px 9px;border:1px solid transparent;border-radius:4px}.ds-account>summary::-webkit-details-marker{display:none}.ds-account>summary:hover,.ds-account[open]>summary{background:#171717;border-color:#303030}.ds-account-panel{position:absolute;top:calc(100% + 8px);right:0;width:min(260px,calc(100vw - 40px));padding:16px;border:1px solid #353535;border-radius:5px;background:#151515;box-shadow:0 12px 36px #0008}.ds-account-panel p{font-size:13px;font-weight:600;margin:0 0 14px}.ds-account-panel dl{display:flex;justify-content:space-between;gap:16px;font-size:12px;margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid #333}.ds-account-panel dt{color:#aaa}.ds-account-panel dd{text-align:right;margin:0}.ds-account-panel button{display:block;width:100%;min-height:40px;padding:8px;text-align:left;border:0;border-radius:3px;background:none;color:inherit;font-family:inherit;font-size:13px}.ds-account-panel button:hover:not(:disabled){background:#242424}.ds-account summary:focus-visible,.ds-account button:focus-visible{outline:2px solid #ef6058;outline-offset:5px}.ds-account button:disabled{opacity:.5;cursor:not-allowed}@media(max-width:700px){.ds-account>summary{font-size:12px;padding-right:0}}"
     }
   ],
   "narrative": {

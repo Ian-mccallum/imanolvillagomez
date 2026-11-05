@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { workerOnline, type WorkerHeartbeat } from './studioModel';
 
 export type StudioView = 'upload' | 'drops' | 'help';
@@ -21,23 +22,59 @@ export function WorkspaceHeader({
   worker: WorkerHeartbeat | null;
   connected: boolean | null;
   onRefresh: () => void;
-  onOut: () => void;
+  onOut: () => void | Promise<void>;
   onBio?: () => void;
   busy: boolean;
 }) {
+  const account = useRef<HTMLDetailsElement>(null);
+  const [leaving, setLeaving] = useState(false);
+  const [accountError, setAccountError] = useState('');
   const online = workerOnline(worker);
-  const label =
+  const workerLabel =
     connected === false
       ? 'Connection lost'
       : connected === null
-        ? 'Connecting…'
+        ? 'Checking…'
         : !worker
-          ? 'Worker status unavailable'
+          ? 'Status unavailable'
           : online
             ? worker.state === 'working'
-              ? 'Preparing work'
-              : 'Studio is ready'
-            : 'Worker is away';
+              ? 'Processing a drop'
+              : 'Available'
+            : 'Offline';
+  const showStatus =
+    connected === false ||
+    (connected === true && !!worker && (!online || worker.state === 'working'));
+  useEffect(() => {
+    const outside = (event: PointerEvent) => {
+      if (account.current && !account.current.contains(event.target as Node))
+        account.current.open = false;
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && account.current?.open) {
+        account.current.open = false;
+        account.current.querySelector('summary')?.focus();
+      }
+    };
+    window.addEventListener('pointerdown', outside);
+    window.addEventListener('keydown', escape);
+    return () => {
+      window.removeEventListener('pointerdown', outside);
+      window.removeEventListener('keydown', escape);
+    };
+  }, []);
+  const signOut = async () => {
+    if (busy || leaving) return;
+    setLeaving(true);
+    setAccountError('');
+    try {
+      await onOut();
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : 'Could not sign out. Try again.');
+    } finally {
+      setLeaving(false);
+    }
+  };
   return (
     <>
       <header className="studio-header">
@@ -52,13 +89,11 @@ export function WorkspaceHeader({
           <span>Studio</span>
         </a>
         <div className="studio-header-actions">
-          <span
-            className={`studio-availability ${online && connected ? 'is-online' : ''}`}
-            role="status"
-          >
-            <i aria-hidden />
-            {label}
-          </span>
+          {showStatus && (
+            <span className="studio-header-status" role="status">
+              {workerLabel}
+            </span>
+          )}
           <a
             href="https://www.imanolvillagomez.com"
             target="_blank"
@@ -67,14 +102,48 @@ export function WorkspaceHeader({
           >
             View website <span aria-hidden>↗</span>
           </a>
-          {onBio && (
-            <button className="studio-text-link" onClick={onBio}>
-              Quick sign-in
-            </button>
-          )}
-          <button className="studio-text-link" onClick={onOut} disabled={busy}>
-            Sign out
-          </button>
+          <details className="studio-account" ref={account}>
+            <summary aria-label="Studio account">
+              Nol{' '}
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                aria-hidden
+              >
+                <path d="m4 6 4 4 4-4" />
+              </svg>
+            </summary>
+            <div className="studio-account-panel">
+              <p className="studio-account-name">Nol’s studio</p>
+              <dl>
+                <dt>Processing</dt>
+                <dd>{workerLabel}</dd>
+              </dl>
+              {onBio && (
+                <button
+                  onClick={() => {
+                    if (account.current) account.current.open = false;
+                    onBio();
+                  }}
+                >
+                  Set up quick sign-in
+                </button>
+              )}
+              <button onClick={signOut} disabled={busy || leaving}>
+                {leaving ? (draftCount > 0 ? 'Saving draft…' : 'Signing out…') : 'Sign out'}
+              </button>
+              {busy && <p className="studio-account-note">Finish uploading before signing out.</p>}
+              {accountError && (
+                <p className="studio-account-error" role="alert">
+                  {accountError}
+                </p>
+              )}
+            </div>
+          </details>
         </div>
       </header>
       <nav className="studio-navigation" aria-label="Studio">

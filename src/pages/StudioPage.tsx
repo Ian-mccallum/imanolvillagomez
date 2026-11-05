@@ -70,14 +70,14 @@ const BIO = 'art-bio';
 const BIO_NO = 'art-bio-no';
 const WELCOMED = 'studio-welcomed';
 
-/** Camera-shutter wipe between the lock and the room. */
+/** A short transition keeps sign-in and sign-out immediate. */
 const Shutter = ({ children, k }: { children: ReactNode; k: string }) => (
   <motion.div
     key={k}
-    initial={{ clipPath: 'inset(50% 0 50% 0)' }}
-    animate={{ clipPath: 'inset(0% 0 0% 0)' }}
-    exit={{ clipPath: 'inset(50% 0 50% 0)' }}
-    transition={{ duration: 0.8, ease: EASE }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.12 }}
     className="min-h-[100svh]"
   >
     {children}
@@ -1035,7 +1035,8 @@ const Room = ({
   );
 
   const persistDraft = async () => {
-    if (!practice && items.length) await saveDraft({ items, groups, title, city, placement, note });
+    if (practice || !items.length) return true;
+    return (await saveDraft({ items, groups, title, city, placement, note })) !== undefined;
   };
   const changeView = (next: StudioView) => {
     setView(next);
@@ -1054,7 +1055,10 @@ const Room = ({
         onRefresh={refresh}
         busy={busy}
         onOut={async () => {
-          await persistDraft();
+          if (!(await persistDraft()))
+            throw new Error(
+              'Your draft could not be saved. Keep this tab open and send it before signing out.'
+            );
           onOut();
         }}
         onBio={onBio}
@@ -1072,7 +1076,10 @@ const Room = ({
       {view === 'help' && (
         <StudioHelp
           onPractice={async () => {
-            await persistDraft();
+            if (!(await persistDraft())) {
+              setUploadError('Your draft could not be saved. Send it before starting practice.');
+              return;
+            }
             onHelp();
           }}
           onNewDrop={() => changeView('upload')}
@@ -1528,7 +1535,7 @@ export const StudioPage = () => {
         {!open && <Backdrop field={field} intensity={1} />}
         <AnimatePresence mode="wait">
           {open ? (
-            <Shutter k="room">
+            <Shutter key="room" k="room">
               <Room
                 key={roomKey}
                 heat={heat}
@@ -1549,7 +1556,7 @@ export const StudioPage = () => {
               />
             </Shutter>
           ) : (
-            <Shutter k="lock">
+            <Shutter key="lock" k="lock">
               <Lock heat={heat} onOpen={onOpen} />
             </Shutter>
           )}
