@@ -54,7 +54,7 @@ const saveRecent = (d: Details) => {
 // ─── pieces ────────────────────────────────────────────────────────────────
 
 const Label = ({ children }: { children: string }) => (
-  <span className="text-xs font-semibold text-[#C9C8C7]/80">{children}</span>
+  <span className="studio-field-label">{children}</span>
 );
 
 const Chips = ({
@@ -67,18 +67,15 @@ const Chips = ({
   onPick: (v: string) => void;
 }) =>
   list.length ? (
-    <div className="flex flex-wrap gap-1.5 pt-2">
+    <div className="studio-chips">
       {list.map((v) => (
         <motion.button
           key={v}
           type="button"
           whileTap={{ scale: 0.94 }}
           onClick={() => onPick(v)}
-          className={`max-w-full truncate rounded-full border px-3 py-1 font-mono text-[11px] transition-colors ${
-            v === current
-              ? 'border-[#dc2626] bg-[#dc2626] text-black'
-              : 'border-[#C9C8C7]/15 text-[#C9C8C7]/60 hover:border-[#C9C8C7]/40 hover:text-[#C9C8C7]'
-          }`}
+          aria-pressed={v === current}
+          className="studio-chip"
         >
           {v.length > 48 ? `${v.slice(0, 48)}…` : v}
         </motion.button>
@@ -86,8 +83,7 @@ const Chips = ({
     </div>
   ) : null;
 
-const input =
-  'w-full border-b border-[#C9C8C7]/30 bg-transparent py-2 text-xl font-medium text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/60 focus:border-[#dc2626]';
+const input = 'studio-input studio-input-lg';
 
 // ─── modal ─────────────────────────────────────────────────────────────────
 
@@ -99,6 +95,7 @@ export const DetailsModal = ({
   onClose,
   error,
   remember = true,
+  artists = [],
 }: {
   value: Details;
   onChange: (patch: Partial<Details>) => void;
@@ -108,6 +105,8 @@ export const DetailsModal = ({
   error: boolean;
   /** off for the tour's practice drop */
   remember?: boolean;
+  /** artists in site order, only those with files */
+  artists?: { name: string; count: number }[];
 }) => {
   const isPresent = useIsPresent();
   const recent = useRef(loadRecent()).current;
@@ -149,18 +148,14 @@ export const DetailsModal = ({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-end justify-center md:items-center"
+      className="studio-modal-wrap fixed inset-0 z-50 flex items-end justify-center md:items-center"
       style={{ pointerEvents: isPresent ? 'auto' : 'none' }}
       aria-hidden={!isPresent || undefined}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <motion.div
-        className="absolute inset-0 bg-black/70 backdrop-blur-md"
-        onClick={onClose}
-        aria-hidden
-      />
+      <motion.div className="studio-modal-scrim absolute inset-0" onClick={onClose} aria-hidden />
       <motion.div
         ref={dialog}
         role="dialog"
@@ -170,19 +165,21 @@ export const DetailsModal = ({
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 40, opacity: 0, scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-        className="relative flex max-h-[92svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-[#C9C8C7]/10 bg-[#0b0b0b] shadow-[0_40px_120px_rgba(0,0,0,.8)] md:rounded-3xl"
+        className="studio-modal relative flex max-h-[92svh] w-full max-w-2xl flex-col overflow-hidden"
       >
-        <header className="flex items-center justify-between px-6 pb-2 pt-5 md:px-8">
-          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#C9C8C7]/50">
-            <span className="tabular-nums text-[#C9C8C7]">{String(count).padStart(2, '0')}</span>{' '}
-            files
-          </span>
-          <div className="flex items-center gap-4">
+        <header className="studio-modal-head">
+          <div>
+            <h2 className="studio-modal-title">Review &amp; send</h2>
+            <span className="studio-modal-sub">
+              <span className="tabular-nums">{count}</span> {count === 1 ? 'file' : 'files'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
             {recent.last && (
               <button
                 type="button"
                 onClick={() => onChange(recent.last!)}
-                className="text-sm font-medium text-[#C9C8C7]/80 transition-colors hover:text-[#C9C8C7]"
+                className="studio-button studio-button-ghost studio-button-sm"
               >
                 ↺ same as last
               </button>
@@ -191,14 +188,40 @@ export const DetailsModal = ({
               type="button"
               aria-label="close"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#C9C8C7]/80 transition-colors hover:bg-[#C9C8C7]/10 hover:text-[#C9C8C7]"
+              className="studio-icon-button"
             >
-              ×
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
             </button>
           </div>
         </header>
 
-        <div className="flex-1 space-y-7 overflow-y-auto px-6 pb-6 pt-3 md:px-8">
+        <div className="studio-modal-body flex-1 space-y-6 overflow-y-auto">
+          {artists.length > 0 && (
+            <div className="studio-modal-artists">
+              <Label>{artists.length > 1 ? 'Artists, in this order' : 'Artist'}</Label>
+              <ol>
+                {artists.map((a, n) => (
+                  <li key={n}>
+                    <span>{a.name}</span>
+                    <span className="studio-muted">
+                      {a.count} {a.count === 1 ? 'file' : 'files'}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
           <motion.label
             className="block"
             initial={{ opacity: 0, y: 12 }}
@@ -221,7 +244,7 @@ export const DetailsModal = ({
           </motion.label>
 
           <motion.div
-            className="grid gap-7 md:grid-cols-[1fr_auto]"
+            className="grid gap-6 md:grid-cols-[1fr_auto]"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: EASE, delay: 0.1 }}
@@ -242,26 +265,23 @@ export const DetailsModal = ({
             </label>
             <div>
               <Label>placement</Label>
-              <div className="mt-2 flex rounded-full border border-[#C9C8C7]/15 p-1">
+              <div className="studio-segmented mt-2" role="group" aria-label="placement">
                 {(['top', 'anywhere'] as const).map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => onChange({ placement: p })}
-                    className="relative px-5 py-2 font-mono text-[11px] uppercase tracking-[0.2em]"
+                    aria-pressed={value.placement === p}
+                    className="studio-segmented-option"
                   >
                     {value.placement === p && (
                       <motion.span
                         layoutId="placement-pill"
-                        className="absolute inset-0 rounded-full bg-[#C9C8C7]"
+                        className="studio-segmented-pill"
                         transition={{ type: 'spring', stiffness: 500, damping: 34 }}
                       />
                     )}
-                    <span
-                      className={`relative ${value.placement === p ? 'text-black' : 'text-[#C9C8C7]/80'}`}
-                    >
-                      {p === 'anywhere' ? 'any' : p}
-                    </span>
+                    <span className="relative">{p === 'anywhere' ? 'Anywhere' : 'Top'}</span>
                   </button>
                 ))}
               </div>
@@ -280,22 +300,20 @@ export const DetailsModal = ({
               onChange={(e) => onChange({ note: e.target.value })}
               rows={4}
               placeholder="Anything I should know: order, what goes where, which to skip."
-              className="mt-2 w-full resize-none rounded-xl border border-[#C9C8C7]/10 bg-[#C9C8C7]/[0.03] p-4 font-mono text-[13px] leading-relaxed text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/25 focus:border-[#dc2626]/60"
+              className="studio-input studio-textarea"
             />
             <Chips list={recent.note} current={value.note} onPick={(note) => onChange({ note })} />
           </motion.label>
         </div>
 
-        <footer className="border-t border-[#C9C8C7]/10 px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 md:px-8">
+        <footer className="studio-modal-foot">
           <motion.button
             type="button"
             onClick={send}
-            whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
-            className="group relative w-full overflow-hidden rounded-full bg-[#ef6058] py-4 text-xl font-semibold text-black"
+            className="studio-button studio-button-primary studio-button-lg w-full"
           >
-            <span className="absolute inset-0 origin-bottom scale-y-0 bg-[#ff7972] transition-transform duration-300 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-y-100" />
-            <span className="relative">{error ? 'retry' : 'send'}</span>
+            {error ? 'Retry' : 'Send'}
           </motion.button>
         </footer>
       </motion.div>

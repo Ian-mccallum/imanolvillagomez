@@ -22,8 +22,7 @@ const SPRING = { type: 'spring', stiffness: 170, damping: 20, mass: 0.9 } as con
 const mb = (n: number) =>
   n > 1e9 ? `${(n / 1e9).toFixed(1)}G` : `${Math.max(1, Math.round(n / 1e6))}M`;
 
-const inputCls =
-  'w-full min-w-0 bg-transparent font-mono text-[12px] text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/80 disabled:opacity-60';
+const inputCls = 'studio-tile-input';
 
 /**
  * One scrapbook tile. A dark veil lifts as bytes land. Underneath: a name for
@@ -108,7 +107,7 @@ export const Tile = forwardRef<
       }}
       whileHover={busy ? undefined : { rotate: 0, scale: 1.025, zIndex: 2 }}
       transition={SPRING}
-      className={`group relative mb-3 overflow-hidden bg-[#111] outline outline-2 -outline-offset-2 transition-[outline-color] md:mb-4 ${selected ? 'outline-[#dc2626]' : 'outline-transparent'}`}
+      className={`studio-tile group relative mb-3 overflow-hidden md:mb-4${selected ? ' is-selected' : ''}`}
     >
       <div className="relative" onClick={selecting && !busy ? onSelect : undefined}>
         <div className={`studio-media-preview ${preview !== 'ready' ? 'has-placeholder' : ''}`}>
@@ -159,32 +158,32 @@ export const Tile = forwardRef<
         {busy && !done && (
           <motion.div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 h-px bg-[#dc2626] shadow-[0_0_12px_2px_rgba(220,38,38,.7)]"
+            className="studio-tile-scan pointer-events-none absolute inset-x-0 h-px"
             animate={{ top: `${(1 - p) * 100}%` }}
             transition={{ type: 'spring', stiffness: 90, damping: 22 }}
           />
         )}
 
-        <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-6 font-mono text-[10px] uppercase tracking-wider text-[#C9C8C7]">
+        <figcaption className="studio-tile-caption pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2">
           <span className="truncate">{item.file.name}</span>
-          <span className="shrink-0 tabular-nums text-[#C9C8C7]/80">
+          <span className="shrink-0 tabular-nums">
             {busy && !done ? `${Math.floor(p * 100)}` : mb(item.file.size)}
           </span>
         </figcaption>
         {selected && (
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[#dc2626]/15" />
+          <div aria-hidden className="studio-tile-selected pointer-events-none absolute inset-0" />
         )}
       </div>
 
       {/* name + instructions for just this one */}
-      <div className="border-t border-[#C9C8C7]/10 px-2 py-1.5">
+      <div className="studio-tile-meta">
         <input
           value={item.label}
           onChange={(e) => onChange({ label: e.target.value })}
           disabled={busy}
           placeholder={inherit || 'name'}
           aria-label={`name for ${item.file.name}`}
-          className={`${inputCls} uppercase tracking-wider`}
+          className={inputCls}
         />
         <AnimatePresence initial={false}>
           {noteOpen ? (
@@ -201,15 +200,11 @@ export const Tile = forwardRef<
               rows={2}
               placeholder="instructions for just this one"
               aria-label={`instructions for ${item.file.name}`}
-              className={`${inputCls} mt-1 resize-none border-t border-[#C9C8C7]/10 pt-1 leading-snug`}
+              className={`${inputCls} studio-tile-note`}
             />
           ) : (
             !busy && (
-              <button
-                type="button"
-                onClick={() => setNoteOpen(true)}
-                className="mt-0.5 font-mono text-[12px] text-[#C9C8C7]/80 transition-colors hover:text-[#C9C8C7]"
-              >
+              <button type="button" onClick={() => setNoteOpen(true)} className="studio-tile-add">
                 + instructions
               </button>
             )
@@ -223,11 +218,25 @@ export const Tile = forwardRef<
           aria-label={`${selected ? 'deselect' : 'select'} ${item.file.name}`}
           aria-pressed={selected}
           onClick={onSelect}
-          className={`absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center bg-black/70 transition-opacity md:group-hover:opacity-100 ${selected || selecting ? 'opacity-100' : 'opacity-100 md:opacity-0'}`}
+          className={`studio-tile-control absolute left-1.5 top-1.5 flex items-center justify-center transition-opacity md:group-hover:opacity-100 ${selected || selecting ? 'opacity-100' : 'opacity-100 md:opacity-0'}`}
         >
-          <span
-            className={`block h-3 w-3 border transition-colors ${selected ? 'border-[#dc2626] bg-[#dc2626]' : 'border-[#C9C8C7]/70'}`}
-          />
+          <span className={`studio-tile-check${selected ? ' is-on' : ''}`}>
+            {selected && (
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="m3.5 8.5 3 3 6-7" />
+              </svg>
+            )}
+          </span>
         </button>
       )}
 
@@ -236,9 +245,20 @@ export const Tile = forwardRef<
           type="button"
           aria-label={`remove ${item.file.name}`}
           onClick={onRemove}
-          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center bg-black/70 font-mono text-sm text-[#C9C8C7] opacity-100 transition-[opacity,background-color] hover:bg-[#dc2626] hover:text-black md:opacity-0 md:group-hover:opacity-100"
+          className="studio-tile-control studio-tile-remove absolute right-1.5 top-1.5 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100"
         >
-          ×
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden
+          >
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
         </button>
       )}
     </motion.figure>

@@ -4,9 +4,21 @@
     {
       "name": "nol-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173,
       "autoPort": true
+    },
+    {
+      "name": "studio-fixture",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "STUDIO_FIXTURE=1 npm run dev -- --port 5175 --strictPort"
+      ],
+      "port": 5175
     }
   ]
 }

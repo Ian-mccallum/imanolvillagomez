@@ -46,6 +46,23 @@ older than six minutes, a working heartbeat older than four hours, or an error
 shows the worker as unavailable. Uploads can still queue while it is offline.
 A network refresh failure is shown separately with **Try again**.
 
+### Drop detail and Insights
+
+**View drop** (or a card's thumbnail strip) opens `#drop/<id>`: every file as a
+thumbnail with whether it went on the site, the original for viewing or download,
+and the drop's history (`history` in `request.json`, written by the API and the
+runner; older drops get one rebuilt from their fields). The browser makes each
+thumbnail at upload (480px WebP, `inbox/<id>/thumbs/<n>.webp`); a failed one never
+blocks the drop. Drops sent before thumbnails existed show their originals when
+they're images under 20 MB. Nothing server-side decodes uploads: that would parse
+untrusted files as the user holding the secrets.
+
+**Insights** (`#insights/7d|30d|90d`) shows visitors from Vercel Web Analytics.
+A daily Vercel cron (`/api/insights-collect`, 09:15 UTC) snapshots today and the
+two days before into `analytics/daily/<date>.json` and rebuilds
+`analytics/summary.json`, which is all the page reads. History outlives Vercel's
+one-month Hobby window. **Update now** reruns it, at most every 10 minutes.
+
 ## Pieces
 
 | Piece | Where |
@@ -115,6 +132,16 @@ Redeploy after changing them.
 
 Deployment Protection → Vercel Authentication must be **off** for previews, or
 Imanol hits a Vercel login on every preview link.
+
+### Insights environment (Production only)
+
+| Variable | Value |
+|---|---|
+| `VERCEL_ANALYTICS_TOKEN` | a Vercel token for the team (read access to Web Analytics) |
+| `CRON_SECRET` | 32+ random characters; Vercel sends it to the cron |
+| `VERCEL_PROJECT_ID` / `VERCEL_TEAM_ID` | optional; the project id defaults to `imanolvillagomez`'s |
+
+Without the token Insights says Ian is connecting it; nothing breaks.
 
 ### R2 CORS
 
@@ -244,6 +271,11 @@ On the VPS: `journalctl -u nol-studio -f`, `sudo systemctl start nol-studio` (ru
 `npm run dev` serves `/api/art` through a dev-only Vite middleware
 (`vite.config.ts`) using `.env`, so `/studio` works on localhost against the
 real R2 bucket.
+
+`STUDIO_FIXTURE=1 npm run dev` (launch config `studio-fixture`, port 5175) runs
+the same API against an in-memory bucket seeded from `fixtures/studio/seed.mjs`:
+sign in with `fixture`. Uploads, thumbnails, drop detail and Insights all work
+there without touching production. Use it for UI work and browser checks.
 
 ### Cleaning up a test drop
 

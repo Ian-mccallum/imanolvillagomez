@@ -1,172 +1,115 @@
 ---
 name: NOL Studio
-description: Compact publishing workspace for adding work, reviewing previews and approving publication.
+description: Private upload workspace — add work, follow previews, publish. Calm premium tool surface that stays recognisably NOL.
 colors:
-  ink: '#111'
-  warmgray: '#e0d9cf'
-  foreground: '#e0d9cf'
-  muted: '#b1aaa0'
-  divider: '#282828'
-  panel: '#0d0d0d'
-  upload-canvas: '#0c0b0a'
-  primary: '#ef6058'
-  primary-hover: '#ff7972'
-  control-border: '#5b5a56'
-  control-hover: '#282826'
-  control-hover-border: '#a6a49e'
-  placeholder: '#a5a39e'
-  selected-filter: '#30302d'
-  status: '#a6a6a6'
-  status-failed-text: '#ef9d96'
-  nav-active: '#1b1b1b'
-  dock: '#151513'
-  file-warmgray: '#c9c8c7'
+  bg: '#0c0c0b'
+  sidebar: '#0f0f0e'
+  surface: '#151514'
+  surface-2: '#1c1c1a'
+  surface-3: '#262623'
+  line: 'rgba(242,236,228,0.07)'
+  line-2: 'rgba(242,236,228,0.12)'
+  line-3: 'rgba(242,236,228,0.22)'
+  text: '#f0ebe4'
+  text-2: '#b8b1a7'
+  text-3: '#8e8880'
+  accent: '#ef6058'
+  accent-hover: '#f37a72'
+  accent-press: '#e0524a'
+  accent-ink: '#1a0b0a'
+  accent-text: '#ff9a92'
+  accent-soft: 'rgba(239,96,88,0.14)'
   status-live: '#becaa0'
   status-working: '#e5c58f'
   status-attention: '#f2b1a5'
+  status-failed: '#ff9a91'
 typography:
+  ui:
+    fontFamily: "'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif"
+    features: "'cv11', 'ss01'; tabular-nums for counts, dates and stats"
   wordmark:
-    fontFamily: '''Archivo Black'', sans-serif'
-    fontSize: 23px
-    lineHeight: 1
+    fontFamily: "'Archivo Black', sans-serif"
+    fontSize: 22px
     letterSpacing: -0.04em
-  headline:
-    fontFamily: Arial, Helvetica, sans-serif
-    fontSize: 24px
-    fontWeight: 600
-    lineHeight: 1.25
-    letterSpacing: -0.035em
-  title:
-    fontFamily: Arial, Helvetica, sans-serif
-    fontSize: 16px
-    fontWeight: 500
-    lineHeight: 1.4
-    letterSpacing: -0.015em
-  body:
-    fontFamily: Arial, Helvetica, sans-serif
-    fontSize: 14px
-    lineHeight: 1.5
-  label:
-    fontFamily: Arial, Helvetica, sans-serif
-    fontSize: 13px
-    fontWeight: 500
-    lineHeight: 1.35
+  scale:
+    page-title: 26px / 650 / -0.022em (22px on phones)
+    card-title: 17px / 600 / -0.012em (drop detail 22px)
+    stat: 36px / 650 / -0.035em (30px on phones)
+    body: 14px / 400 / 1.5
+    label: 13px / 550
+    meta: 12-13px / text-3
+    tab-label: 11px / 550 (phone tab bar)
 rounded:
-  control: 4px
-  navigation: 5px
-  dock: 5px
+  xs: 6px
+  sm: 8px # controls, inputs, nav items
+  md: 10px # segmented control, inner panels, thumbnails
+  lg: 14px # cards, notices, empty states
+  xl: 18px # upload canvas, artist sections, sheet, dock
+  pill: 999px # status, chips, counts
 spacing:
-  action-gap: 12px
-  desktop-gutter: 48px
-  desktop-content-offset: 244px
-  mobile-gutter: 20px
+  base: 4px
+  steps: [4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 40, 48]
+  sidebar: 232px (200px at 768-1023px)
+  gutter: clamp(24px, 4vw, 56px) (16px on phones)
+  content-max: 1120px
+motion:
+  fast: 120ms # hover, press
+  base: 180ms # view fade, disclosure, sheet backdrop
+  slow: 240ms # sheet slide, thumbnail zoom
+  ease: cubic-bezier(0.22, 1, 0.36, 1)
+  reduced: all animations off, decorative transforms removed
+shadow:
+  1: 0 1px 2px rgba(0,0,0,.35)
+  2: 0 10px 28px -8px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.3)
+  3: 0 28px 72px -16px rgba(0,0,0,.75), 0 4px 14px rgba(0,0,0,.35)
 components:
-  button-primary:
-    backgroundColor: '{colors.primary}'
-    textColor: '{colors.ink}'
-    typography: '{typography.label}'
-    rounded: '{rounded.control}'
-    padding: 9px 14px
-  button-primary-hover:
-    backgroundColor: '{colors.primary-hover}'
-    textColor: '{colors.ink}'
-  button-secondary:
-    backgroundColor: transparent
-    textColor: '{colors.warmgray}'
-    typography: '{typography.label}'
-    rounded: '{rounded.control}'
-    padding: 9px 14px
-  search:
-    backgroundColor: '{colors.panel}'
-    textColor: '{colors.warmgray}'
-    rounded: '{rounded.control}'
-    padding: 8px 10px
-    width: 240px
-  status:
-    backgroundColor: transparent
-    textColor: '{colors.status}'
-    padding: '0'
-    rounded: '0'
+  button: { height: 40px (44px phone), padding: 0 16px, radius: sm, weight: 550 }
+  button-primary: { background: accent, text: accent-ink, hover: accent-hover }
+  button-secondary: { background: surface-2, border: line-2, hover: surface-3 }
+  button-ghost: { background: transparent, text: text-2, hover: rgba(255,255,255,.05) }
+  button-danger: { background: rgba(255,154,145,.12), border: rgba(255,154,145,.32), text: status-failed }
+  input: { height: 40px, radius: sm, border: line-2, focus: accent border + 3px accent ring }
+  status-pill: { height: 26px, radius: pill, dot: 6px currentColor, tinted 12% background }
+  segmented: { padding: 3px, radius: md, selected: surface-3 + shadow-1 }
+  focus: 2px solid accent, offset 2px (not on dialog containers)
 ---
 
 # Design System: NOL Studio
 
 ## Overview
 
-This is the implemented **authenticated Studio workspace**, not the public portfolio, sign-in or onboarding identity. The small NOL wordmark retains Archivo Black. Normal-case Arial headings and drop names keep the working surface quiet and compact. There is no animated Backdrop in the authenticated workspace.
+Studio is Imanol's private workspace, mostly used one-handed on an iPhone. It should feel like a calm, premium creative tool (Linear / Apple Photos level of polish) while staying NOL: dark warm grays, one coral accent, Archivo Black only in the wordmark. The lock screen keeps its dramatic character and is not part of this system.
 
-**Key Characteristics:**
-- Fixed desktop side navigation and fixed mobile bottom navigation.
-- One upload canvas; Help owns the tutorial.
-- Unboxed status text, divided drop rows and understated inline replies.
-- Red actions, visible upload choices and explicit publication approval.
-
-Source authority is the final CSS cascade in `src/components/art/studio.css`, plus `Workspace.tsx`, `Queue.tsx`, `Details.tsx` and `src/pages/StudioPage.tsx`. The frontmatter records actual workspace primitives. Earlier declarations superseded by the appended compact-workspace section are not current design rules.
-
-## Colors
-
-### Primary
-
-Warm action red marks primary upload, reply and publication controls, with dark ink text and brighter hover. The workspace focus outline uses the same red.
-
-### Neutral
-
-Warm paper gray supplies the workspace foreground; muted warm gray carries supporting information. Some file-editing controls retain the separate file-warmgray literal. Near-black fields and upload canvas sit against the dark page, with quiet dividers and visible borders. Status remains unboxed text: attention is pale coral, Live is sage and working/publishing is amber. Never rely on color alone to explain state.
+Source of truth: `src/components/art/studio.css` (single file, organised by surface, every selector scoped under `.studio-room`), plus markup in `Workspace.tsx`, `Queue.tsx`, `DropDetail.tsx`, `insights/Insights.tsx`, `Details.tsx`, `Tile.tsx` and `src/pages/StudioPage.tsx`.
 
 ## Typography
 
-The wordmark role applies to the small NOL signature. Workspace page headings, upload labels and drop titles use Arial in normal case. Folder-name inputs and selection counts use Arial (20px), rather than Archivo display lettering. Headings reduce to (22px) on mobile; drop titles reduce to (15px). Supporting copy is commonly (13px), metadata (12–13px), and compact mobile navigation (11px).
+Inter (variable, Google Fonts `@import` inside `studio.css`, so it only loads with the lazy Studio chunk) with an Apple/system fallback. Inter was chosen over the bare system stack for identical metrics on iPhone, Mac and Windows and for its tabular figures; `-apple-system`/SF Pro is the immediate fallback, so a slow font load still looks native on Imanol's phone. Sentence case everywhere; uppercase only for small group labels in the drop detail.
 
-The details dialog and inherited file-editing controls retain some existing monospace/pill styling; the file-grid override converts its monospace text to Arial. Those scoped exceptions are not a new heading or body typography direction.
+## Colour
+
+Four layered neutrals (bg → surface → surface-2 → surface-3) separated by hairline warm-white borders, not heavy fills. Coral is reserved for primary actions, active navigation, focus, selection and the first bar in a chart. Status colours always come with a text label and a dot, never colour alone. All body and meta text meets WCAG AA on every surface (text-3 is ≥4.9:1 on surface-2).
 
 ## Layout
 
-Desktop reserves a left rail for fixed navigation, with content offset and right gutter defined in frontmatter. The wordmark is fixed above the rail. Header actions align right above a divider. Navigation has three choices: New drop, Your drops, Help. Only Your drops mounts the queue.
-
-New drop uses a single broad upload canvas, centered within a maximum width (1100px), with a page heading above and one approval reminder below. The tutorial lives in Help. Selected files replace the empty canvas with editing controls and a fixed bottom review dock.
-
-The intermediate range (701–1000px) narrows the rail and content offset. At (700px) and below, the wordmark returns to the header and navigation becomes a fixed three-column bottom bar, minimum height (68px), respecting safe-area padding. The draft dock sits above it, with bottom offset `calc(78px + env(safe-area-inset-bottom))`. Search becomes full width at the existing (640px) field breakpoint. Mobile drop titles and statuses remain side by side; actions wrap without stretching each button to fill the row.
-
-The details dialog is centered on desktop and bottom-aligned on mobile, with scrollable content and maximum height (92svh). Keep content clear of the fixed navigation and draft dock.
-
-## Elevation & Depth
-
-Rows and reply/confirmation groups remain flat. Replies and confirmations use a quiet left border, without filled cards. The upload canvas has a subtle dashed border with coral registration corners and a stacked-sheet mark that fans on hover. Hover and dragging warm the canvas; active navigation has a coral icon and registration line. The dock is a bordered dark layer. The account disclosure has a compact floating panel shadow; the details dialog uses a blurred backdrop and deeper shadow. Exact shadow and motion values are in `.impeccable/design.json`.
-
-## Shapes
-
-Ordinary buttons, search, filters and upload canvas use compact control corners. Navigation and dock have slightly larger compact corners. Status labels have no badge container. The existing details dialog retains larger corners and pill controls; keep these scoped to that dialog.
+- ≥768px: fixed left sidebar (wordmark + nav), sticky top bar with status, website link and account menu; content centred at max 1120px.
+- <768px: sticky blurred top bar (wordmark + account), fixed bottom tab bar (icon + label, coral pill behind the active icon, count badges, safe-area padding). Every control is ≥44px tall.
+- Drop detail is a floating side sheet (720px, 12px inset) on desktop and a 94svh bottom sheet with a grip on phones. The image/video viewer is full-screen with a floating info bar.
+- The draft dock floats above content (above the tab bar on phones) as a blurred bar.
 
 ## Components
 
-**Feedback.** Keep feedback finite: controls respond within (100–240ms); views fade in (180ms) using opacity only so fixed docks keep their viewport positioning. Account and file-details reveals use (150ms). Reduced-motion preferences remove these animations and disable decorative spatial transforms. Dragging highlights the upload canvas.
+**Drop card.** Surface card, title + meta left, status pill right, thumbnail strip, explanation, actions (primary action is always the coral button), then a footer with Files & notes and View drop. Attention states get a faint coral wash and border. Replies and confirmations are inset panels; delete confirmations use the danger tone.
 
-**Account.** Use a small native disclosure in the header for sign-out and quick sign-in setup. Keep idle processing availability inside it; show active work and connection problems in the header. Escape returns focus to the trigger. Save a draft before signing out and keep it open on save failure. Sign-in/out use a brief fade.
+**Artists.** A drop can hold several artists. Each artist is a section card with order number, inline name field, file count, instructions field, ↑/↓ order controls and "Remove artist (keeps files)". Empty artists show a dashed drop zone. Files without an artist sit in a dashed "No artist yet" section. Review & send lists artists in site order.
 
-**Buttons.** Compact controls have minimum height (38px), medium-weight Arial, red primary fill or a bordered secondary treatment. Primary hover brightens; secondary hover changes tone and border. Workspace focus is an outline (2px) offset (5px). Disabled buttons use opacity (0.5) and a not-allowed cursor.
+**Insights.** Big tabular stats, delta pill (sage up / coral down), coral sparkline, bar lists with tracks; segmented range control.
 
-**Upload canvas.** A file icon, Drop files here label, visible Choose files and Choose folder actions and file-limit text share one centered target. Dragging and keyboard shortcuts supplement visible controls.
+**Loading.** Shimmer skeletons replace "Loading…" text for drops, the drop sheet, insights and preview tiles; each keeps a screen-reader status label.
 
-**Navigation.** Small line icons accompany New drop, Your drops and Help. Desktop selection uses a quiet filled row; mobile selection brightens the item without a filled card. Counts are plain small text beside the destination, positioned as small annotations on mobile.
+## Do / Don't
 
-**Queue.** Search and pressed filters operate on the loaded recent-drop list. Drop names are normal case; statuses are unboxed text, with a dot for attention states. Feedback and confirmation expand inline against a left rule. Files & notes uses native disclosure semantics with the browser marker hidden, a coral plus that rotates into a cross, and a minimum (44px) summary hit area. Its body is indented against a left rule. Removal remains inside this disclosure and requires confirmation.
-
-**Draft editing.** Enabled file instructions, caption metadata, generic-field placeholders, folder counts, Ungroup files and Clear all use warm gray at (80% opacity). Add instructions uses (12px); Ungroup files uses (13px). Clear all retains two-tap confirmation; its armed state uses action red with dark text. These are enabled controls, not disabled metadata.
-
-**Details.** Title, city, placement and instructions precede sending. Recent answers and Same as last are origin-local shortcuts. Focus enters the dialog, Tab stays inside, Escape closes it and focus returns. Sending does not publish.
-
-## Do's and Don'ts
-
-### Do:
-- **Do** keep the NOL wordmark small and workspace headings in normal-case Arial.
-- **Do** preserve visible file/folder actions and the separate New drop, Your drops and Help destinations.
-- **Do** preserve truthful worker/drop status, revision, retry and explicit publish confirmation.
-- **Do** describe drafts as device- and origin-local, with storage-failure feedback.
-- **Do** keep the mobile draft dock above bottom navigation.
-
-### Don't:
-- **Don't** restore the large editorial headings, top tab bar or upload tutorial sidebar.
-- **Don't** turn statuses and replies into prominent filled cards.
-- **Don't** add the animated Backdrop to the authenticated workspace.
-- **Don't** imply sending, retrying or requesting changes publishes work.
-- **Don't** claim cross-device draft synchronization or full visual approval from incomplete captures.
+- Do keep one coral primary per area, sentence-case copy and visible focus rings.
+- Do keep explicit publish confirmation and practice-mode labelling.
+- Don't use Archivo Black outside the wordmark, add the animated Backdrop to the workspace, or rely on colour alone for status.
+- Don't put `backdrop-filter` or `transform` on an ancestor of the fixed wordmark, sheet or viewer (it changes their containing block).

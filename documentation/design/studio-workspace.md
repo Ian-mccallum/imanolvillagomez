@@ -1,5 +1,7 @@
 # NOL Studio workspace — implemented surface brief
 
+> **2026-11 redesign.** Visuals below describing Arial, unboxed statuses, left-rule replies and "folders" are superseded. Current tokens and components live in root `DESIGN.md`: Inter UI type, layered warm surfaces, pill statuses, card drops, floating side/bottom sheet, phone tab bar, skeleton loading. Folders are now presented as **artists** (Add artist, empty artist drop zones, Remove artist keeps files), and drops in pending, question, preview, failed or live can be deleted (live: only the list entry and originals; the website keeps the work). Workflow boundaries below still apply.
+
 Scope: the authenticated operational workspace. This records current behavior; the public portfolio and a new visual identity are outside this brief. Root `DESIGN.md` owns the extracted visual tokens.
 
 ## Task and composition
