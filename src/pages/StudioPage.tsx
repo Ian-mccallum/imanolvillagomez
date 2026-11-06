@@ -733,11 +733,16 @@ const Room = ({
   const pctText = useTransform(pct, (p) => String(Math.floor(p)).padStart(2, '0'));
   useEffect(() => pct.set(total ? (loaded / total) * 100 : 0), [loaded, total, pct]);
 
+  // previous status per drop, so a background tab can say what changed
+  const seen = useRef<Map<string, api.ArtStatus> | null>(null);
   const refresh = useCallback(
     () =>
       api
         .desk()
         .then(({ requests: list, worker: health, next }) => {
+          const before = seen.current;
+          seen.current = new Map(list.map((r) => [r.id, r.status]));
+          if (before) notifyChanges(before, list);
           // keep older pages Imanol already loaded; refresh only replaces the newest page
           setRequests((cur) => {
             const ids = new Set(list.map((r) => r.id));
@@ -1584,9 +1589,14 @@ const Room = ({
       )}
       {route.drop && (
         <DropDetail
+          key={route.drop}
           id={route.drop}
           initial={requests.find((r) => r.id === route.drop)}
           onClose={() => go({ view: 'drops' })}
+          onCreated={(r) => {
+            setRequests((cur) => [r, ...cur]);
+            go({ view: 'drops', drop: r.id });
+          }}
           onChange={(r) => {
             updateRequest(r);
             if (r.status === 'removed') go({ view: 'drops' }, true);
@@ -1595,7 +1605,14 @@ const Room = ({
       )}
       {view === 'library' && (
         <Suspense fallback={<p className="studio-muted">Loading library…</p>}>
-          <Library tab={route.arg} onTab={(tab) => go({ view: 'library', arg: tab }, true)} />
+          <Library
+            tab={route.arg}
+            onTab={(tab) => go({ view: 'library', arg: tab }, true)}
+            onEditSent={(r) => {
+              setRequests((cur) => [r, ...cur]);
+              go({ view: 'drops', drop: r.id });
+            }}
+          />
         </Suspense>
       )}
       {view === 'insights' && (
@@ -1621,6 +1638,35 @@ const Room = ({
     </div>
   );
 };
+
+const NOTIFY: Partial<Record<api.ArtStatus, string>> = {
+  preview: 'is ready to review',
+  question: 'has a question for you',
+  live: 'is live on your website',
+  failed: 'needs attention',
+};
+/** Only when the tab is in the background and Imanol turned notifications on. */
+function notifyChanges(before: Map<string, api.ArtStatus>, list: api.ArtRequest[]) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  if (document.visibilityState === 'visible') return;
+  for (const r of list) {
+    const was = before.get(r.id);
+    const what = NOTIFY[r.status];
+    if (!what || !was || was === r.status) continue;
+    try {
+      const n = new Notification(`${r.title || 'Your drop'} ${what}`, {
+        tag: `drop-${r.id}-${r.status}`,
+      });
+      n.onclick = () => {
+        window.focus();
+        window.location.hash = `#drop/${r.id}`;
+        n.close();
+      };
+    } catch {
+      /* some browsers only allow notifications from a service worker */
+    }
+  }
+}
 
 // ─── page ──────────────────────────────────────────────────────────────────
 

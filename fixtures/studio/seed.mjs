@@ -96,6 +96,12 @@ function sampleInsights() {
         countries: split([['US', 0.78], ['CA', 0.08], ['GB', 0.06], ['MX', 0.05]], views),
         devices: split([['mobile', 0.72], ['desktop', 0.25], ['tablet', 0.03]], views),
       },
+      videos: [
+        ['PROBLEMA.mp4', 40],
+        ['SAYWHAT.mp4', 26],
+        ['osamasonpreview.mp4', 90],
+        ['MM3.mp4', 12],
+      ].map(([file, n]) => ({ file, loads: Math.round(n * (0.6 + rand())), bytes: 0 })),
       // Google reports two days late
       ...(i < 38
         ? {
@@ -119,6 +125,7 @@ function sampleInsights() {
     updatedAt: new Date().toISOString(),
     sources: { vercel: { ok: true, dataThrough: days[39].date }, gsc: { ok: true, dataThrough: days[37].date } },
     days,
+    storage: { bytes: 1_790_000_000, objects: 64 },
     index: {
       cursor: 0,
       updatedAt: new Date().toISOString(),

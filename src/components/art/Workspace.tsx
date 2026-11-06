@@ -140,6 +140,7 @@ export function WorkspaceHeader({
                   Set up quick sign-in
                 </button>
               )}
+              <NotifyToggle />
               <button onClick={signOut} disabled={busy || leaving}>
                 {leaving ? (draftCount > 0 ? 'Saving draft…' : 'Signing out…') : 'Sign out'}
               </button>
@@ -204,6 +205,24 @@ export function WorkspaceHeader({
         </div>
       )}
     </>
+  );
+}
+
+/** Ask for notifications only when Imanol taps; browsers block unprompted requests. */
+function NotifyToggle() {
+  const supported = typeof Notification !== 'undefined';
+  const [state, setState] = useState(supported ? Notification.permission : 'denied');
+  if (!supported) return null;
+  if (state === 'granted')
+    return <p className="studio-account-note">Notifications are on for this browser.</p>;
+  if (state === 'denied')
+    return (
+      <p className="studio-account-note">Notifications are blocked in this browser's settings.</p>
+    );
+  return (
+    <button onClick={() => Notification.requestPermission().then(setState, () => {})}>
+      Notify me when a preview is ready
+    </button>
   );
 }
 
