@@ -1,26 +1,42 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  ListObjectsV2Command,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { fileProblem, queueAgain, type WorkerHeartbeat } from '../src/components/art/studioModel.js';
+  appendEvent,
+  fileProblem,
+  queueAgain,
+  type ArtRequest,
+  type WorkerHeartbeat,
+} from '../src/components/art/studioModel.js';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
+import {
+  Bucket,
+  ID,
+  INBOX,
+  clean,
+  getJson,
+  putJson,
+  readReq,
+  s3,
+  safeFolder,
+  safeName,
+  signGet,
+  signPut,
+  writeReq,
+} from './_lib/storage.js';
+import { collect, readSummary, refreshAllowed } from './_lib/insights.js';
 
 /**
  * /api/art — Imanol's drop box.
  *
  * Files go browser → R2 directly via presigned PUT (Vercel caps request
  * bodies at 4.5MB). Each drop lives at inbox/<id>/ with a request.json that
- * doubles as the queue entry; the laptop runner (scripts/art-inbox) polls it.
+ * doubles as the queue entry; the runner (scripts/art-inbox) polls it.
  *
  * Auth: the ART_KEY passphrase (or a saved passkey — Face ID / Touch ID) is
  * traded for a short-lived HMAC-signed session token. The raw key is never
@@ -28,52 +44,15 @@ import {
  * passkeys keep working through a lockout.
  */
 
-const INBOX = 'inbox/';
+export type { ArtRequest };
+
 const PASSKEYS = 'auth/passkeys.json';
 const FAILS = 'auth/fails.json';
 const MAX_FILE = 5 * 1024 ** 3; // R2 single-PUT ceiling
 const SESSION_MS = 12 * 3600e3;
 const LOCK_AFTER = 8;
 const LOCK_MS = 15 * 60e3;
-
-type Status =
-  | 'pending'
-  | 'working'
-  | 'question'
-  | 'preview'
-  | 'approved'
-  | 'live'
-  | 'failed'
-  | 'removed';
-
-export interface ArtRequest {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  status: Status;
-  title: string;
-  city: string;
-  placement: 'top' | 'anywhere';
-  note: string;
-  files: {
-    name: string;
-    key: string;
-    size: number;
-    type: string;
-    folder?: string;
-    label?: string;
-    note?: string;
-  }[];
-  groups?: { folder: string; name: string; note: string }[];
-  questions?: string[];
-  answers?: { at: string; text: string }[];
-  revisions?: { at: string; text: string }[];
-  previewUrl?: string;
-  summary?: string;
-  error?: string;
-  /** set by the runner when other work went live after this drop's preview */
-  siteChanged?: boolean;
-}
+const PAGE = 40;
 
 interface Passkey {
   id: string;
@@ -81,44 +60,6 @@ interface Passkey {
   counter: number;
   transports?: string[];
   createdAt: string;
-}
-
-const s3 = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
-  },
-});
-const Bucket = process.env.R2_BUCKET_NAME ?? '';
-
-// ─── storage ────────────────────────────────────────────────────────────────
-
-async function getJson<T>(Key: string): Promise<T | null> {
-  try {
-    const r = await s3.send(new GetObjectCommand({ Bucket, Key }));
-    return JSON.parse(await r.Body!.transformToString());
-  } catch {
-    return null;
-  }
-}
-
-const putJson = (Key: string, v: unknown) =>
-  s3.send(
-    new PutObjectCommand({
-      Bucket,
-      Key,
-      Body: JSON.stringify(v, null, 2),
-      ContentType: 'application/json',
-    })
-  );
-
-const readReq = (id: string) => getJson<ArtRequest>(`${INBOX}${id}/request.json`);
-
-async function writeReq(r: ArtRequest) {
-  r.updatedAt = new Date().toISOString();
-  await putJson(`${INBOX}${r.id}/request.json`, r);
 }
 
 // ─── tokens ─────────────────────────────────────────────────────────────────
@@ -236,8 +177,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json({ token: session() });
     }
 
+    // Vercel's daily cron: Authorization is the project's CRON_SECRET, not a session.
+    if (action === 'insights-collect' && req.method === 'GET') {
+      const secret = process.env.CRON_SECRET ?? '';
+      const auth = String(req.headers.authorization ?? '');
+      if (!secret || !eq(auth, `Bearer ${secret}`)) return res.status(401).json({ error: 'nope' });
+      const summary = await collect();
+      return res.json({ ok: true, sources: summary.sources });
+    }
+
     // everything below needs a session
     if (!hasSession(req)) return res.status(401).json({ error: 'nope' });
+
+    if (action === 'insights' && req.method === 'GET') {
+      return res.json({
+        summary: await readSummary(),
+        connected: { vercel: !!process.env.VERCEL_ANALYTICS_TOKEN },
+      });
+    }
+
+    if (action === 'insights-collect' && post) {
+      if (!(await refreshAllowed()))
+        return res.status(409).json({ error: 'Updated in the last 10 minutes. Try again soon.' });
+      return res.json({ summary: await collect() });
+    }
 
     // ── save this device's Face ID / Touch ID ──
     if (action === 'passkey-register-options' && post) {
@@ -299,8 +262,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         (r) => r.status !== 'removed'
       );
       all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const before = clean(req.query.before, 40);
+      const older = before ? all.filter((r) => r.createdAt < before) : all;
+      const page = older.slice(0, PAGE);
       const worker = await getJson<WorkerHeartbeat>('queue/nol-heartbeat.json');
-      return res.json({ requests: all.slice(0, 40), worker });
+      return res.json({
+        requests: page,
+        worker,
+        next: older.length > PAGE ? page[page.length - 1].createdAt : undefined,
+      });
+    }
+
+    if (action === 'get' && post) {
+      const r = await readReq(clean(body.id, 40));
+      if (!r || r.status === 'removed') return res.status(404).json({ error: 'Drop not found.' });
+      return res.json({ request: r });
+    }
+
+    // Short-lived links to a drop's thumbnails, or its originals for viewing/downloading.
+    if (action === 'urls' && post) {
+      const r = await readReq(clean(body.id, 40));
+      if (!r || r.status === 'removed') return res.status(404).json({ error: 'Drop not found.' });
+      const kind = body.kind === 'original' ? 'original' : 'thumb';
+      const names = (Array.isArray(body.names) ? body.names : []).slice(0, 200).map((n) => clean(n, 400));
+      const byName = new Map(r.files.map((f) => [f.name, f]));
+      const urls: Record<string, string> = {};
+      await Promise.all(
+        names.map(async (name) => {
+          const file = byName.get(name);
+          if (!file) return;
+          if (kind === 'thumb') {
+            const key = r.thumbs?.[name];
+            if (key) urls[name] = await signGet(key);
+          } else {
+            urls[name] = await signGet(file.key, body.download ? name.split('/').pop() : undefined);
+          }
+        })
+      );
+      return res.json({ urls });
     }
 
     // Reserve an id and hand back one presigned PUT per file.
@@ -315,7 +314,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const id = `${d.toISOString().slice(0, 10).replace(/-/g, '')}-${randomBytes(3).toString('hex')}`;
       const seen = new Set<string>();
       const uploads = await Promise.all(
-        files.map(async (f: { name?: string; folder?: string; size?: number; type?: string }) => {
+        files.map(async (f: { name?: string; folder?: string; size?: number; type?: string }, n: number) => {
           // one folder level per group, so the runner sees the drop the way Imanol sorted it
           const folder = safeFolder(f.folder);
           let base = safeName(clean(f.name, 200));
@@ -327,14 +326,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           if (size > MAX_FILE) throw new Error(`${name} is over 5GB`);
           const type = clean(f.type, 100) || 'application/octet-stream';
           const key = `${INBOX}${id}/files/${name}`;
-          const url = await getSignedUrl(
-            s3,
-            new PutObjectCommand({ Bucket, Key: key, ContentType: type }),
-            {
-              expiresIn: 60 * 60 * 6,
-            }
-          );
-          return { name, key, size, type, folder, url };
+          const thumbKey = `${INBOX}${id}/thumbs/${n}.webp`;
+          const [url, thumbUrl] = await Promise.all([
+            signPut(key, type),
+            signPut(thumbKey, 'image/webp'),
+          ]);
+          return { name, key, size, type, folder, url, thumbKey, thumbUrl };
         })
       );
       return res.json({ id, uploads });
@@ -343,7 +340,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Files are up — register the drop so the runner picks it up.
     if (action === 'submit' && post) {
       const id = clean(body.id, 40);
-      if (!/^\d{8}-[0-9a-f]{6}$/.test(id)) return res.status(400).json({ error: 'bad id' });
+      if (!ID.test(id)) return res.status(400).json({ error: 'bad id' });
       const now = new Date().toISOString();
       type In = {
         name: string;
@@ -384,6 +381,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         files,
         groups,
       };
+      // thumbnails the browser managed to upload; a missing one just shows a placeholder
+      const thumbs = (body.thumbs ?? {}) as Record<string, unknown>;
+      const thumbKey = new RegExp(`^${INBOX}${id}/thumbs/\\d{1,3}\\.webp$`);
+      for (const f of files) {
+        const key = clean(thumbs[f.name], 200);
+        if (thumbKey.test(key)) (r.thumbs ??= {})[f.name] = key;
+      }
+      appendEvent(r, { type: 'sent', by: 'imanol' });
       await writeReq(r);
       return res.json({ request: r });
     }
@@ -399,6 +404,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         { at: new Date().toISOString(), text: clean(body.text, 4000) },
       ];
       r.status = 'pending';
+      appendEvent(r, { type: 'answer', text: clean(body.text, 4000), by: 'imanol' });
       await writeReq(r);
       return res.json({ request: r });
     }
@@ -416,6 +422,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             error: e instanceof Error ? e.message : 'This drop has changed. Refresh and try again.',
           });
       }
+      appendEvent(
+        r,
+        action === 'revise'
+          ? { type: 'revision', text: clean(body.text, 4000), by: 'imanol' }
+          : { type: 'retry', by: 'imanol' }
+      );
       await writeReq(r);
       return res.json({ request: r });
     }
@@ -425,6 +437,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const r = await readReq(clean(body.id, 40));
       if (!r || r.status !== 'preview') return res.status(409).json({ error: 'not in preview' });
       r.status = 'approved';
+      appendEvent(r, { type: 'approved', by: 'imanol' });
       await writeReq(r);
       return res.json({ request: r });
     }
@@ -435,6 +448,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!r || !['question', 'preview', 'failed'].includes(r.status))
         return res.status(409).json({ error: 'cannot remove' });
       r.status = 'removed';
+      appendEvent(r, { type: 'removed', by: 'imanol' });
       await writeReq(r);
       return res.json({ request: r });
     }
@@ -444,24 +458,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'failed' });
   }
 }
-
-const clean = (s: unknown, max = 2000) =>
-  String(s ?? '')
-    .slice(0, max)
-    .trim();
-const safeName = (n: string) =>
-  n
-    .normalize('NFKD')
-    .replace(/[^\w.\- ]+/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 160) || 'file';
-/** One folder level: same alphabet as file names, never leading dots (no `..`). */
-const safeFolder = (f: unknown) =>
-  clean(f, 200)
-    .normalize('NFKD')
-    .replace(/[^\w.\- ]+/g, '')
-    .replace(/\s+/g, ' ')
-    .replace(/^[.\s]+/, '')
-    .trim()
-    .slice(0, 80);

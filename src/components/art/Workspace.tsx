@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { workerOnline, type WorkerHeartbeat } from './studioModel';
+import type { StudioView } from './route';
 
-export type StudioView = 'upload' | 'drops' | 'help';
+export type { StudioView };
 
 export function WorkspaceHeader({
   view,
@@ -164,6 +165,13 @@ export function WorkspaceHeader({
           Your drops
           {attention > 0 && <span className="studio-nav-count is-attention">{attention}</span>}
         </button>
+        <button
+          aria-current={view === 'insights' ? 'page' : undefined}
+          onClick={() => onView('insights')}
+        >
+          <NavIcon kind="insights" />
+          Insights
+        </button>
         <button aria-current={view === 'help' ? 'page' : undefined} onClick={() => onView('help')}>
           <NavIcon kind="help" />
           Help
@@ -251,7 +259,7 @@ export function StudioHelp({
   );
 }
 
-function NavIcon({ kind }: { kind: 'upload' | 'drops' | 'help' }) {
+function NavIcon({ kind }: { kind: 'upload' | 'drops' | 'library' | 'insights' | 'help' }) {
   return (
     <svg
       width="18"
@@ -266,6 +274,10 @@ function NavIcon({ kind }: { kind: 'upload' | 'drops' | 'help' }) {
     >
       {kind === 'upload' ? (
         <path d="M12 16V4m-4 4 4-4 4 4M5 15v5h14v-5" />
+      ) : kind === 'insights' ? (
+        <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+      ) : kind === 'library' ? (
+        <path d="M4 5h6v14H4zM14 5h6v14h-6zM4 9h6M14 9h6" />
       ) : kind === 'drops' ? (
         <>
           <path d="M5 5h14v14H5zM5 10h14M10 10v9" />

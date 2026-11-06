@@ -1,64 +1,12 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import type { WorkerHeartbeat } from './studioModel';
+import type { ArtFile, ArtGroup, ArtRequest, WorkerHeartbeat } from './studioModel';
+
+export type { ArtFile, ArtGroup, ArtRequest, ArtStatus } from './studioModel';
 
 /**
  * Client for /api/art — Imanol's drop box. Files PUT straight to R2 via
  * presigned URLs; everything else is small JSON.
  */
-
-export type ArtStatus =
-  | 'pending'
-  | 'working'
-  | 'question'
-  | 'preview'
-  | 'approved'
-  | 'live'
-  | 'failed'
-  | 'removed';
-
-export interface ArtRequest {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  status: ArtStatus;
-  title: string;
-  city: string;
-  placement: 'top' | 'anywhere';
-  /** instructions for the whole drop */
-  note: string;
-  files: ArtFile[];
-  /** folders in the drop, in order — each usually one artist/client */
-  groups?: ArtGroup[];
-  questions?: string[];
-  answers?: { at: string; text: string }[];
-  revisions?: { at: string; text: string }[];
-  previewUrl?: string;
-  summary?: string;
-  error?: string;
-  /** set by the runner when other work went live after this drop's preview */
-  siteChanged?: boolean;
-}
-
-export interface ArtFile {
-  /** path inside the drop — `folder/file.jpg`, or just `file.jpg` when loose */
-  name: string;
-  key: string;
-  size: number;
-  type: string;
-  /** folder path this file is in, '' when loose */
-  folder?: string;
-  /** who/what this one is; overrides the folder's name */
-  label?: string;
-  /** instructions for just this file */
-  note?: string;
-}
-
-export interface ArtGroup {
-  folder: string;
-  name: string;
-  /** instructions for everything in this folder */
-  note: string;
-}
 
 export interface Upload {
   folder?: string;
@@ -67,6 +15,8 @@ export interface Upload {
   size: number;
   type: string;
   url: string;
+  thumbKey: string;
+  thumbUrl: string;
 }
 
 export class Unauthorized extends Error {}
@@ -163,8 +113,24 @@ export const bioName = () => {
   return 'passkey';
 };
 
-export const desk = () => call<{ requests: ArtRequest[]; worker?: WorkerHeartbeat | null }>('list');
+type Desk = { requests: ArtRequest[]; worker?: WorkerHeartbeat | null; next?: string };
+export const desk = () => call<Desk>('list');
 export const list = () => desk().then((r) => r.requests ?? []);
+/** The page of drops sent before `before` (a createdAt). */
+export const older = (before: string) => call<Desk>(`list&before=${encodeURIComponent(before)}`);
+export const get = (id: string) =>
+  call<{ request: ArtRequest }>('get', { id }).then((r) => r.request);
+/** 10-minute links to a drop's thumbnails or originals, keyed by file name. */
+export const urls = (id: string, names: string[], kind: 'thumb' | 'original', download = false) =>
+  call<{ urls: Record<string, string> }>('urls', { id, names, kind, download }).then((r) => r.urls);
+
+export type InsightsResponse = {
+  summary: import('./insights/model').InsightsSummary | null;
+  connected: { vercel: boolean };
+};
+export const insights = () => call<InsightsResponse>('insights');
+export const refreshInsights = () =>
+  call<{ summary: import('./insights/model').InsightsSummary }>('insights-collect', {});
 
 /** Reserve a drop and get one presigned PUT per file, in the same order. */
 export const start = (files: { file: File; folder: string }[]) =>
@@ -185,6 +151,8 @@ export const submit = (body: {
   note: string;
   files: ArtFile[];
   groups: ArtGroup[];
+  /** file name → thumbnail key, for thumbnails that uploaded */
+  thumbs?: Record<string, string>;
 }) => call<{ request: ArtRequest }>('submit', body).then((r) => r.request);
 
 export const reply = (id: string, text: string) =>
@@ -202,6 +170,13 @@ export const retry = (id: string) =>
 /** Clear a question / preview / failed drop from the list; the runner deletes its files. */
 export const remove = (id: string) =>
   call<{ request: ArtRequest }>('remove', { id }).then((r) => r.request);
+
+/** PUT a small blob (a thumbnail); false on any failure. */
+export const putBlob = (url: string, blob: Blob) =>
+  fetch(url, { method: 'PUT', headers: { 'content-type': blob.type }, body: blob }).then(
+    (r) => r.ok,
+    () => false
+  );
 
 /** PUT one file to its presigned URL with byte-level progress. */
 export function put(u: Upload, file: File, onProgress: (loaded: number) => void): Promise<void> {

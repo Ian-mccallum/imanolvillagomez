@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   motion,
   AnimatePresence,
@@ -15,6 +15,7 @@ import { Glitch } from '@/components/art/Glitch';
 import { Tile, type Item } from '@/components/art/Tile';
 import { previewBlob } from '@/components/art/mediaPreview';
 import { Queue } from '@/components/art/Queue';
+import { DropDetail } from '@/components/art/DropDetail';
 import * as api from '@/components/art/artApi';
 import { Backdrop } from '@/components/art/Backdrop';
 import { Star } from '@/components/art/Star';
@@ -23,13 +24,18 @@ import { Welcome, Coach, type Step } from '@/components/art/Tour';
 import { loadDraft, saveDraft, clearDraft } from '@/components/art/draft';
 import { usePointerHeat } from '@/components/art/heat';
 import { fromDrop, fromList, type Incoming } from '@/components/art/files';
-import { WorkspaceHeader, StudioHelp, type StudioView } from '@/components/art/Workspace';
+import { WorkspaceHeader, StudioHelp } from '@/components/art/Workspace';
+import { useHashRoute, type StudioView } from '@/components/art/route';
+import { makeThumb } from '@/components/art/thumbs';
 import {
   fileProblem,
   formatBytes,
   needsAttention,
+  workerOnline,
   type WorkerHeartbeat,
 } from '@/components/art/studioModel';
+
+const Insights = lazy(() => import('@/components/art/insights/Insights'));
 import '@/components/art/studio.css';
 
 /**
@@ -639,7 +645,10 @@ const Room = ({
   const [note, setNote] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [requests, setRequests] = useState<api.ArtRequest[]>([]);
-  const [view, setView] = useState<StudioView>('upload');
+  const [route, go] = useHashRoute();
+  const view = route.view;
+  const setView = useCallback((next: StudioView) => go({ view: next }), [go]);
+  const [olderCursor, setOlderCursor] = useState<string | undefined>();
   const [worker, setWorker] = useState<WorkerHeartbeat | null>(null);
   const [connected, setConnected] = useState<boolean | null>(null);
   const [uploadError, setUploadError] = useState('');
@@ -717,8 +726,15 @@ const Room = ({
     () =>
       api
         .desk()
-        .then(({ requests: list, worker: health }) => {
-          setRequests((cur) => [...cur.filter((r) => isPractice(r.id)), ...list]);
+        .then(({ requests: list, worker: health, next }) => {
+          // keep older pages Imanol already loaded; refresh only replaces the newest page
+          setRequests((cur) => {
+            const ids = new Set(list.map((r) => r.id));
+            const oldest = list[list.length - 1]?.createdAt ?? '';
+            const kept = cur.filter((r) => !isPractice(r.id) && !ids.has(r.id) && r.createdAt < oldest);
+            return [...cur.filter((r) => isPractice(r.id)), ...list, ...kept];
+          });
+          setOlderCursor((c) => (c && next && c < next ? c : next));
           setWorker(health ?? null);
           setConnected(true);
         })
@@ -769,7 +785,7 @@ const Room = ({
       setGroups(gs);
       setItems((cur) => [...cur, ...next]);
     },
-    [busy, items.length]
+    [busy, items.length, setView]
   );
 
   // folders with nothing left in them disappear
@@ -967,14 +983,27 @@ const Room = ({
           );
         }
       };
+      // Thumbnails ride along one at a time; a slow or failed one never holds up the drop.
+      const thumbs: Record<string, string> = {};
+      let stopThumbs = false;
+      const thumbWork = (async () => {
+        for (let n = 0; n < items.length && !stopThumbs; n++) {
+          const blob = await makeThumb(items[n].file);
+          if (blob && !stopThumbs && (await api.putBlob(uploads[n].thumbUrl, blob)))
+            thumbs[uploads[n].name] = uploads[n].thumbKey;
+        }
+      })();
       await Promise.all([worker(), worker(), worker()]);
+      await Promise.race([thumbWork, new Promise((r) => setTimeout(r, 90_000))]);
+      stopThumbs = true;
       const req = await api.submit({
+        thumbs,
         id,
         title,
         city,
         placement,
         note,
-        files: uploads.map(({ url: _url, ...f }, n) => ({
+        files: uploads.map(({ url: _url, thumbUrl: _t, thumbKey: _k, ...f }, n) => ({
           ...f,
           label: items[n].label.trim(),
           note: items[n].note.trim(),
@@ -1049,6 +1078,14 @@ const Room = ({
   const persistDraft = async () => {
     if (practice || !items.length) return true;
     return (await saveDraft({ items, groups, title, city, placement, note })) !== undefined;
+  };
+  const updateRequest = (r: api.ArtRequest) => {
+    setRequests((cur) =>
+      r.status === 'removed'
+        ? cur.filter((c) => c.id !== r.id)
+        : cur.map((c) => (c.id === r.id ? r : c))
+    );
+    if (isPractice(r.id) && r.status === 'live') onTour?.('shipped');
   };
   const changeView = (next: StudioView) => {
     setView(next);
@@ -1452,15 +1489,38 @@ const Room = ({
         <Queue
           requests={requests}
           onNewDrop={() => changeView('upload')}
+          onChange={updateRequest}
+          onOpen={(id) => go({ view: 'drops', drop: id })}
+          workerDown={connected === true && !!worker && !workerOnline(worker)}
+          onOlder={
+            olderCursor
+              ? async () => {
+                  const page = await api.older(olderCursor);
+                  setRequests((cur) => [
+                    ...cur,
+                    ...page.requests.filter((r) => !cur.some((c) => c.id === r.id)),
+                  ]);
+                  setOlderCursor(page.next);
+                }
+              : undefined
+          }
+        />
+      )}
+      {route.drop && (
+        <DropDetail
+          id={route.drop}
+          initial={requests.find((r) => r.id === route.drop)}
+          onClose={() => go({ view: 'drops' })}
           onChange={(r) => {
-            setRequests((cur) =>
-              r.status === 'removed'
-                ? cur.filter((c) => c.id !== r.id)
-                : cur.map((c) => (c.id === r.id ? r : c))
-            );
-            if (isPractice(r.id) && r.status === 'live') onTour?.('shipped');
+            updateRequest(r);
+            if (r.status === 'removed') go({ view: 'drops' }, true);
           }}
         />
+      )}
+      {view === 'insights' && (
+        <Suspense fallback={<p className="studio-muted">Loading insights…</p>}>
+          <Insights range={route.arg} onRange={(range) => go({ view: 'insights', arg: range }, true)} />
+        </Suspense>
       )}
     </div>
   );

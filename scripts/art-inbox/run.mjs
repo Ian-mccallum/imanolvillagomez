@@ -32,6 +32,7 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { preparePreview } from './preview-state.mjs';
 import { contentMovedSince, isDropPath } from './drop-paths.mjs';
+import { appendEvent } from '../../src/components/art/studioModel.ts';
 
 const SCRIPT = fileURLToPath(import.meta.url);
 const REPO = resolve(dirname(SCRIPT), '../..');
@@ -78,8 +79,19 @@ async function readReq(id) {
   const r = await s3.send(new GetObjectCommand({ Bucket, Key: `${INBOX}${id}/request.json` }));
   return JSON.parse(await r.Body.transformToString());
 }
+const STATUS_EVENT = { working: 'working', question: 'question', preview: 'preview', failed: 'failed', live: 'live' };
 async function writeReq(r) {
   r.updatedAt = new Date().toISOString();
+  // Imanol's timeline in Studio: one event per status the runner reaches (repeats skipped).
+  const type = STATUS_EVENT[r.status] ?? (r.status === 'pending' && r.siteChanged ? 'requeued' : null);
+  if (type === 'live') r.liveAt ??= r.updatedAt;
+  if (type)
+    appendEvent(r, {
+      type,
+      by: 'studio',
+      text: type === 'question' ? (r.questions ?? []).join('\n') : type === 'requeued' ? 'Other work went live since this preview; making a fresh one.' : undefined,
+      previewUrl: type === 'preview' ? r.previewUrl : undefined,
+    });
   await s3.send(new PutObjectCommand({ Bucket, Key: `${INBOX}${r.id}/request.json`, Body: JSON.stringify(r, null, 2), ContentType: 'application/json' }));
 }
 
