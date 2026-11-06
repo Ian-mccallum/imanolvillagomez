@@ -200,7 +200,8 @@ export function DropDetail({
   escape.current = () => (open ? setOpen(null) : onClose());
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
-    sheet.current?.focus();
+    // keep focus a field inside already took (the answer box), otherwise focus the sheet
+    if (!sheet.current?.contains(document.activeElement)) sheet.current?.focus();
     const key = (e: KeyboardEvent) => e.key === 'Escape' && escape.current();
     window.addEventListener('keydown', key);
     document.body.style.overflow = 'hidden';

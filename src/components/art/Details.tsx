@@ -233,7 +233,14 @@ export const DetailsModal = ({
               ref={first}
               value={value.title}
               onChange={(e) => onChange({ title: e.target.value })}
-              placeholder="Artist / song"
+              placeholder={
+                artists?.some((x) => !/^Artist \d+$/.test(x.name))
+                  ? artists
+                      .map((x) => x.name)
+                      .filter((n) => !/^Artist \d+$/.test(n))
+                      .join(' + ')
+                  : 'Artist / song'
+              }
               className={input}
             />
             <Chips
