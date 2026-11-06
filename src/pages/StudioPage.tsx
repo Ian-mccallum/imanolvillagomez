@@ -409,13 +409,9 @@ const ClearAll = ({ onClear }: { onClear: () => void }) => {
       layout
       onClick={() => (armed ? (setArmed(false), onClear()) : setArmed(true))}
       whileTap={{ scale: 0.94 }}
-      className={`whitespace-nowrap rounded-full border px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${
-        armed
-          ? 'border-[#ef6058] bg-[#ef6058] text-black'
-          : 'border-[#C9C8C7]/30 text-[#C9C8C7]/80 hover:border-[#C9C8C7]/50 hover:text-[#C9C8C7]'
-      }`}
+      className={`studio-button whitespace-nowrap ${armed ? 'studio-button-danger' : 'studio-button-ghost'}`}
     >
-      {armed ? 'tap to clear all' : 'clear all'}
+      {armed ? 'Tap to clear all' : 'Clear all'}
     </motion.button>
   );
 };
@@ -453,9 +449,9 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
               animate={{ opacity: 1, x: dir * 92, scale: 1 }}
               exit={{ opacity: 0, x: 0, scale: 0.6 }}
               transition={{ type: 'spring', stiffness: 420, damping: 28 }}
-              className="absolute whitespace-nowrap rounded-full bg-[#C9C8C7] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-black shadow-[0_8px_30px_rgba(0,0,0,.6)] hover:bg-white"
+              className="studio-add-option absolute whitespace-nowrap"
             >
-              {label}
+              {label === 'files' ? 'Files' : 'Folder'}
             </motion.button>
           ))}
       </AnimatePresence>
@@ -471,13 +467,13 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
         whileTap={{ scale: 0.92 }}
         animate={{ rotate: open ? 45 : 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-        className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-[#C9C8C7] text-black shadow-[0_0_0_6px_rgba(0,0,0,.55),0_0_40px_rgba(201,200,199,.35)]"
+        className="studio-add-fab relative z-10 flex items-center justify-center rounded-full"
       >
         <svg
           viewBox="0 0 24 24"
-          className="h-7 w-7"
+          className="h-6 w-6"
           stroke="currentColor"
-          strokeWidth="2.5"
+          strokeWidth="2.2"
           strokeLinecap="round"
         >
           <path d="M12 4v16M4 12h16" />
@@ -488,7 +484,15 @@ const Add = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void 
 };
 
 /** One upload canvas; detailed guidance lives in Help. */
-const DropWord = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => void }) => {
+const DropWord = ({
+  onFiles,
+  onFolder,
+  onArtist,
+}: {
+  onFiles: () => void;
+  onFolder: () => void;
+  onArtist: () => void;
+}) => {
   useAddShortcut(onFiles);
   return (
     <section className="studio-upload-empty">
@@ -512,6 +516,9 @@ const DropWord = ({ onFiles, onFolder }: { onFiles: () => void; onFolder: () => 
             Choose folder
           </button>
         </div>
+        <button className="studio-text-link studio-upload-artist" onClick={onArtist}>
+          More than one artist? <span>+ Add artist</span>
+        </button>
         <p className="studio-upload-limit">200 files per drop · 5 GB per file</p>
       </div>
       <p className="studio-upload-footnote">You’ll review a preview before anything goes live.</p>
@@ -579,7 +586,7 @@ const Field = ({
     placeholder={placeholder}
     aria-label={placeholder}
     disabled={disabled}
-    className={`min-w-0 border-b border-[#C9C8C7]/15 bg-transparent py-2 font-mono text-[13px] text-[#C9C8C7] outline-none transition-colors placeholder:text-[#C9C8C7]/80 focus:border-[#dc2626] disabled:opacity-50 ${className}`}
+    className={`studio-input min-w-0 ${className}`}
   />
 );
 
@@ -596,11 +603,7 @@ const Chip = ({
     type="button"
     onClick={onClick}
     whileTap={{ scale: 0.94 }}
-    className={`max-w-[14rem] truncate border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${
-      hot
-        ? 'border-[#dc2626] bg-[#dc2626] text-black'
-        : 'border-[#C9C8C7]/25 text-[#C9C8C7] hover:border-[#dc2626] hover:bg-[#dc2626] hover:text-black'
-    }`}
+    className={`studio-chip max-w-[14rem] truncate${hot ? ' is-hot' : ''}`}
   >
     {children}
   </motion.button>
@@ -655,6 +658,13 @@ const Room = ({
   const [draftState, setDraftState] = useState('');
   const picker = useRef<HTMLInputElement>(null);
   const folderPicker = useRef<HTMLInputElement>(null);
+  /** artist the next picked or dropped files go into (null = sort by folder) */
+  const pickInto = useRef<string | null>(null);
+  const dropInto = useRef<string | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
+  /** artists made with Add artist stay on the canvas while they are still empty */
+  const fresh = useRef(new Set<string>());
+  const [newArtist, setNewArtist] = useState('');
   const groupsRef = useRef(groups);
   groupsRef.current = groups;
   const cols = useCols();
@@ -731,7 +741,9 @@ const Room = ({
           setRequests((cur) => {
             const ids = new Set(list.map((r) => r.id));
             const oldest = list[list.length - 1]?.createdAt ?? '';
-            const kept = cur.filter((r) => !isPractice(r.id) && !ids.has(r.id) && r.createdAt < oldest);
+            const kept = cur.filter(
+              (r) => !isPractice(r.id) && !ids.has(r.id) && r.createdAt < oldest
+            );
             return [...cur.filter((r) => isPractice(r.id)), ...list, ...kept];
           });
           setOlderCursor((c) => (c && next && c < next ? c : next));
@@ -753,7 +765,7 @@ const Room = ({
 
   /** Files from a folder join the group of that name (made if new); loose files stay loose. */
   const add = useCallback(
-    (incoming: Incoming[]) => {
+    (incoming: Incoming[], into: string | null = null) => {
       if (!incoming.length || busy) return;
       const problem = fileProblem(
         incoming.map((i) => i.file),
@@ -778,7 +790,7 @@ const Room = ({
         url: URL.createObjectURL(previewBlob(file)),
         rot: (Math.random() - 0.5) * 3,
         loaded: 0,
-        group: groupFor(folder),
+        group: into ?? groupFor(folder),
         label: '',
         note: '',
       }));
@@ -788,10 +800,11 @@ const Room = ({
     [busy, items.length, setView]
   );
 
-  // folders with nothing left in them disappear
+  // folders with nothing left in them disappear (a freshly added artist waits for files)
   useEffect(() => {
     setGroups((gs) => {
-      const kept = gs.filter((g) => items.some((i) => i.group === g.id));
+      gs.forEach((g) => items.some((i) => i.group === g.id) && fresh.current.delete(g.id));
+      const kept = gs.filter((g) => fresh.current.has(g.id) || items.some((i) => i.group === g.id));
       return kept.length === gs.length ? gs : kept;
     });
     setSelected((sel) => {
@@ -812,6 +825,7 @@ const Room = ({
       if (--depth <= 0) {
         depth = 0;
         setDrag(false);
+        setDragOver(null);
       }
     };
     const over = (e: DragEvent) => e.preventDefault();
@@ -819,7 +833,10 @@ const Room = ({
       e.preventDefault();
       depth = 1;
       leave();
-      fromDrop(e.dataTransfer).then(add);
+      // an empty artist's drop zone marks itself first (React handles the event before window)
+      const into = dropInto.current;
+      dropInto.current = null;
+      fromDrop(e.dataTransfer).then((list) => add(list, into));
     };
     window.addEventListener('dragenter', enter);
     window.addEventListener('dragleave', leave);
@@ -884,8 +901,22 @@ const Room = ({
     setNewFolder('');
   };
 
-  const ungroup = (id: string) =>
+  /** Remove an artist; its files stay, without an artist. */
+  const ungroup = (id: string) => {
+    fresh.current.delete(id);
+    setGroups((cur) => cur.filter((g) => g.id !== id));
     setItems((cur) => cur.map((i) => (i.group === id ? { ...i, group: null } : i)));
+  };
+  const addArtist = () => {
+    const g = { id: uid(), name: '', note: '' };
+    fresh.current.add(g.id);
+    setGroups((cur) => [...cur, g]);
+    setNewArtist(g.id);
+  };
+  const pickFiles = (into: string | null = null) => {
+    pickInto.current = into;
+    picker.current?.click();
+  };
 
   const reset = () => {
     items.forEach((i) => URL.revokeObjectURL(i.url));
@@ -1065,13 +1096,13 @@ const Room = ({
   const sections = [
     ...groups.map((g) => ({ g, list: items.filter((i) => i.group === g.id) })),
     { g: null, list: items.filter((i) => !i.group) },
-  ].filter((s) => s.list.length);
+  ].filter((s) => s.g || s.list.length);
   const selecting = selected.size > 0;
   const selGroups = new Set(items.filter((i) => selected.has(i.id)).map((i) => i.group));
 
   const AddTiles = () => (
     <motion.div layout className="flex justify-center pb-6 pt-10">
-      <Add onFiles={() => picker.current?.click()} onFolder={() => folderPicker.current?.click()} />
+      <Add onFiles={() => pickFiles()} onFolder={() => folderPicker.current?.click()} />
     </motion.div>
   );
 
@@ -1151,7 +1182,8 @@ const Room = ({
           multiple
           className="hidden"
           onChange={(e) => {
-            add(fromList(e.target.files));
+            add(fromList(e.target.files), pickInto.current);
+            pickInto.current = null;
             e.target.value = '';
           }}
         />
@@ -1168,7 +1200,7 @@ const Room = ({
 
         {/* empty: the word is the button */}
         <AnimatePresence mode="wait">
-          {!items.length ? (
+          {!items.length && !groups.length ? (
             <motion.div
               key="empty"
               exit={{
@@ -1180,8 +1212,9 @@ const Room = ({
               className="relative"
             >
               <DropWord
-                onFiles={() => picker.current?.click()}
+                onFiles={() => pickFiles()}
                 onFolder={() => folderPicker.current?.click()}
+                onArtist={addArtist}
               />
             </motion.div>
           ) : (
@@ -1191,11 +1224,18 @@ const Room = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              {groups.length > 1 && (
-                <p className="mb-6 text-[13px] text-[#C9C8C7]/80">
-                  Folders go on your site in this order, top first. Use the arrows to change it.
+              <div className="studio-canvas-bar">
+                <p className="studio-muted">
+                  {groups.length > 1
+                    ? 'Artists appear on your site in this order, top first.'
+                    : 'Sending more than one artist? Give each one a section.'}
                 </p>
-              )}
+                {!locked && (
+                  <button type="button" className="studio-button" onClick={addArtist}>
+                    <span aria-hidden>+</span> Add artist
+                  </button>
+                )}
+              </div>
               {sections.map(({ g, list }, si) => {
                 const columns = Array.from({ length: cols }, (_, c) =>
                   list.filter((_, i) => i % cols === c)
@@ -1205,27 +1245,33 @@ const Room = ({
                   <motion.section
                     key={g?.id ?? 'loose'}
                     layout
-                    className={si ? 'mt-14 md:mt-20' : ''}
+                    className={`studio-artist${g ? '' : ' is-loose'}${si ? ' mt-6 md:mt-8' : ''}`}
                   >
                     {g ? (
-                      <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-1 border-b border-[#C9C8C7]/10 pb-3">
+                      <div className="studio-artist-head">
+                        {groups.length > 1 && (
+                          <span className="studio-artist-order" aria-hidden>
+                            {gi + 1}
+                          </span>
+                        )}
                         <input
                           value={g.name}
                           onChange={(e) => patchGroup(g.id, { name: e.target.value })}
                           disabled={locked}
-                          placeholder="folder name"
-                          aria-label="folder name"
-                          className="min-w-0 flex-1 basis-[14rem] bg-transparent font-sans text-xl font-medium leading-tight tracking-tight text-[#C9C8C7] outline-none placeholder:text-[#C9C8C7]/60"
+                          placeholder="Artist name"
+                          aria-label="artist name"
+                          autoFocus={g.id === newArtist}
+                          className="studio-artist-name min-w-0 flex-1 basis-[12rem]"
                         />
-                        <span className="pb-1 font-mono text-xs tabular-nums text-[#C9C8C7]/80">
-                          {String(list.length).padStart(2, '0')}
+                        <span className="studio-artist-count">
+                          {list.length} {list.length === 1 ? 'file' : 'files'}
                         </span>
                         <Field
                           value={g.note}
                           onChange={(v) => patchGroup(g.id, { note: v })}
                           disabled={locked}
-                          placeholder="instructions for this folder"
-                          className="flex-[2] basis-[16rem]"
+                          placeholder="Instructions for this artist"
+                          className="studio-artist-note flex-[2] basis-[16rem]"
                         />
                         {!locked && groups.length > 1 && (
                           <div className="flex gap-1" role="group" aria-label="Folder order">
@@ -1235,8 +1281,8 @@ const Room = ({
                                 type="button"
                                 onClick={() => moveGroup(g.id, by)}
                                 disabled={gi + by < 0 || gi + by >= groups.length}
-                                aria-label={`Move ${g.name || 'folder'} ${by < 0 ? 'up' : 'down'}`}
-                                className="flex h-11 w-11 items-center justify-center rounded-full text-[#C9C8C7]/80 transition-colors hover:bg-[#C9C8C7]/10 hover:text-[#C9C8C7] disabled:opacity-30 disabled:hover:bg-transparent"
+                                aria-label={`Move ${g.name || 'artist'} ${by < 0 ? 'up' : 'down'}`}
+                                className="studio-icon-button"
                               >
                                 <span aria-hidden>{by < 0 ? '↑' : '↓'}</span>
                               </button>
@@ -1247,51 +1293,76 @@ const Room = ({
                           <button
                             type="button"
                             onClick={() => ungroup(g.id)}
-                            className="pb-2 text-[13px] text-[#C9C8C7]/80 transition-colors hover:text-[#dc2626]"
+                            className="studio-button studio-button-ghost studio-button-sm studio-danger"
                           >
-                            Ungroup files
+                            Remove artist (keeps files)
                           </button>
                         )}
                       </div>
                     ) : (
                       groups.length > 0 && (
-                        <div className="mb-4 flex items-end gap-6 border-b border-[#C9C8C7]/10 pb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40">
-                          <span>loose</span>
-                          <span className="tabular-nums text-[#C9C8C7]/25">
-                            {String(list.length).padStart(2, '0')}
+                        <div className="studio-artist-head is-loose">
+                          <span className="studio-artist-name">No artist yet</span>
+                          <span className="studio-artist-count">
+                            {list.length} {list.length === 1 ? 'file' : 'files'}
                           </span>
-                          <span className="ml-auto hidden normal-case tracking-normal text-[#C9C8C7]/25 md:inline">
-                            select some to put them in a folder
+                          <span className="studio-muted ml-auto hidden md:inline">
+                            Select some to move them to an artist
                           </span>
                         </div>
                       )
                     )}
-                    <div className="flex gap-3 md:gap-4">
-                      {columns.map((col, c) => (
-                        <div
-                          key={c}
-                          className="min-w-0 flex-1"
-                          style={{ marginTop: c % 2 ? '2.5rem' : 0 }}
-                        >
-                          <AnimatePresence mode="popLayout">
-                            {col.map((it) => (
-                              <Tile
-                                key={it.id}
-                                item={it}
-                                index={items.indexOf(it)}
-                                busy={locked}
-                                selected={selected.has(it.id)}
-                                selecting={selecting}
-                                inherit={g?.name ?? ''}
-                                onRemove={() => remove(it.id)}
-                                onSelect={() => toggle(it.id)}
-                                onChange={(p) => patchItem(it.id, p)}
-                              />
-                            ))}
-                          </AnimatePresence>
-                        </div>
-                      ))}
-                    </div>
+                    {g && !list.length ? (
+                      <div
+                        className={`studio-artist-drop${dragOver === g.id ? ' is-over' : ''}`}
+                        onDragOver={() => dragOver !== g.id && setDragOver(g.id)}
+                        onDragLeave={(e) =>
+                          !e.currentTarget.contains(e.relatedTarget as Node) && setDragOver(null)
+                        }
+                        onDrop={() => (dropInto.current = g.id)}
+                      >
+                        <p>
+                          Select photos and choose Move to {g.name.trim() || 'this artist'}, or drop
+                          files here
+                        </p>
+                        {!locked && (
+                          <button
+                            type="button"
+                            className="studio-button studio-button-sm"
+                            onClick={() => pickFiles(g.id)}
+                          >
+                            Choose files
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex gap-3 md:gap-4">
+                        {columns.map((col, c) => (
+                          <div
+                            key={c}
+                            className="min-w-0 flex-1"
+                            style={{ marginTop: c % 2 ? '2.5rem' : 0 }}
+                          >
+                            <AnimatePresence mode="popLayout">
+                              {col.map((it) => (
+                                <Tile
+                                  key={it.id}
+                                  item={it}
+                                  index={items.indexOf(it)}
+                                  busy={locked}
+                                  selected={selected.has(it.id)}
+                                  selecting={selecting}
+                                  inherit={g?.name ?? ''}
+                                  onRemove={() => remove(it.id)}
+                                  onSelect={() => toggle(it.id)}
+                                  onChange={(p) => patchItem(it.id, p)}
+                                />
+                              ))}
+                            </AnimatePresence>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </motion.section>
                 );
               })}
@@ -1302,7 +1373,7 @@ const Room = ({
       </div>
       {/* drag-over takeover */}
       <AnimatePresence>
-        {drag && (
+        {drag && !dragOver && (
           <motion.div
             className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-black/85 text-[#C9C8C7] backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -1355,13 +1426,13 @@ const Room = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="flex flex-wrap items-end gap-x-6 gap-y-3"
+                  className="studio-dock-select"
                 >
-                  <span className="font-sans text-xl font-medium leading-none tabular-nums text-[#ef6058]">
-                    {String(selected.size).padStart(2, '0')}
+                  <span className="studio-dock-count is-accent">
+                    <strong>{selected.size}</strong> selected
                   </span>
                   <form
-                    className="flex min-w-[15rem] flex-1 items-end gap-3"
+                    className="flex min-w-[15rem] flex-1 items-center gap-2"
                     onSubmit={(e) => {
                       e.preventDefault();
                       makeFolder();
@@ -1370,37 +1441,35 @@ const Room = ({
                     <Field
                       value={newFolder}
                       onChange={setNewFolder}
-                      placeholder="folder name"
+                      placeholder="Artist name"
                       className="flex-1"
                     />
                     <button
                       type="submit"
-                      className="whitespace-nowrap bg-[#C9C8C7] px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] text-black transition-colors hover:bg-[#dc2626]"
+                      className="studio-button studio-button-primary whitespace-nowrap"
                     >
-                      make folder
+                      New artist from selection
                     </button>
                   </form>
                   {(groups.length > 0 || !selGroups.has(null)) && (
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="pr-1 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/35">
-                        move to
-                      </span>
+                      <span className="studio-field-label pr-1">Move to artist</span>
                       {groups.map((g, n) => (
                         <Chip key={g.id} onClick={() => moveTo(g.id)}>
-                          {g.name || `folder ${n + 1}`}
+                          {g.name || `Artist ${n + 1}`}
                         </Chip>
                       ))}
                       {[...selGroups].some(Boolean) && (
-                        <Chip onClick={() => moveTo(null)}>loose</Chip>
+                        <Chip onClick={() => moveTo(null)}>No artist</Chip>
                       )}
                     </div>
                   )}
                   <button
                     type="button"
                     onClick={() => setSelected(new Set())}
-                    className="pb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9C8C7]/40 transition-colors hover:text-[#C9C8C7]"
+                    className="studio-button studio-button-ghost"
                   >
-                    done
+                    Done
                   </button>
                 </motion.div>
               ) : (
@@ -1411,13 +1480,13 @@ const Room = ({
                   exit={{ opacity: 0, y: -20 }}
                   className="studio-dock-main"
                 >
-                  <span className="font-logo text-4xl leading-none tabular-nums text-[#C9C8C7]">
-                    {String(items.length).padStart(2, '0')}
+                  <span className="studio-dock-count">
+                    <strong>{items.length}</strong> {items.length === 1 ? 'file' : 'files'}
                   </span>
                   <button
                     type="button"
                     onClick={() => setDetailsOpen(true)}
-                    className="min-w-0 flex-1 truncate text-left font-mono text-[12px] uppercase tracking-[0.15em] text-[#C9C8C7]/50 transition-colors hover:text-[#C9C8C7]"
+                    className="studio-dock-title min-w-0 flex-1 truncate text-left"
                   >
                     {title ? `${title}${city ? ` · ${city}` : ''}` : 'Add a title and instructions'}
                   </button>
@@ -1430,9 +1499,8 @@ const Room = ({
                   <motion.button
                     type="button"
                     onClick={() => setDetailsOpen(true)}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="rounded-full bg-[#C9C8C7] px-7 py-3 font-logo text-lg uppercase tracking-tight text-black hover:bg-white"
+                    whileTap={{ scale: 0.97 }}
+                    className="studio-button studio-button-primary studio-dock-send"
                   >
                     {phase === 'error' ? 'Try sending again' : 'Review & send'}
                   </motion.button>
@@ -1454,6 +1522,12 @@ const Room = ({
               if (d.note !== undefined) setNote(d.note);
             }}
             count={items.length}
+            artists={groups
+              .map((g, n) => ({
+                name: g.name.trim() || `Artist ${n + 1}`,
+                count: items.filter((i) => i.group === g.id).length,
+              }))
+              .filter((a) => a.count)}
             error={phase === 'error'}
             remember={!practice}
             onClose={() => setDetailsOpen(false)}
@@ -1491,6 +1565,7 @@ const Room = ({
           onNewDrop={() => changeView('upload')}
           onChange={updateRequest}
           onOpen={(id) => go({ view: 'drops', drop: id })}
+          loading={connected === null}
           workerDown={connected === true && !!worker && !workerOnline(worker)}
           onOlder={
             olderCursor
@@ -1518,8 +1593,23 @@ const Room = ({
         />
       )}
       {view === 'insights' && (
-        <Suspense fallback={<p className="studio-muted">Loading insights…</p>}>
-          <Insights range={route.arg} onRange={(range) => go({ view: 'insights', arg: range }, true)} />
+        <Suspense
+          fallback={
+            <div className="studio-detail-loading" role="status">
+              <span className="sr-only">Loading insights…</span>
+              <span className="studio-skeleton" style={{ width: 160, height: 24 }} aria-hidden />
+              <span
+                className="studio-skeleton"
+                style={{ width: '100%', height: 180 }}
+                aria-hidden
+              />
+            </div>
+          }
+        >
+          <Insights
+            range={route.arg}
+            onRange={(range) => go({ view: 'insights', arg: range }, true)}
+          />
         </Suspense>
       )}
     </div>
@@ -1582,7 +1672,7 @@ export const StudioPage = () => {
     },
     {
       title: 'shape it',
-      body: 'Each folder is its own group. Rename it, add notes for the folder or any single photo. The + adds more.',
+      body: 'Each folder becomes an artist. Rename it, add notes for the artist or any single photo. The + adds more.',
       next: true,
     },
     {

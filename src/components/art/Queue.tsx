@@ -118,16 +118,16 @@ export function DropRow({
       setBusy(null);
     }
   };
-  const removable = ['question', 'preview', 'failed'].includes(r.status);
+  const removable = ['pending', 'question', 'preview', 'failed', 'live'].includes(r.status);
   return (
     <article
-      className={`studio-drop ${needsAttention(r.status) ? 'studio-drop-attention' : ''}`}
+      className={`studio-drop${needsAttention(r.status) ? ' studio-drop-attention' : ''}${inDetail ? ' is-detail' : ''}`}
       aria-label={requestTitle(r)}
     >
       <header className="studio-drop-head">
-        <div>
+        <div className="studio-drop-titles">
           <h3>{requestTitle(r)}</h3>
-          <p className="studio-muted">
+          <p className="studio-drop-meta">
             {r.files.length} {r.files.length === 1 ? 'file' : 'files'}
             {r.city ? ` · ${r.city}` : ''} · {date(r.createdAt)}
           </p>
@@ -139,7 +139,9 @@ export function DropRow({
           {strip.map((u) => (
             <img key={u} src={u} alt="" loading="lazy" decoding="async" />
           ))}
-          {r.files.length > strip.length && <span>+{r.files.length - strip.length}</span>}
+          {r.files.length > strip.length && (
+            <span className="studio-strip-more">+{r.files.length - strip.length}</span>
+          )}
         </button>
       )}
       {r.status === 'pending' && workerDown && !r.siteChanged ? (
@@ -252,40 +254,53 @@ export function DropRow({
         </div>
       )}
       {r.status === 'failed' && (
-        <button className="studio-button" disabled={!!busy} onClick={() => run('retry')}>
-          {busy === 'retry' ? 'Queueing…' : 'Try this drop again'}
-        </button>
+        <div className="studio-actions">
+          <button
+            className="studio-button studio-button-primary"
+            disabled={!!busy}
+            onClick={() => run('retry')}
+          >
+            {busy === 'retry' ? 'Queueing…' : 'Try this drop again'}
+          </button>
+        </div>
       )}
       {r.status === 'live' && r.summary && <p className="studio-drop-explain">{r.summary}</p>}
       {r.status === 'live' && (
-        <a
-          className="studio-text-link"
-          href="https://www.imanolvillagomez.com/work"
-          target="_blank"
-          rel="noreferrer"
-        >
-          View website <span aria-hidden>↗</span>
-        </a>
+        <div className="studio-actions">
+          <a
+            className="studio-button"
+            href="https://www.imanolvillagomez.com/work"
+            target="_blank"
+            rel="noreferrer"
+          >
+            View website <span aria-hidden>↗</span>
+          </a>
+        </div>
       )}
       {confirm && (
         <div
           className="studio-confirm"
           role="group"
-          aria-label={confirm === 'approve' ? 'Confirm publish' : 'Confirm removal'}
+          aria-label={confirm === 'approve' ? 'Confirm publish' : 'Confirm delete'}
+          data-tone={confirm === 'approve' ? undefined : 'danger'}
         >
           <strong>
             {confirm === 'approve'
               ? 'Ready to put this version on your website?'
-              : 'Remove this drop and its uploaded files?'}
+              : r.status === 'live'
+                ? 'Delete this drop from your list?'
+                : 'Delete this drop and its uploaded files?'}
           </strong>
           <p>
             {confirm === 'approve'
               ? 'Publish only after you have checked the preview.'
-              : 'This cannot be undone. Your existing live work stays on the website.'}
+              : r.status === 'live'
+                ? 'Your work stays on your website. The uploaded originals are deleted.'
+                : "This can't be undone. Nothing is published."}
           </p>
           <div className="studio-actions">
             <button
-              className="studio-button studio-button-primary"
+              className={`studio-button ${confirm === 'approve' ? 'studio-button-primary' : 'studio-button-danger'}`}
               disabled={!!busy}
               onClick={() => run(confirm)}
             >
@@ -293,7 +308,7 @@ export function DropRow({
                 ? 'Please wait…'
                 : confirm === 'approve'
                   ? 'Yes, publish this version'
-                  : 'Remove this drop'}
+                  : 'Delete drop'}
             </button>
             <button className="studio-button" disabled={!!busy} onClick={() => setConfirm(null)}>
               Cancel
@@ -306,69 +321,73 @@ export function DropRow({
           {error}
         </p>
       )}
-      {!inDetail && onOpen && (
-        <button className="studio-text-link studio-view-drop" onClick={onOpen}>
-          View drop <span aria-hidden>→</span>
-        </button>
-      )}
       {inDetail && removable && (
-        <button
-          className="studio-text-link studio-danger"
-          disabled={!!busy}
-          onClick={() => setConfirm('remove')}
-        >
-          Remove drop
-        </button>
+        <div className="studio-drop-foot">
+          <button
+            className="studio-button studio-button-ghost studio-danger"
+            disabled={!!busy}
+            onClick={() => setConfirm('remove')}
+          >
+            Delete drop
+          </button>
+        </div>
       )}
       {!inDetail && (
-        <details className="studio-drop-details">
-          <summary>
-            <span>Files &amp; notes</span>
-            <span className="studio-details-toggle" aria-hidden>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M3 8h10M8 3v10" />
-              </svg>
-            </span>
-          </summary>
-          <div className="studio-details-body">
-            {r.note && <p className="studio-preserve">{r.note}</p>}
-            <ul>
-              {r.files.map((f, i) => (
-                <li key={`${f.key}-${i}`}>
-                  {f.label || f.name}
-                  {f.note ? ` — ${f.note}` : ''}
-                </li>
+        <div className="studio-drop-foot">
+          <details className="studio-drop-details">
+            <summary>
+              <span>Files &amp; notes</span>
+              <span className="studio-details-toggle" aria-hidden>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path d="M3 8h10M8 3v10" />
+                </svg>
+              </span>
+            </summary>
+            <div className="studio-details-body">
+              {r.note && <p className="studio-preserve">{r.note}</p>}
+              <ul>
+                {r.files.map((f, i) => (
+                  <li key={`${f.key}-${i}`}>
+                    {f.label || f.name}
+                    {f.note ? ` — ${f.note}` : ''}
+                  </li>
+                ))}
+              </ul>
+              {r.revisions?.map((v) => (
+                <p key={v.at}>
+                  <strong>Changes requested:</strong> {v.text}
+                </p>
               ))}
-            </ul>
-            {r.revisions?.map((v) => (
-              <p key={v.at}>
-                <strong>Changes requested:</strong> {v.text}
-              </p>
-            ))}
-            {r.answers?.map((a) => (
-              <p key={a.at}>
-                <strong>Your answer:</strong> {a.text}
-              </p>
-            ))}
-            <p className="studio-muted">Last update: {date(r.updatedAt)}</p>
-            {removable && (
-              <button
-                className="studio-text-link studio-danger"
-                disabled={!!busy}
-                onClick={() => setConfirm('remove')}
-              >
-                Remove drop
-              </button>
-            )}
-          </div>
-        </details>
+              {r.answers?.map((a) => (
+                <p key={a.at}>
+                  <strong>Your answer:</strong> {a.text}
+                </p>
+              ))}
+              <p className="studio-muted">Last update: {date(r.updatedAt)}</p>
+              {removable && (
+                <button
+                  className="studio-text-link studio-danger"
+                  disabled={!!busy}
+                  onClick={() => setConfirm('remove')}
+                >
+                  Delete drop
+                </button>
+              )}
+            </div>
+          </details>
+          {onOpen && (
+            <button className="studio-button studio-button-ghost studio-view-drop" onClick={onOpen}>
+              View drop <span aria-hidden>→</span>
+            </button>
+          )}
+        </div>
       )}
     </article>
   );
@@ -381,6 +400,7 @@ export function Queue({
   onOpen,
   onOlder,
   workerDown = false,
+  loading = false,
 }: {
   requests: api.ArtRequest[];
   onChange: (r: api.ArtRequest) => void;
@@ -389,6 +409,8 @@ export function Queue({
   /** loads the next older page; absent when there is none */
   onOlder?: () => Promise<void>;
   workerDown?: boolean;
+  /** first load still in flight: show placeholders, not the empty state */
+  loading?: boolean;
 }) {
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderError, setOlderError] = useState('');
@@ -418,8 +440,8 @@ export function Queue({
           <p className="studio-muted">Uploads, previews, and published work.</p>
         </div>
         {onNewDrop && (
-          <button className="studio-button" onClick={onNewDrop}>
-            New drop
+          <button className="studio-button studio-button-primary" onClick={onNewDrop}>
+            <span aria-hidden>+</span> New drop
           </button>
         )}
       </div>
@@ -438,15 +460,44 @@ export function Queue({
             </button>
           ))}
         </div>
-        <input
-          type="search"
-          aria-label="Search drops"
-          placeholder="Search drops…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="studio-search">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden
+          >
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+          <input
+            type="search"
+            aria-label="Search drops"
+            placeholder="Search drops…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
-      {visible.length ? (
+      {!requests.length && loading ? (
+        <div className="studio-drop-list" role="status" aria-label="Loading your drops">
+          {[0, 1, 2].map((n) => (
+            <div key={n} className="studio-drop studio-drop-skeleton" aria-hidden>
+              <span className="studio-skeleton" style={{ width: '45%', height: 18 }} />
+              <span className="studio-skeleton" style={{ width: '30%', height: 12 }} />
+              <span className="studio-skeleton-row">
+                <span className="studio-skeleton" />
+                <span className="studio-skeleton" />
+                <span className="studio-skeleton" />
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : visible.length ? (
         <div className="studio-drop-list">
           {visible.map((r) => (
             <DropRow
@@ -460,6 +511,20 @@ export function Queue({
         </div>
       ) : (
         <div className="studio-empty">
+          <span className="studio-empty-icon" aria-hidden>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 5h14v14H5zM5 10h14M10 10v9" />
+            </svg>
+          </span>
           <h3>{requests.length ? 'No matching drops' : 'Your first drop starts here'}</h3>
           <p>
             {requests.length

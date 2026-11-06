@@ -18,13 +18,22 @@ const dayLabel = (iso: string) =>
     new Date(`${iso}T00:00:00Z`)
   );
 
-function Sparkline({ points, label }: { points: { date: string; visitors: number }[]; label: string }) {
+function Sparkline({
+  points,
+  label,
+}: {
+  points: { date: string; visitors: number }[];
+  label: string;
+}) {
   const max = Math.max(1, ...points.map((p) => p.visitors));
   const w = 300;
   const h = 64;
   const step = points.length > 1 ? w / (points.length - 1) : w;
   const d = points
-    .map((p, i) => `${i ? 'L' : 'M'}${(i * step).toFixed(1)},${(h - (p.visitors / max) * (h - 6) - 3).toFixed(1)}`)
+    .map(
+      (p, i) =>
+        `${i ? 'L' : 'M'}${(i * step).toFixed(1)},${(h - (p.visitors / max) * (h - 6) - 3).toFixed(1)}`
+    )
     .join(' ');
   return (
     <figure className="studio-spark">
@@ -47,7 +56,15 @@ function Sparkline({ points, label }: { points: { date: string; visitors: number
   );
 }
 
-function Bars({ rows, name, unit }: { rows: Count[]; name: (k: string) => string; unit: 'views' | 'visitors' }) {
+function Bars({
+  rows,
+  name,
+  unit,
+}: {
+  rows: Count[];
+  name: (k: string) => string;
+  unit: 'views' | 'visitors';
+}) {
   if (!rows.length) return <p className="studio-muted">Nothing yet for this period.</p>;
   const max = Math.max(1, ...rows.map((r) => r[unit]));
   return (
@@ -56,14 +73,47 @@ function Bars({ rows, name, unit }: { rows: Count[]; name: (k: string) => string
         <li key={r.key}>
           <span className="studio-bar-label">{name(r.key)}</span>
           <span className="studio-bar-value">{fmt.format(r[unit])}</span>
-          <span className="studio-bar" style={{ width: `${(r[unit] / max) * 100}%` }} aria-hidden />
+          <span className="studio-bar-track" aria-hidden>
+            <span className="studio-bar" style={{ width: `${(r[unit] / max) * 100}%` }} />
+          </span>
         </li>
       ))}
     </ol>
   );
 }
 
-export default function Insights({ range: raw, onRange }: { range?: string; onRange: (r: Range) => void }) {
+/** Placeholder cards while the first summary loads. */
+function InsightsSkeleton() {
+  return (
+    <div className="studio-cards" role="status" aria-label="Loading insights">
+      <div className="studio-card studio-card-wide" aria-hidden>
+        <span className="studio-skeleton" style={{ width: 90, height: 14 }} />
+        <span className="studio-skeleton" style={{ width: 180, height: 34, marginTop: 16 }} />
+        <span className="studio-skeleton" style={{ width: '100%', height: 72, marginTop: 20 }} />
+      </div>
+      {[0, 1, 2, 3].map((n) => (
+        <div key={n} className="studio-card" aria-hidden>
+          <span className="studio-skeleton" style={{ width: 140, height: 14 }} />
+          {[80, 60, 45].map((w) => (
+            <span
+              key={w}
+              className="studio-skeleton"
+              style={{ width: `${w}%`, height: 10, marginTop: 18 }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Insights({
+  range: raw,
+  onRange,
+}: {
+  range?: string;
+  onRange: (r: Range) => void;
+}) {
   const range: Range = raw && raw in RANGES ? (raw as Range) : '30d';
   const [data, setData] = useState<api.InsightsResponse | null>(null);
   const [error, setError] = useState('');
@@ -72,7 +122,11 @@ export default function Insights({ range: raw, onRange }: { range?: string; onRa
 
   const load = useCallback(() => {
     setError('');
-    return api.insights().then(setData, () => setError('Could not load insights. Check your connection and try again.'));
+    return api
+      .insights()
+      .then(setData, () =>
+        setError('Could not load insights. Check your connection and try again.')
+      );
   }, []);
   useEffect(() => {
     load();
@@ -132,11 +186,7 @@ export default function Insights({ range: raw, onRange }: { range?: string; onRa
           {error} <button onClick={load}>Try again</button>
         </div>
       )}
-      {!data && !error && (
-        <p className="studio-muted" role="status">
-          Loading insights…
-        </p>
-      )}
+      {!data && !error && <InsightsSkeleton />}
       {data && !data.connected.vercel && !summary && (
         <div className="studio-empty">
           <h3>Visitor numbers are almost ready</h3>
@@ -158,20 +208,31 @@ export default function Insights({ range: raw, onRange }: { range?: string; onRa
             </p>
           )}
           {a.collectingSince && (
-            <p className="studio-muted">Counting since {dayLabel(a.collectingSince)}, so this period isn't full yet.</p>
+            <p className="studio-muted">
+              Counting since {dayLabel(a.collectingSince)}, so this period isn't full yet.
+            </p>
           )}
           <div className="studio-cards">
             <article className="studio-card studio-card-wide">
               <h2>Visitors</h2>
-              <p className="studio-lead">
-                <strong>{fmt.format(a.visitors)}</strong> visits and{' '}
-                <strong>{fmt.format(a.views)}</strong> page views in the last {RANGES[range]} days
-                {delta !== null && (
-                  <span className={`studio-delta ${delta >= 0 ? 'is-up' : 'is-down'}`}>
-                    {delta >= 0 ? '↑' : '↓'} {Math.abs(delta)}% vs the {RANGES[range]} days before
-                  </span>
-                )}
-              </p>
+              <div className="studio-stats">
+                <p className="studio-stat">
+                  <strong>{fmt.format(a.visitors)}</strong>
+                  <span>visits</span>
+                </p>
+                <p className="studio-stat">
+                  <strong>{fmt.format(a.views)}</strong>
+                  <span>page views</span>
+                </p>
+                <p className="studio-stat-caption">
+                  in the last {RANGES[range]} days
+                  {delta !== null && (
+                    <span className={`studio-delta ${delta >= 0 ? 'is-up' : 'is-down'}`}>
+                      {delta >= 0 ? '↑' : '↓'} {Math.abs(delta)}% vs the {RANGES[range]} days before
+                    </span>
+                  )}
+                </p>
+              </div>
               <Sparkline
                 points={a.series}
                 label={`Visitors per day over the last ${RANGES[range]} days, up to ${fmt.format(
@@ -195,13 +256,22 @@ export default function Insights({ range: raw, onRange }: { range?: string; onRa
               <h2>Phone or computer</h2>
               <Bars
                 rows={a.devices}
-                name={(k) => (k === 'mobile' ? 'Phone' : k === 'desktop' ? 'Computer' : k === 'tablet' ? 'Tablet' : k)}
+                name={(k) =>
+                  k === 'mobile'
+                    ? 'Phone'
+                    : k === 'desktop'
+                      ? 'Computer'
+                      : k === 'tablet'
+                        ? 'Tablet'
+                        : k
+                }
                 unit="visitors"
               />
             </article>
           </div>
           <p className="studio-muted studio-fineprint">
-            Visits count each visitor once per day. Visitors whose browser asks not to be tracked aren't counted.
+            Visits count each visitor once per day. Visitors whose browser asks not to be tracked
+            aren't counted.
           </p>
         </>
       )}

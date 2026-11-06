@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as api from './artApi';
 import { DropRow } from './Queue';
-import { formatBytes, timelineFor, type ArtFile, type DropEvent, type Placement } from './studioModel';
+import {
+  formatBytes,
+  timelineFor,
+  type ArtFile,
+  type DropEvent,
+  type Placement,
+} from './studioModel';
 import { mediaKind } from './mediaPreview';
 
 const when = (iso: string) =>
@@ -77,7 +83,10 @@ function Viewer({
   useEffect(() => {
     close.current?.focus();
     if (kind !== 'other')
-      api.urls(r.id, [file.name], 'original').then((u) => setFull(u[file.name]), () => {});
+      api.urls(r.id, [file.name], 'original').then(
+        (u) => setFull(u[file.name]),
+        () => {}
+      );
   }, [r.id, file.name, kind]);
   const download = async () => {
     setError('');
@@ -102,7 +111,7 @@ function Viewer({
         )}
       </div>
       <div className="studio-viewer-info">
-        <div>
+        <div className="studio-viewer-text">
           <strong>{file.label || short}</strong>
           <p className="studio-muted">
             {formatBytes(file.size)}
@@ -110,10 +119,12 @@ function Viewer({
           </p>
           {file.note && <p className="studio-preserve">{file.note}</p>}
           {placement?.kind === 'unused' && (
-            <p className="studio-muted">Not used{placement.reason ? `: ${placement.reason}` : ''}</p>
+            <p className="studio-muted">
+              Not used{placement.reason ? `: ${placement.reason}` : ''}
+            </p>
           )}
         </div>
-        <div className="studio-actions">
+        <div className="studio-actions studio-viewer-actions">
           {placement?.siteUrl && (
             <a className="studio-button" href={placement.siteUrl} target="_blank" rel="noreferrer">
               See it on the site <span aria-hidden>↗</span>
@@ -122,7 +133,7 @@ function Viewer({
           <button className="studio-button" onClick={download}>
             Download original
           </button>
-          <button ref={close} className="studio-button" onClick={onClose}>
+          <button ref={close} className="studio-button studio-button-primary" onClick={onClose}>
             Close
           </button>
         </div>
@@ -171,7 +182,10 @@ export function DropDetail({
     Promise.all([
       withThumb.length ? api.urls(r.id, withThumb, 'thumb') : {},
       viaOriginal.length ? api.urls(r.id, viaOriginal, 'original') : {},
-    ]).then(([a, b]) => setThumbs({ ...b, ...a }), () => {});
+    ]).then(
+      ([a, b]) => setThumbs({ ...b, ...a }),
+      () => {}
+    );
   }, [r, practice]);
 
   const escape = useRef(() => {});
@@ -203,7 +217,8 @@ export function DropDetail({
       files: r.files.filter((f) => f.folder === g.folder),
     }));
     const loose = r.files.filter((f) => !f.folder || !groups.some((g) => g.folder === f.folder));
-    if (loose.length) out.push({ key: '', name: groups.length ? 'Other files' : '', note: '', files: loose });
+    if (loose.length)
+      out.push({ key: '', name: groups.length ? 'Other files' : '', note: '', files: loose });
     return out.filter((s) => s.files.length);
   }, [r]);
   const total = r?.files.reduce((n, f) => n + f.size, 0) ?? 0;
@@ -228,17 +243,47 @@ export function DropDetail({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="studio-sheet-bar">
-          <span className="studio-muted">
+          <span className="studio-sheet-grip" aria-hidden />
+          <span className="studio-sheet-meta">
             {r ? `${r.files.length} files · ${formatBytes(total)}` : ''}
           </span>
-          <button className="studio-text-link" onClick={onClose}>
+          <button
+            className="studio-button studio-button-ghost studio-sheet-close"
+            onClick={onClose}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
             Close
           </button>
         </div>
         {!r ? (
-          <p className="studio-muted" role="status">
-            {missing ? 'This drop could not be found. It may have been removed.' : 'Loading drop…'}
-          </p>
+          missing ? (
+            <div className="studio-empty" role="status">
+              <h3>This drop could not be found</h3>
+              <p>It may have been removed.</p>
+            </div>
+          ) : (
+            <div className="studio-detail-loading" role="status">
+              <span className="sr-only">Loading drop…</span>
+              <span className="studio-skeleton" style={{ width: '55%', height: 22 }} aria-hidden />
+              <span className="studio-skeleton" style={{ width: '35%', height: 13 }} aria-hidden />
+              <span className="studio-skeleton-grid" aria-hidden>
+                {Array.from({ length: 6 }, (_, n) => (
+                  <span key={n} className="studio-skeleton" />
+                ))}
+              </span>
+            </div>
+          )
         ) : (
           <>
             <DropRow
@@ -252,7 +297,7 @@ export function DropDetail({
             <section className="studio-detail-section" aria-labelledby="files-heading">
               <h2 id="files-heading">What was in it</h2>
               {placements.size > 0 && (
-                <p className="studio-muted">
+                <p className="studio-muted studio-detail-counts">
                   {counts.on} on your site
                   {counts.unused ? ` · ${counts.unused} not used` : ''}
                 </p>
@@ -280,8 +325,12 @@ export function DropDetail({
                                 {short?.split('.').pop()?.toUpperCase().slice(0, 4)}
                               </span>
                             )}
-                            {mediaKind(f) === 'video' && <span className="studio-thumb-kind">Video</span>}
-                            {b && <span className={`studio-thumb-badge is-${b.tone}`}>{b.label}</span>}
+                            {mediaKind(f) === 'video' && (
+                              <span className="studio-thumb-kind">Video</span>
+                            )}
+                            {b && (
+                              <span className={`studio-thumb-badge is-${b.tone}`}>{b.label}</span>
+                            )}
                           </button>
                           <span className="studio-thumb-name">{f.label || short}</span>
                         </li>

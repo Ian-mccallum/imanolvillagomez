@@ -91,7 +91,10 @@ export function WorkspaceHeader({
         </a>
         <div className="studio-header-actions">
           {showStatus && (
-            <span className="studio-header-status" role="status">
+            <span
+              className={`studio-header-status${connected === false || !online ? ' is-problem' : ''}`}
+              role="status"
+            >
               {workerLabel}
             </span>
           )}
@@ -105,7 +108,10 @@ export function WorkspaceHeader({
           </a>
           <details className="studio-account" ref={account}>
             <summary aria-label="Studio account">
-              Nol{' '}
+              <span className="studio-avatar" aria-hidden>
+                N
+              </span>
+              <span className="studio-account-label">Nol</span>
               <svg
                 width="12"
                 height="12"
@@ -154,7 +160,8 @@ export function WorkspaceHeader({
           onClick={() => onView('upload')}
         >
           <NavIcon kind="upload" />
-          New drop{draftCount > 0 && <span className="studio-nav-count">{draftCount}</span>}
+          <span className="studio-nav-label">New drop</span>
+          {draftCount > 0 && <span className="studio-nav-count">{draftCount}</span>}
         </button>
         <button
           aria-label={attention > 0 ? `Your drops, ${attention} need attention` : 'Your drops'}
@@ -162,7 +169,7 @@ export function WorkspaceHeader({
           onClick={() => onView('drops')}
         >
           <NavIcon kind="drops" />
-          Your drops
+          <span className="studio-nav-label">Your drops</span>
           {attention > 0 && <span className="studio-nav-count is-attention">{attention}</span>}
         </button>
         <button
@@ -170,15 +177,15 @@ export function WorkspaceHeader({
           onClick={() => onView('insights')}
         >
           <NavIcon kind="insights" />
-          Insights
+          <span className="studio-nav-label">Insights</span>
         </button>
         <button aria-current={view === 'help' ? 'page' : undefined} onClick={() => onView('help')}>
           <NavIcon kind="help" />
-          Help
+          <span className="studio-nav-label">Help</span>
         </button>
       </nav>
       {connected === false && (
-        <div className="studio-notice" role="alert">
+        <div className="studio-notice is-problem" role="alert">
           Could not refresh your drops. Your draft stays on this device.{' '}
           <button onClick={onRefresh}>Try again</button>
         </div>
@@ -202,14 +209,20 @@ export function StudioHelp({
 }) {
   return (
     <section className="studio-help">
-      <h1>From new work to your website.</h1>
-      <p className="studio-intro">You decide what goes live. The studio handles the preparation.</p>
+      <div className="studio-section-head">
+        <div>
+          <h1>From new work to your website.</h1>
+          <p className="studio-muted">
+            You decide what goes live. The studio handles the preparation.
+          </p>
+        </div>
+      </div>
       <ol className="studio-help-steps">
         <li>
           <h2>Add your work</h2>
           <p>
-            Choose photos, videos, a ZIP, or a whole folder. Folders stay grouped. You can name each
-            group and leave instructions for individual files.
+            Choose photos, videos, a ZIP, or a whole folder. A folder becomes its own artist. You
+            can name each artist and leave instructions for individual files.
           </p>
         </li>
         <li>
@@ -227,13 +240,13 @@ export function StudioHelp({
           </p>
         </li>
       </ol>
-      <div className="studio-help-notes">
+      <div className="studio-help-notes studio-card">
         <h2>A few useful things</h2>
         <ul>
           <li>
-            Two artists at once? Send them in one drop: make a folder for each artist, name it,
-            add its instructions, and use the arrows to put the folders in the order you want on
-            your site, top first.
+            Two artists at once? Send them in one drop: choose Add artist for each one, name it, add
+            its instructions, and use the arrows to put the artists in the order you want on your
+            site, top first.
           </li>
           <li>
             Up to 200 files per drop, and 5 GB per file. Split larger collections into multiple
