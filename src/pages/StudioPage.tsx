@@ -762,7 +762,13 @@ const Room = ({
   useEffect(() => {
     refresh();
     const t = setInterval(() => document.visibilityState === 'visible' && refresh(), 20000);
-    return () => clearInterval(t);
+    // coming back to the tab shows what changed now, not up to 20 seconds later
+    const back = () => document.visibilityState === 'visible' && refresh();
+    document.addEventListener('visibilitychange', back);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', back);
+    };
   }, [refresh]);
 
   useEffect(() => {
@@ -1036,7 +1042,13 @@ const Room = ({
       const req = await api.submit({
         thumbs,
         id,
-        title,
+        title:
+          title.trim() ||
+          groups
+            .filter((g) => items.some((i) => i.group === g.id))
+            .map((g) => g.name.trim())
+            .filter(Boolean)
+            .join(' + '),
         city,
         placement,
         note,
@@ -1076,7 +1088,24 @@ const Room = ({
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
+    // A phone that locks mid-upload stalls it; keep the screen on while files go up.
+    let lock: { release: () => Promise<void> } | undefined;
+    const wake = (
+      navigator as Navigator & { wakeLock?: { request: (t: 'screen') => Promise<typeof lock> } }
+    ).wakeLock;
+    const hold = () =>
+      wake?.request('screen').then(
+        (l) => (lock = l),
+        () => {}
+      );
+    hold();
+    const back = () => document.visibilityState === 'visible' && hold();
+    document.addEventListener('visibilitychange', back);
+    return () => {
+      window.removeEventListener('beforeunload', warn);
+      document.removeEventListener('visibilitychange', back);
+      lock?.release().catch(() => {});
+    };
   }, [busy]);
 
   // ── tour hooks ──

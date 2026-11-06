@@ -59,6 +59,28 @@ const date = (iso: string) =>
 
 type Action = 'approve' | 'remove' | 'revise' | 'retry' | 'reply';
 
+/** Send the preview to an artist: the phone's share sheet, or copy the link. */
+function SharePreview({ url, title }: { url: string; title: string }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: `${title} — preview`, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
+    } catch {
+      /* the person closed the share sheet */
+    }
+  };
+  return (
+    <button className="studio-button studio-button-ghost" onClick={share} aria-live="polite">
+      {copied ? 'Link copied' : 'Share preview'}
+    </button>
+  );
+}
+
 export function DropRow({
   r,
   onChange,
@@ -167,6 +189,7 @@ export function DropRow({
           <label htmlFor={`answer-${r.id}`}>Your answer</label>
           <textarea
             id={`answer-${r.id}`}
+            autoFocus={inDetail}
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={3}
@@ -189,9 +212,12 @@ export function DropRow({
             {practice ? (
               <span className="studio-muted">Practice preview — nothing was uploaded</span>
             ) : r.previewUrl ? (
-              <a className="studio-button" href={r.previewUrl} target="_blank" rel="noreferrer">
-                Open preview <span aria-hidden>↗</span>
-              </a>
+              <>
+                <a className="studio-button" href={r.previewUrl} target="_blank" rel="noreferrer">
+                  Open preview <span aria-hidden>↗</span>
+                </a>
+                {inDetail && <SharePreview url={r.previewUrl} title={requestTitle(r)} />}
+              </>
             ) : (
               <span className="studio-muted">
                 Preview link unavailable. Text Ian before publishing.
