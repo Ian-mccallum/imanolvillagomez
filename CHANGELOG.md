@@ -9,6 +9,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-11-06
+
+### Added
+
+- **NATION** — 9 photos from the Oct 23 shoot, first when the photo grid opens, in
+  the order Imanol asked for (1st through 9th). No tour tag given, so they sit
+  under artist and year.
+
 ## 2026-11-05
 
 ### Added
