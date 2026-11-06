@@ -191,3 +191,38 @@ export function put(u: Upload, file: File, onProgress: (loaded: number) => void)
     xhr.send(file);
   });
 }
+
+// ── Library ──
+type SiteItem = import('./library/model').LibrarySiteItem;
+type LibraryFile = import('./library/model').LibraryFile;
+type Activity = import('./library/model').LibraryActivity;
+export const librarySite = () => call<{ items: SiteItem[] }>('library', { tab: 'site' }).then((r) => r.items);
+export const libraryFiles = () => call<{ files: LibraryFile[] }>('library', { tab: 'files' }).then((r) => r.files);
+export const libraryTrash = () => call<{ files: LibraryFile[] }>('library', { tab: 'trash' }).then((r) => r.files);
+export const libraryActivity = () =>
+  call<{ activity: Activity[] }>('library', { tab: 'activity' }).then((r) => r.activity);
+export const libraryUrl = (path: string, download = false) =>
+  call<{ url: string }>('library-url', { path, download }).then((r) => r.url);
+export const libraryRename = (path: string, to: string) =>
+  call<{ path: string }>('library-rename', { path, to }).then((r) => r.path);
+export const libraryTrashFiles = (paths: string[]) =>
+  call<{ moved: { from: string; to: string }[] }>('library-trash', { paths }).then((r) => r.moved);
+export const libraryRestore = (path: string, asCopy = false) =>
+  call<{ path: string }>('library-restore', { path, asCopy }).then((r) => r.path);
+export const libraryEmptyTrash = (confirm: number) =>
+  call<{ deleted: number }>('library-empty-trash', { confirm }).then((r) => r.deleted);
+export const libraryUpload = (name: string, size: number) =>
+  call<{ path: string; url: string }>('library-upload', { name, size });
+
+/** Changes to work on the site; becomes an edit drop with its own preview. */
+export const editSubmit = (body: {
+  ops: import('./library/model').EditOp[];
+  note?: string;
+  title?: string;
+  id?: string;
+  files?: ArtFile[];
+}) => call<{ request: ArtRequest }>('edit-submit', body).then((r) => r.request);
+
+/** A new drop from some of an earlier drop's files, without uploading them again. */
+export const resend = (body: { id: string; names: string[]; title?: string; note?: string; city?: string; placement?: 'top' | 'anywhere' }) =>
+  call<{ request: ArtRequest }>('resend', body).then((r) => r.request);
