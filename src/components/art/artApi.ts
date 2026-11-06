@@ -126,7 +126,7 @@ export const urls = (id: string, names: string[], kind: 'thumb' | 'original', do
 
 export type InsightsResponse = {
   summary: import('./insights/model').InsightsSummary | null;
-  connected: { vercel: boolean };
+  connected: { vercel: boolean; gsc?: boolean };
 };
 export const insights = () => call<InsightsResponse>('insights');
 export const refreshInsights = () =>

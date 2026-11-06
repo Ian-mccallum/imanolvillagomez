@@ -30,6 +30,7 @@ import {
   writeReq,
 } from './_lib/storage.js';
 import { collect, readSummary, refreshAllowed } from './_lib/insights.js';
+import * as library from './_lib/library.js';
 
 /**
  * /api/art — Imanol's drop box.
@@ -192,7 +193,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'insights' && req.method === 'GET') {
       return res.json({
         summary: await readSummary(),
-        connected: { vercel: !!process.env.VERCEL_ANALYTICS_TOKEN },
+        connected: {
+          vercel: !!process.env.VERCEL_ANALYTICS_TOKEN,
+          gsc: !!process.env.GSC_SERVICE_ACCOUNT_JSON && !!process.env.GSC_SITE,
+        },
       });
     }
 
@@ -454,8 +458,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json({ request: r });
     }
 
+    // ── library: what the site shows and the video files behind it ──
+    if (action === 'library' && post) {
+      const tab = body.tab;
+      if (tab === 'site') return res.json({ items: await library.siteItems() });
+      if (tab === 'files') return res.json({ files: await library.videoFiles() });
+      if (tab === 'trash') return res.json({ files: await library.trashFiles() });
+      if (tab === 'activity') return res.json({ activity: await library.activity() });
+      return res.status(400).json({ error: 'unknown tab' });
+    }
+    if (action === 'library-url' && post)
+      return res.json({ url: await library.readUrl(clean(body.path, 300), !!body.download) });
+    if (action === 'library-rename' && post)
+      return res.json(await library.rename(clean(body.path, 300), clean(body.to, 200)));
+    if (action === 'library-trash' && post)
+      return res.json(
+        await library.trash((Array.isArray(body.paths) ? body.paths : []).map((p) => clean(p, 300)))
+      );
+    if (action === 'library-restore' && post)
+      return res.json(await library.restore(clean(body.path, 300), !!body.asCopy));
+    if (action === 'library-empty-trash' && post)
+      return res.json(await library.emptyTrash(Number(body.confirm)));
+    if (action === 'library-upload' && post)
+      return res.json(await library.uploadUrl(clean(body.name, 200), Number(body.size)));
+
     return res.status(404).json({ error: 'unknown action' });
   } catch (e) {
+    if (e instanceof library.LibraryError) return res.status(e.status).json({ error: e.message });
     return res.status(500).json({ error: e instanceof Error ? e.message : 'failed' });
   }
 }

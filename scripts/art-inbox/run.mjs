@@ -32,6 +32,7 @@ import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { preparePreview } from './preview-state.mjs';
 import { contentMovedSince, isDropPath } from './drop-paths.mjs';
+import { checkPlacements } from './placements.mjs';
 import { appendEvent } from '../../src/components/art/studioModel.ts';
 
 const SCRIPT = fileURLToPath(import.meta.url);
@@ -386,7 +387,10 @@ You are running headless — nobody can answer you mid-run. Rules:
    videos.ts/photos.ts must reuse the helpers already imported there (no URLs or code; the only
    new import allowed is a new shoot's: import x from '@/constants/data/photos-shoot-YYYYMMDD.json';).
    Anything else fails the drop; if the request needs that, ask instead and say Ian will do it.
-5. Write ${resultPath} as {"status":"preview","summary":"<one line of what went on the site>"}.
+5. Write ${resultPath} as {"status":"preview","summary":"<one line of what went on the site>","placements":[...]}.
+   placements has one entry per delivered file, using its exact name from the files list:
+   {"file":"<name>","kind":"photo","siteId":"<the photo's id>"} or {"file":"<name>","kind":"video","siteId":"<the video's id>","siteUrl":"<its videos/ file name>"}
+   or {"file":"<name>","kind":"unused","reason":"<a few plain words, e.g. near-duplicate>"}.
 6. If something breaks that you can't fix, write {"status":"failed","error":"<one line>"}.`;
 }
 
@@ -468,6 +472,10 @@ async function handlePending(r) {
     } else {
       git(REPO, 'push', '-q', '--force-with-lease', '-u', 'origin', branch);
       delete r.siteChanged;
+      const base = git(REPO, 'merge-base', mainSha, branch);
+      const added = gitw(r.id, 'diff', '-U0', base, 'HEAD', '--', 'src/constants/photos.ts', 'src/constants/videos.ts', 'src/constants/data')
+        .split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++')).join('\n');
+      r.placements = checkPlacements(r.files.map((f) => f.name), result.placements, added, [...(r.uploaded ?? []), ...videos.uploaded]);
       r.summary = summary;
       r.uploaded = [...new Set([...(r.uploaded ?? []), ...videos.uploaded])];
       const previewError = await preparePreview(r, {

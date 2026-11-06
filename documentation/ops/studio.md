@@ -113,9 +113,11 @@ fresh worktree only it touches, rechecks the paths, and pushes to `main`.
 ### Statuses
 
 `pending` (queued) → `working` → `question` | `preview` | `failed` →
-`approved` (shipping) → `live`. Imanol can confirm **Remove drop** under **Drop details** for a `question`, `preview` or `failed`
-drop: it goes `removed` (hidden from the page), and the next run deletes its `art/<id>` branch,
-worktree, R2 `inbox/<id>/` and any videos it uploaded that `main` doesn't use. Each run also
+`approved` (shipping) → `live`. Imanol can confirm **Delete drop** for any drop the studio isn't
+working on or publishing (`pending`, `question`, `preview`, `failed`, `live`): it goes `removed`
+(hidden from the page), and the next run deletes its `art/<id>` branch, worktree, R2 `inbox/<id>/`
+and any videos it uploaded that `main` doesn't use. Deleting a live drop never touches the site:
+its photos are in `main` and its videos are still referenced there. Each run also
 prunes worktrees whose drop is gone from R2. A `working` drop older than 3.5h (laptop slept
 mid-run, VPS restarted) goes back to `pending`.
 

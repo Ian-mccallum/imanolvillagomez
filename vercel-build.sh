@@ -19,3 +19,7 @@ echo "⚡ Running Vite build..."
 vite build
 
 echo "✅ Build complete!"
+
+# What Studio's Library treats as in use
+echo "🗂  Writing site manifest..."
+node scripts/build-manifest.mjs
