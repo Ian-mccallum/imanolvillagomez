@@ -1392,9 +1392,9 @@ const Room = ({
         )}
       </AnimatePresence>
 
-      {/* the sheet */}
+      {/* the sheet: only with the draft in view, or while it uploads so progress stays visible */}
       <AnimatePresence>
-        {items.length > 0 && (
+        {items.length > 0 && (view === 'upload' || busy) && (
           <motion.section
             initial={{ y: '110%' }}
             animate={{ y: 0 }}
