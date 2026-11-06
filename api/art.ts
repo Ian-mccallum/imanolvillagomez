@@ -442,10 +442,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json({ request: r });
     }
 
-    // Clear a drop that didn't ship. The runner deletes its branch, files and unshipped videos.
+    // Delete a drop. The runner deletes its branch, uploaded originals and any video it uploaded
+    // that main doesn't use, so a live drop's work stays on the site. Not while it's mid-run.
     if (action === 'remove' && post) {
       const r = await readReq(clean(body.id, 40));
-      if (!r || !['question', 'preview', 'failed'].includes(r.status))
+      if (!r || !['pending', 'question', 'preview', 'failed', 'live'].includes(r.status))
         return res.status(409).json({ error: 'cannot remove' });
       r.status = 'removed';
       appendEvent(r, { type: 'removed', by: 'imanol' });
