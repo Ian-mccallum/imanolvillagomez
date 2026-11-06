@@ -28,6 +28,7 @@ case "${1:-}" in
       cursor|codex)
         # Keep the runner's existing protocol; translate only the prompt and
         # extra writable directory. Provider-specific Claude flags don't apply.
+        orig=("$@")
         prompt=''
         extra=''
         while [ "$#" -gt 0 ]; do
@@ -43,10 +44,18 @@ case "${1:-}" in
         # same checked-in publishing skill and keep the runner's JSON protocol.
         prompt="Read .claude/skills/imanol-publish/SKILL.md and its referenced files. Follow that publishing workflow.
 ${prompt#/imanol-publish}"
+        status=0
         if [ "$ART_AGENT" = cursor ]; then
-          exec agent -p --force --sandbox enabled --trust --output-format text --add-dir "$extra" "$prompt"
+          agent -p --force --sandbox enabled --trust --output-format text --add-dir "$extra" "$prompt" || status=$?
+        else
+          codex exec --sandbox workspace-write --add-dir "$extra" "$prompt" || status=$?
         fi
-        exec codex exec --sandbox workspace-write --add-dir "$extra" "$prompt"
+        # No result means the provider never finished (self-update, sandbox, login, quota):
+        # Claude, on its subscription token, picks up the same worktree.
+        [ -e "$extra/result.json" ] && exit "$status"
+        [ -n "${CLAUDE_CODE_OAUTH_TOKEN:-}" ] || exit "$status"
+        echo "nolai-run: $ART_AGENT left no result (exit $status); running Claude instead" >&2
+        exec claude "${orig[@]}"
         ;;
       *) echo "nolai-run: unsupported ART_AGENT" >&2; exit 64 ;;
     esac

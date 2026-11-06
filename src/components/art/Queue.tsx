@@ -91,7 +91,14 @@ function DropRow({ r, onChange }: { r: api.ArtRequest; onChange: (r: api.ArtRequ
         </div>
         <span className={`studio-status studio-status-${r.status}`}>{LABEL[r.status]}</span>
       </header>
-      {EXPLAIN[r.status] && <p className="studio-drop-explain">{EXPLAIN[r.status]}</p>}
+      {r.siteChanged && (r.status === 'pending' || r.status === 'working') ? (
+        <p className="studio-drop-explain">
+          Other work went live since your preview, so a fresh preview is on its way. You'll
+          approve the new one.
+        </p>
+      ) : (
+        EXPLAIN[r.status] && <p className="studio-drop-explain">{EXPLAIN[r.status]}</p>
+      )}
       {r.status === 'question' && (
         <div className="studio-reply">
           <h4>A quick question before we continue</h4>

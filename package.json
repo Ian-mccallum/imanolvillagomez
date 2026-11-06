@@ -12,7 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
     "type-check": "tsc --noEmit",
     "test:site": "node scripts/analytics-filter.test.mjs",
-    "test:studio": "node scripts/art-inbox/studio.test.mjs && node scripts/art-inbox/media-preview.test.mjs && node scripts/art-inbox/preview-state.test.mjs && node scripts/art-inbox/vm/agent-wrapper.test.mjs"
+    "test:studio": "node scripts/art-inbox/studio.test.mjs && node scripts/art-inbox/media-preview.test.mjs && node scripts/art-inbox/preview-state.test.mjs && node scripts/art-inbox/drop-paths.test.mjs && node scripts/art-inbox/vm/agent-wrapper.test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.962.0",

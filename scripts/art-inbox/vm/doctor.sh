@@ -17,6 +17,15 @@ case "${agent_backend:-claude}" in
   cursor)
     [ -x /home/nolai/.local/bin/agent ] || fail 'Cursor CLI is missing for nolai.'
     sudo -H -u nolai /home/nolai/.local/bin/agent status 2>&1 | grep -q 'Logged in as' || fail 'Cursor needs login as nolai.'
+    # Cursor updates itself into a new versions/<v>/ dir, so the profile must match any version.
+    case "$(readlink -f /home/nolai/.local/bin/agent)" in
+      /home/nolai/.local/share/cursor-agent/versions/*/cursor-agent) ;;
+      *) fail 'Cursor is installed outside ~nolai/.local/share/cursor-agent/versions/; update the AppArmor profile.' ;;
+    esac
+    grep -qF 'profile nol_cursor_sandbox /home/nolai/.local/share/cursor-agent/versions/*/cursorsandbox ' /etc/apparmor.d/nol-cursor-sandbox \
+      || fail 'AppArmor profile nol_cursor_sandbox must match versions/*/cursorsandbox, or Cursor updates break every drop.'
+    command -v claude >/dev/null && grep -Eq '^CLAUDE_CODE_OAUTH_TOKEN=.+' "$CONF/nolai.env" \
+      || echo 'Note: no Claude backup (claude + CLAUDE_CODE_OAUTH_TOKEN); a Cursor failure fails the drop.' >&2
     ;;
   codex)
     command -v codex >/dev/null || fail 'Codex CLI is missing.'
