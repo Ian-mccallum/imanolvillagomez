@@ -63,6 +63,30 @@ two days before into `analytics/daily/<date>.json` and rebuilds
 `analytics/summary.json`, which is all the page reads. History outlives Vercel's
 one-month Hobby window. **Update now** reruns it, at most every 10 minutes.
 
+### Library and site edits
+
+The build writes `dist/site-manifest.json` (`scripts/build-manifest.mjs`): every photo
+and video the site shows, in order, plus video files code references directly. The
+Library reads it from production (`SITE_ORIGIN`) to show what's on the site and which
+R2 videos are in use. Only **unused** video files can be renamed, trashed (to
+`trash/<date>/`, purged by an R2 lifecycle rule after 30 days), restored or uploaded
+directly; the server rechecks use on every change and refuses all changes when it
+can't read the manifest. Every change writes `audit/<yyyy-mm>/…json` (Library →
+Activity).
+
+Anything visible on the site (remove, edit details, reorder, replace) is an **edit
+drop** (`kind: 'edit'`, `ops`): validated against the manifest, queued like any drop,
+applied by the AI as exactly those changes, checked by reading the branch's data files
+(removed ids gone, new values present), previewed, and published only with **Publish
+to website**. A replaced video gets a new file name; the old one moves to trash once
+the edit is live.
+
+**Send again** copies chosen files of an earlier drop into a new drop inside R2.
+
+The AI reports where each file went (`placements` in `result.json`); the runner keeps
+a claim only if the branch's diff contains that photo/video id
+(`scripts/art-inbox/placements.mjs`). Drop detail shows these as On site / Not used.
+
 ## Pieces
 
 | Piece | Where |
@@ -143,7 +167,17 @@ Imanol hits a Vercel login on every preview link.
 | `CRON_SECRET` | 32+ random characters; Vercel sends it to the cron |
 | `VERCEL_PROJECT_ID` / `VERCEL_TEAM_ID` | optional; the project id defaults to `imanolvillagomez`'s |
 
-Without the token Insights says Ian is connecting it; nothing breaks.
+| `GSC_SERVICE_ACCOUNT_JSON` | the service account key JSON (raw or base64); add its email to the Search Console property as a Restricted user |
+| `GSC_SITE` | `sc-domain:imanolvillagomez.com` (domain property) |
+| `CF_ANALYTICS_TOKEN` / `CF_ZONE_ID` | Cloudflare token with Account Analytics: Read + Zone Analytics: Read; the zone id of imanolvillagomez.com |
+| `SITE_ORIGIN` | optional; defaults to `https://www.imanolvillagomez.com` |
+
+Each source is optional: without its variables its card says Ian is connecting it, and
+a failed run keeps the last good numbers. Search Console data lags 2–3 days; the
+collector rechecks the last three days and inspects 20 sitemap pages per run. Video
+"loads" count GETs answered 200/206 on `videos.imanolvillagomez.com` (range requests
+inflate them: approximate). If Cloudflare rejects the GraphQL fields on the Free plan,
+the source shows as failed and the rest still works.
 
 ### R2 CORS
 
