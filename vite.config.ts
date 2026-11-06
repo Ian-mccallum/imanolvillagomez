@@ -67,9 +67,26 @@ async function fixtureStore(server: ViteDevServer) {
     R2_SECRET_ACCESS_KEY: 'fixture',
     R2_BUCKET_NAME: 'fixture',
     R2_ENDPOINT: `http://localhost:${port}/__r2`,
+    SITE_ORIGIN: `http://localhost:${port}`,
+  });
+  // the live site's manifest, built from this checkout; every listed video gets a sample file
+  const { buildManifest } = await import(/* @vite-ignore */ path.join(__dirname, 'scripts/build-manifest.mjs'));
+  let manifest: { videos: { file: string }[] } | null = null;
+  const siteManifest = async () => (manifest ??= await buildManifest());
+  const sample: Obj = fs.existsSync(path.join(__dirname, 'public/videos/osamasonpreview.mp4'))
+    ? { file: 'public/videos/osamasonpreview.mp4', type: 'video/mp4' }
+    : 'sample video';
+  for (const v of (await siteManifest()).videos) objects.set(`videos/${v.file}`, sample);
+  objects.set('videos/old-cut-v1.mp4', sample);
+  objects.set(`trash/${new Date().toISOString().slice(0, 10).replace(/-/g, '')}/videos/test-export.mp4`, sample);
+  server.middlewares.use('/site-manifest.json', async (_req, res) => {
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify(await siteManifest()));
   });
   const bytes = (o: Obj) =>
     typeof o === 'string' || Buffer.isBuffer(o) ? Buffer.from(o) : fs.readFileSync(path.join(__dirname, o.file));
+  const size = (o: Obj) =>
+    typeof o === 'string' || Buffer.isBuffer(o) ? Buffer.byteLength(o) : fs.statSync(path.join(__dirname, o.file)).size;
   S3Client.prototype.send = async function (command: { constructor: { name: string }; input: Record<string, never> }) {
     const { Key, Prefix = '', Delimiter, Body, CopySource } = command.input as Record<string, string>;
     const keys = () => Array.from(objects.keys()).filter((k) => k.startsWith(Prefix)).sort();
@@ -83,7 +100,7 @@ async function fixtureStore(server: ViteDevServer) {
       case 'HeadObjectCommand': {
         const o = objects.get(Key);
         if (o === undefined) throw Object.assign(new Error('NotFound'), { name: 'NotFound' });
-        return { ContentLength: bytes(o).length, LastModified: new Date() };
+        return { ContentLength: size(o), LastModified: new Date() };
       }
       case 'PutObjectCommand':
         objects.set(Key, typeof Body === 'string' ? Body : Buffer.from(Body ?? ''));
@@ -99,14 +116,14 @@ async function fixtureStore(server: ViteDevServer) {
       }
       case 'ListObjectsV2Command': {
         if (!Delimiter)
-          return { Contents: keys().map((k) => ({ Key: k, Size: bytes(objects.get(k)!).length, LastModified: new Date() })) };
+          return { Contents: keys().map((k) => ({ Key: k, Size: size(objects.get(k)!), LastModified: new Date() })) };
         const prefixes = new Set<string>();
         const contents = [];
         for (const k of keys()) {
           const rest = k.slice(Prefix.length);
           const i = rest.indexOf(Delimiter);
           if (i >= 0) prefixes.add(Prefix + rest.slice(0, i + 1));
-          else contents.push({ Key: k, Size: bytes(objects.get(k)!).length, LastModified: new Date() });
+          else contents.push({ Key: k, Size: size(objects.get(k)!), LastModified: new Date() });
         }
         return { CommonPrefixes: Array.from(prefixes).map((p) => ({ Prefix: p })), Contents: contents };
       }

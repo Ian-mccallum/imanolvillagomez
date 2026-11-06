@@ -1,5 +1,7 @@
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { Bucket, getJson, putJson, s3 } from './storage.js';
+import { gscConfigured, inspectSome, searchDays } from './gsc.js';
+import { cloudflareConfigured, storage, videoLoads } from './cloudflare.js';
 import type { DaySnapshot, InsightsSummary, SourceState } from '../../src/components/art/insights/model.js';
 
 const DAILY = 'analytics/daily/';
@@ -79,7 +81,43 @@ export async function collect(now = Date.now()): Promise<InsightsSummary> {
       }
     }
   }
+  // Google reports search a day or two late, so recheck the last three days every run.
+  sources.gsc = gscConfigured() ? { ok: true } : { ok: false, connected: false };
+  let index: InsightsSummary['index'];
+  if (gscConfigured()) {
+    try {
+      const days = [1, 2, 3].map((o) => dayOf(o, now));
+      const search = await searchDays(days);
+      for (const date of days) {
+        const prev = (await getJson<DaySnapshot>(`${DAILY}${date}.json`)) ?? { date };
+        await putJson(`${DAILY}${date}.json`, { ...prev, date, search: search[date] });
+      }
+      sources.gsc.dataThrough = days[0];
+      index = await inspectSome(process.env.SITE_ORIGIN || 'https://www.imanolvillagomez.com');
+    } catch (e) {
+      sources.gsc = { ok: false, connected: true, error: e instanceof Error ? e.message : 'failed' };
+    }
+  }
+  sources.cloudflare = cloudflareConfigured() ? { ok: true } : { ok: false, connected: false };
+  let bucket: InsightsSummary['storage'];
+  if (cloudflareConfigured()) {
+    try {
+      for (const offset of [0, 1]) {
+        const date = dayOf(offset, now);
+        const videos = await videoLoads(date);
+        const prev = (await getJson<DaySnapshot>(`${DAILY}${date}.json`)) ?? { date };
+        await putJson(`${DAILY}${date}.json`, { ...prev, date, videos });
+        sources.cloudflare.dataThrough ??= date;
+      }
+      bucket = (await storage()) ?? undefined;
+    } catch (e) {
+      sources.cloudflare = { ok: false, connected: true, error: e instanceof Error ? e.message : 'failed' };
+    }
+  }
+  const previous = await getJson<InsightsSummary>(SUMMARY);
   const summary = await buildSummary(sources, now);
+  summary.index = index ?? previous?.index;
+  summary.storage = bucket ?? previous?.storage;
   await putJson(SUMMARY, summary);
   return summary;
 }

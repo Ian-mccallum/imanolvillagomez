@@ -173,6 +173,13 @@ export function WorkspaceHeader({
           {attention > 0 && <span className="studio-nav-count is-attention">{attention}</span>}
         </button>
         <button
+          aria-current={view === 'library' ? 'page' : undefined}
+          onClick={() => onView('library')}
+        >
+          <NavIcon kind="library" />
+          <span className="studio-nav-label">Library</span>
+        </button>
+        <button
           aria-current={view === 'insights' ? 'page' : undefined}
           onClick={() => onView('insights')}
         >
