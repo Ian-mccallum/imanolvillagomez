@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as api from '../artApi';
 import { formatBytes } from '../studioModel';
 import type { LibraryActivity, LibraryFile, LibrarySiteItem } from './model';
+import { ChangePanel, Tray, type DraftOp } from './EditTray';
 
 export type LibraryTab = 'site' | 'files' | 'trash' | 'activity';
 const TABS: [LibraryTab, string][] = [
@@ -86,9 +87,14 @@ function Viewer({
 function SiteTab({
   items,
   onOpen,
+  onChange,
+  pending,
 }: {
   items: LibrarySiteItem[];
   onOpen: (i: LibrarySiteItem) => void;
+  onChange: (i: LibrarySiteItem) => void;
+  /** ids with a change waiting in the tray */
+  pending: Set<string>;
 }) {
   const [kind, setKind] = useState<'all' | 'photo' | 'video'>('all');
   const [q, setQ] = useState('');
@@ -144,21 +150,32 @@ function SiteTab({
           <ul className="studio-lib-list">
             {videos.map((v) => (
               <li key={`${v.page}-${v.id}`}>
-                <button className="studio-lib-row" onClick={() => onOpen(v)}>
+                <div className="studio-lib-row">
                   <span className="studio-lib-order">{v.order + 1}</span>
-                  <span className="studio-lib-name">
+                  <button className="studio-lib-name studio-lib-open" onClick={() => onOpen(v)}>
                     <strong>{v.title}</strong>
                     <span className="studio-muted">
                       {PAGE_NAME[v.page] ?? v.page}
                       {v.size ? ` · ${formatBytes(v.size)}` : ''}
                     </span>
-                  </span>
-                  {v.missing ? (
+                  </button>
+                  {pending.has(v.id) ? (
+                    <span className="studio-status studio-status-working">Change waiting</span>
+                  ) : v.missing ? (
                     <span className="studio-status studio-status-failed">File missing</span>
                   ) : (
                     <span className="studio-status studio-status-live">On site</span>
                   )}
-                </button>
+                  {v.page !== '/other' && (
+                    <button
+                      className="studio-button studio-button-sm studio-button-ghost"
+                      onClick={() => onChange(v)}
+                      aria-label={`Change ${v.title}`}
+                    >
+                      Change
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -178,8 +195,20 @@ function SiteTab({
                 >
                   <img src={p.thumb} alt="" loading="lazy" decoding="async" />
                   <span className="studio-thumb-kind">{p.order + 1}</span>
+                  {pending.has(p.id) && (
+                    <span className="studio-thumb-badge is-working">Change waiting</span>
+                  )}
                 </button>
-                <span className="studio-thumb-name">{p.title}</span>
+                <span className="studio-thumb-name studio-lib-photo-foot">
+                  <span>{p.title}</span>
+                  <button
+                    className="studio-text-link"
+                    onClick={() => onChange(p)}
+                    aria-label={`Change photo ${p.order + 1}`}
+                  >
+                    Change
+                  </button>
+                </span>
               </li>
             ))}
           </ul>
@@ -326,10 +355,22 @@ const short = (p?: string) => p?.split('/').pop() ?? '';
 export default function Library({
   tab: raw,
   onTab,
+  onEditSent,
 }: {
   tab?: string;
   onTab: (t: LibraryTab) => void;
+  /** an edit drop was created; show it */
+  onEditSent: (r: api.ArtRequest) => void;
 }) {
+  const [ops, setOps] = useState<DraftOp[]>([]);
+  const [changing, setChanging] = useState<LibrarySiteItem | null>(null);
+  const [storage, setStorage] = useState<{ bytes: number; objects: number } | null>(null);
+  useEffect(() => {
+    api.insights().then(
+      (d) => setStorage(d.summary?.storage ?? null),
+      () => {}
+    );
+  }, []);
   const tab: LibraryTab = TABS.some(([t]) => t === raw) ? (raw as LibraryTab) : 'site';
   const [site, setSite] = useState<LibrarySiteItem[] | null>(null);
   const [files, setFiles] = useState<LibraryFile[] | null>(null);
@@ -436,6 +477,19 @@ export default function Library({
         <div>
           <h1 id="library-heading">Library</h1>
           <p className="studio-muted">Everything on your website, and the video files behind it.</p>
+          {storage && (
+            <div className="studio-storage" aria-label="Storage used">
+              <span className="studio-bar-track" aria-hidden>
+                <span
+                  className="studio-bar"
+                  style={{ width: `${Math.min(100, (storage.bytes / (10 * 1024 ** 3)) * 100)}%` }}
+                />
+              </span>
+              <span className="studio-muted">
+                {formatBytes(storage.bytes)} of 10 GB free storage used
+              </span>
+            </div>
+          )}
         </div>
       </div>
       <div className="studio-filters studio-lib-tabs" role="tablist" aria-label="Library">
@@ -466,6 +520,8 @@ export default function Library({
                 ? setViewer({ title: i.title || 'Photo', kind: 'photo', src: i.url })
                 : i.path && openFile(i.path, i.title)
             }
+            onChange={setChanging}
+            pending={new Set(ops.map((o) => o.target.id))}
           />
         ) : (
           !error && (
@@ -655,6 +711,27 @@ export default function Library({
         ))}
 
       {viewer && <Viewer {...viewer} onClose={() => setViewer(null)} />}
+      {changing && site && (
+        <ChangePanel
+          item={changing}
+          neighbours={(() => {
+            const same = site.filter((i) => i.kind === changing.kind && i.page === changing.page);
+            const at = same.findIndex((i) => i.id === changing.id);
+            return { before: same[at - 1], after: same[at + 1] };
+          })()}
+          onAdd={(op) => setOps((cur) => [...cur, op])}
+          onClose={() => setChanging(null)}
+        />
+      )}
+      <Tray
+        ops={ops}
+        onRemove={(i) => setOps((cur) => cur.filter((_, n) => n !== i))}
+        onClear={() => setOps([])}
+        onSent={(r) => {
+          setOps([]);
+          onEditSent(r);
+        }}
+      />
       {toast && (
         <div className="studio-toast" role="status">
           <span>{toast.text}</span>

@@ -4,6 +4,7 @@ import {
   RANGES,
   aggregate,
   aggregateSearch,
+  aggregateVideos,
   indexHealth,
   change,
   countryName,
@@ -107,6 +108,55 @@ function RankList({
         </li>
       ))}
     </ol>
+  );
+}
+
+/** Which videos people load, from Cloudflare; titles come from the site manifest. */
+function VideoCard({
+  summary,
+  range,
+  connected,
+}: {
+  summary: InsightsSummary | null;
+  range: Range;
+  connected: boolean;
+}) {
+  const [titles, setTitles] = useState<Record<string, string>>({});
+  useEffect(() => {
+    fetch('/site-manifest.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then(
+        (m: { videos?: { file: string; title: string }[] } | null) =>
+          m?.videos && setTitles(Object.fromEntries(m.videos.map((v) => [v.file, v.title]))),
+        () => {}
+      );
+  }, []);
+  const videos = summary ? aggregateVideos(summary, range) : null;
+  return (
+    <article className="studio-card studio-card-wide">
+      <h2>Which videos people watch</h2>
+      {videos ? (
+        <>
+          <RankList
+            rows={videos.slice(0, 10).map((v) => ({
+              key: v.file,
+              label: titles[v.file] ?? v.file.replace(/\.mp4$/, ''),
+              value: v.loads,
+            }))}
+          />
+          <p className="studio-muted studio-fineprint">
+            Counted as video loads, so one viewing can count a few times. Good for comparing videos,
+            not exact plays.
+          </p>
+        </>
+      ) : (
+        <p className="studio-muted">
+          {connected
+            ? 'Video numbers arrive with the next daily update.'
+            : 'Ian is connecting video numbers. Nothing for you to do.'}
+        </p>
+      )}
+    </article>
   );
 }
 
@@ -400,6 +450,11 @@ export default function Insights({
         </>
       )}
       {data && <GoogleCards summary={summary} range={range} connected={!!data.connected.gsc} />}
+      {data && (
+        <div className="studio-cards">
+          <VideoCard summary={summary} range={range} connected={!!data.connected.cloudflare} />
+        </div>
+      )}
     </section>
   );
 }

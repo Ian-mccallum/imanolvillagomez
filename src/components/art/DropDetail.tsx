@@ -152,12 +152,20 @@ export function DropDetail({
   id,
   onClose,
   onChange,
+  onCreated,
 }: {
   initial?: api.ArtRequest;
   id: string;
   onClose: () => void;
   onChange: (r: api.ArtRequest) => void;
+  /** a new drop was sent from this one's files */
+  onCreated?: (r: api.ArtRequest) => void;
 }) {
+  // "Send again": choose files of this drop for a new one, nothing uploaded again
+  const [picking, setPicking] = useState<Set<string> | null>(null);
+  const [againNote, setAgainNote] = useState('');
+  const [againBusy, setAgainBusy] = useState(false);
+  const [againError, setAgainError] = useState('');
   const [r, setR] = useState(initial);
   const [missing, setMissing] = useState(false);
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
@@ -294,52 +302,150 @@ export function DropDetail({
                 onChange(next);
               }}
             />
-            <section className="studio-detail-section" aria-labelledby="files-heading">
-              <h2 id="files-heading">What was in it</h2>
-              {placements.size > 0 && (
-                <p className="studio-muted studio-detail-counts">
-                  {counts.on} on your site
-                  {counts.unused ? ` · ${counts.unused} not used` : ''}
-                </p>
-              )}
-              {r.note && <p className="studio-preserve studio-detail-note">{r.note}</p>}
-              {sections.map((s) => (
-                <div key={s.key || 'loose'} className="studio-file-group">
-                  {s.name && <h3>{s.name}</h3>}
-                  {s.note && <p className="studio-preserve studio-muted">{s.note}</p>}
-                  <ul className="studio-thumb-grid">
-                    {s.files.map((f) => {
-                      const b = badge(placements.get(f.name), r.status);
-                      const short = f.name.split('/').pop();
-                      return (
-                        <li key={f.key}>
-                          <button
-                            className="studio-thumb"
-                            onClick={() => setOpen(f)}
-                            aria-label={`${f.label || short}${b ? `, ${b.label}` : ''}`}
-                          >
-                            {thumbs[f.name] ? (
-                              <img src={thumbs[f.name]} alt="" loading="lazy" decoding="async" />
-                            ) : (
-                              <span className="studio-preview-extension">
-                                {short?.split('.').pop()?.toUpperCase().slice(0, 4)}
-                              </span>
-                            )}
-                            {mediaKind(f) === 'video' && (
-                              <span className="studio-thumb-kind">Video</span>
-                            )}
-                            {b && (
-                              <span className={`studio-thumb-badge is-${b.tone}`}>{b.label}</span>
-                            )}
-                          </button>
-                          <span className="studio-thumb-name">{f.label || short}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+            {r.kind === 'edit' && (
+              <section className="studio-detail-section" aria-labelledby="changes-heading">
+                <h2 id="changes-heading">Changes you asked for</h2>
+                <ol className="studio-change-list">
+                  {(timelineFor(r).find((e) => e.type === 'sent')?.text ?? '')
+                    .split('\n')
+                    .filter(Boolean)
+                    .map((line, i) => (
+                      <li key={i}>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                </ol>
+              </section>
+            )}
+            {r.files.length > 0 && (
+              <section className="studio-detail-section" aria-labelledby="files-heading">
+                <div className="studio-detail-head">
+                  <h2 id="files-heading">
+                    {r.kind === 'edit' ? 'Replacement files' : 'What was in it'}
+                  </h2>
+                  {onCreated && r.kind !== 'edit' && !id.startsWith('practice-') && (
+                    <button
+                      className="studio-button studio-button-sm studio-button-ghost"
+                      onClick={() => {
+                        setPicking(picking ? null : new Set());
+                        setAgainError('');
+                      }}
+                    >
+                      {picking ? 'Cancel' : 'Send again…'}
+                    </button>
+                  )}
                 </div>
-              ))}
-            </section>
+                {picking && (
+                  <div className="studio-reply studio-again">
+                    <p>
+                      Choose the files to send in a new drop. They're copied, not uploaded again.{' '}
+                      <button
+                        className="studio-text-link"
+                        onClick={() => setPicking(new Set(r.files.map((f) => f.name)))}
+                      >
+                        Select all
+                      </button>
+                    </p>
+                    <label htmlFor="again-note">What should happen this time?</label>
+                    <textarea
+                      id="again-note"
+                      rows={2}
+                      value={againNote}
+                      onChange={(e) => setAgainNote(e.target.value)}
+                      placeholder="For example: put these on the Photos page under NATION."
+                    />
+                    {againError && (
+                      <p role="alert" className="studio-error">
+                        {againError}
+                      </p>
+                    )}
+                    <button
+                      className="studio-button studio-button-primary"
+                      disabled={!picking.size || againBusy}
+                      onClick={async () => {
+                        setAgainBusy(true);
+                        setAgainError('');
+                        try {
+                          const next = await api.resend({
+                            id: r.id,
+                            names: [...picking],
+                            note: againNote,
+                          });
+                          setPicking(null);
+                          setAgainNote('');
+                          onCreated?.(next);
+                        } catch (e) {
+                          setAgainError(
+                            e instanceof Error && e.message
+                              ? e.message
+                              : 'Could not send. Try again.'
+                          );
+                        } finally {
+                          setAgainBusy(false);
+                        }
+                      }}
+                    >
+                      {againBusy
+                        ? 'Sending…'
+                        : `Send ${picking.size || ''} ${picking.size === 1 ? 'file' : 'files'} as a new drop`}
+                    </button>
+                  </div>
+                )}
+                {placements.size > 0 && (
+                  <p className="studio-muted studio-detail-counts">
+                    {counts.on} on your site
+                    {counts.unused ? ` · ${counts.unused} not used` : ''}
+                  </p>
+                )}
+                {r.note && <p className="studio-preserve studio-detail-note">{r.note}</p>}
+                {sections.map((s) => (
+                  <div key={s.key || 'loose'} className="studio-file-group">
+                    {s.name && <h3>{s.name}</h3>}
+                    {s.note && <p className="studio-preserve studio-muted">{s.note}</p>}
+                    <ul className="studio-thumb-grid">
+                      {s.files.map((f) => {
+                        const b = badge(placements.get(f.name), r.status);
+                        const short = f.name.split('/').pop();
+                        return (
+                          <li key={f.key}>
+                            <button
+                              className={`studio-thumb ${picking?.has(f.name) ? 'is-picked' : ''}`}
+                              onClick={() =>
+                                picking
+                                  ? setPicking((cur) => {
+                                      const next = new Set(cur);
+                                      if (next.has(f.name)) next.delete(f.name);
+                                      else next.add(f.name);
+                                      return next;
+                                    })
+                                  : setOpen(f)
+                              }
+                              aria-pressed={picking ? picking.has(f.name) : undefined}
+                              aria-label={`${f.label || short}${b ? `, ${b.label}` : ''}`}
+                            >
+                              {thumbs[f.name] ? (
+                                <img src={thumbs[f.name]} alt="" loading="lazy" decoding="async" />
+                              ) : (
+                                <span className="studio-preview-extension">
+                                  {short?.split('.').pop()?.toUpperCase().slice(0, 4)}
+                                </span>
+                              )}
+                              {mediaKind(f) === 'video' && (
+                                <span className="studio-thumb-kind">Video</span>
+                              )}
+                              {b && (
+                                <span className={`studio-thumb-badge is-${b.tone}`}>{b.label}</span>
+                              )}
+                            </button>
+                            <span className="studio-thumb-name">{f.label || short}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </section>
+            )}
             <section className="studio-detail-section" aria-labelledby="history-heading">
               <h2 id="history-heading">History</h2>
               <Timeline events={timelineFor(r)} />
