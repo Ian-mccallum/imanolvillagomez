@@ -13,6 +13,9 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **BASSVICTIM** — 6 photos from the Oct 22 shoot, first when the photo grid opens, in
+  the order Imanol asked for (1st through 6th), above NATION. No tour tag given, so
+  they sit under artist and year.
 - **NATION** — 9 photos from the Oct 23 shoot, first when the photo grid opens, in
   the order Imanol asked for (1st through 9th). No tour tag given, so they sit
   under artist and year.
