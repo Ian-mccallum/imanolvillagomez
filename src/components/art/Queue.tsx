@@ -393,6 +393,201 @@ export function DropRow({
   );
 }
 
+const STEPS = ['Sent', 'Preparing', 'Your review', 'Live'] as const;
+const STEP: Record<api.ArtStatus, number> = {
+  pending: 1,
+  working: 1,
+  question: 1,
+  failed: 1,
+  preview: 2,
+  approved: 3,
+  live: 3,
+  removed: 0,
+};
+
+/** "5 min", "3 h", "2 days" since an ISO time. */
+function since(iso: string, now = Date.now()) {
+  const m = Math.max(0, Math.round((now - Date.parse(iso)) / 60000));
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} h`;
+  const d = Math.round(h / 24);
+  return `${d} ${d === 1 ? 'day' : 'days'}`;
+}
+
+/** When the drop reached its current state. */
+const stateSince = (r: api.ArtRequest) => r.history?.[r.history.length - 1]?.at ?? r.updatedAt;
+
+/** One plain sentence: where the drop is and what happens next. */
+function nextLine(r: api.ArtRequest, workerDown: boolean) {
+  const t = since(stateSince(r));
+  switch (r.status) {
+    case 'pending':
+      return workerDown
+        ? 'Waiting for the studio to come back. Your files are safe.'
+        : r.siteChanged
+          ? 'Your site changed since the last preview, so a fresh one is on its way.'
+          : 'Queued. The studio starts it within a couple of minutes.';
+    case 'working':
+      return `Preparing your preview · ${t} so far`;
+    case 'question':
+      return 'The studio has a question before it can continue.';
+    case 'preview':
+      return 'Your preview is ready. Check it, then publish or ask for changes.';
+    case 'failed':
+      return "It couldn't be finished. Try again, or text Ian if it happens twice.";
+    case 'approved':
+      return `Publishing to your website · ${t} so far`;
+    case 'live':
+      return `Live on your website · ${r.liveAt ? date(r.liveAt) : date(r.updatedAt)}`;
+    default:
+      return '';
+  }
+}
+
+function Stepper({ r }: { r: api.ArtRequest }) {
+  const at = STEP[r.status];
+  const tone = r.status === 'failed' ? 'failed' : r.status === 'question' ? 'attention' : 'ok';
+  return (
+    <ol className="studio-stepper" aria-label={`Progress: ${STEPS[at]}`}>
+      {STEPS.map((label, i) => (
+        <li
+          key={label}
+          className={
+            i < at || r.status === 'live' ? 'is-done' : i === at ? `is-now is-${tone}` : ''
+          }
+          aria-current={i === at ? 'step' : undefined}
+        >
+          <span className="studio-step-dot" aria-hidden />
+          <span className="studio-step-label">{label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Cover({ r, className = '' }: { r: api.ArtRequest; className?: string }) {
+  const [first] = useStrip(r);
+  const ext = r.files[0]?.name.split('.').pop()?.toUpperCase().slice(0, 4);
+  return (
+    <span className={`studio-cover ${className}`} aria-hidden>
+      {first ? (
+        <img src={first} alt="" loading="lazy" decoding="async" />
+      ) : (
+        <span>{ext || 'DROP'}</span>
+      )}
+      {r.files.length > 1 && <span className="studio-cover-count">{r.files.length}</span>}
+    </span>
+  );
+}
+
+/** A drop in the list: what it is, where it stands, and the one thing to do next. */
+function DropCard({
+  r,
+  onOpen,
+  onChange,
+  workerDown,
+}: {
+  r: api.ArtRequest;
+  onOpen?: () => void;
+  onChange: (r: api.ArtRequest) => void;
+  workerDown: boolean;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const retry = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      onChange(await api.retry(r.id));
+    } catch (e) {
+      setError(e instanceof Error && e.message ? e.message : 'Could not connect. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const tone = needsAttention(r.status) ? 'is-attention' : inProgress(r.status) ? 'is-working' : '';
+  return (
+    <article className={`studio-drop-card ${tone}`} aria-label={requestTitle(r)}>
+      <button
+        className="studio-drop-card-main"
+        onClick={onOpen}
+        aria-label={`${requestTitle(r)}, ${LABEL[r.status]}. Open details`}
+      >
+        <Cover r={r} />
+        <span className="studio-drop-card-text">
+          <span className="studio-drop-card-title">
+            {r.kind === 'edit' && <span className="studio-kind-tag">Site change</span>}
+            {requestTitle(r)}
+          </span>
+          <span className="studio-muted">
+            {r.files.length
+              ? `${r.files.length} ${r.files.length === 1 ? 'file' : 'files'} · `
+              : ''}
+            {r.city ? `${r.city} · ` : ''}sent {since(r.createdAt)} ago
+          </span>
+          <Stepper r={r} />
+          <span className="studio-drop-card-next">{nextLine(r, workerDown)}</span>
+        </span>
+      </button>
+      {(r.status === 'preview' || r.status === 'question' || r.status === 'failed') && (
+        <div className="studio-drop-card-actions">
+          {r.status === 'preview' && (
+            <>
+              <button className="studio-button studio-button-primary" onClick={onOpen}>
+                Review & publish
+              </button>
+              {r.previewUrl && (
+                <a className="studio-button" href={r.previewUrl} target="_blank" rel="noreferrer">
+                  Open preview <span aria-hidden>↗</span>
+                </a>
+              )}
+            </>
+          )}
+          {r.status === 'question' && (
+            <button className="studio-button studio-button-primary" onClick={onOpen}>
+              Answer
+            </button>
+          )}
+          {r.status === 'failed' && (
+            <>
+              <button
+                className="studio-button studio-button-primary"
+                disabled={busy}
+                onClick={retry}
+              >
+                {busy ? 'Queueing…' : 'Try again'}
+              </button>
+              <button className="studio-button" onClick={onOpen}>
+                Details
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="studio-error">
+          {error}
+        </p>
+      )}
+    </article>
+  );
+}
+
+/** Finished work as a gallery: covers are quicker to recognise than names. */
+function LiveTile({ r, onOpen }: { r: api.ArtRequest; onOpen?: () => void }) {
+  return (
+    <li>
+      <button className="studio-live-tile" onClick={onOpen} aria-label={`${requestTitle(r)}, live`}>
+        <Cover r={r} className="is-large" />
+        <span className="studio-live-title">{requestTitle(r)}</span>
+        <span className="studio-muted">{date(r.liveAt ?? r.updatedAt)}</span>
+      </button>
+    </li>
+  );
+}
+
 export function Queue({
   requests,
   onChange,
@@ -414,30 +609,42 @@ export function Queue({
 }) {
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderError, setOlderError] = useState('');
-  const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const visible = useMemo(
     () =>
       requests.filter(
         (r) =>
           r.status !== 'removed' &&
-          (filter === 'all' ||
-            (filter === 'attention' && needsAttention(r.status)) ||
-            (filter === 'progress' && inProgress(r.status)) ||
-            (filter === 'live' && r.status === 'live')) &&
           `${requestTitle(r)} ${r.city} ${r.files.map((f) => f.name).join(' ')}`
             .toLowerCase()
             .includes(search.toLowerCase())
       ),
-    [requests, filter, search]
+    [requests, search]
   );
-  const attention = requests.filter((r) => needsAttention(r.status)).length;
+  const needs = visible.filter((r) => needsAttention(r.status));
+  const going = visible.filter((r) => inProgress(r.status));
+  const live = visible.filter((r) => r.status === 'live');
+  const card = (r: api.ArtRequest) => (
+    <DropCard
+      key={r.id}
+      r={r}
+      onChange={onChange}
+      onOpen={onOpen ? () => onOpen(r.id) : undefined}
+      workerDown={workerDown}
+    />
+  );
   return (
     <section className="studio-queue" aria-labelledby="drops-heading">
       <div className="studio-section-head">
         <div>
           <h1 id="drops-heading">Your drops</h1>
-          <p className="studio-muted">Uploads, previews, and published work.</p>
+          <p className="studio-muted">
+            {needs.length
+              ? `${needs.length} ${needs.length === 1 ? 'drop needs' : 'drops need'} you.`
+              : going.length
+                ? 'Nothing needs you right now. The studio is working.'
+                : 'All caught up.'}
+          </p>
         </div>
         {onNewDrop && (
           <button className="studio-button studio-button-primary" onClick={onNewDrop}>
@@ -445,70 +652,71 @@ export function Queue({
           </button>
         )}
       </div>
-      <div className="studio-queue-tools">
-        <div className="studio-filters" role="group" aria-label="Filter drops">
-          {(
-            [
-              ['all', 'All drops'],
-              ['attention', `Needs you${attention ? ` (${attention})` : ''}`],
-              ['progress', 'In progress'],
-              ['live', 'Live'],
-            ] as const
-          ).map(([value, label]) => (
-            <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>
-              {label}
-            </button>
-          ))}
+      {requests.length > 3 && (
+        <div className="studio-queue-tools">
+          <div className="studio-search">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input
+              type="search"
+              aria-label="Search drops"
+              placeholder="Search drops…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="studio-search">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            aria-hidden
-          >
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="m16 16 4 4" />
-          </svg>
-          <input
-            type="search"
-            aria-label="Search drops"
-            placeholder="Search drops…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+      )}
       {!requests.length && loading ? (
         <div className="studio-drop-list" role="status" aria-label="Loading your drops">
           {[0, 1, 2].map((n) => (
-            <div key={n} className="studio-drop studio-drop-skeleton" aria-hidden>
-              <span className="studio-skeleton" style={{ width: '45%', height: 18 }} />
-              <span className="studio-skeleton" style={{ width: '30%', height: 12 }} />
+            <div key={n} className="studio-drop-card studio-drop-skeleton" aria-hidden>
+              <span className="studio-skeleton" style={{ width: 72, height: 72 }} />
               <span className="studio-skeleton-row">
-                <span className="studio-skeleton" />
-                <span className="studio-skeleton" />
-                <span className="studio-skeleton" />
+                <span className="studio-skeleton" style={{ width: '45%', height: 16 }} />
+                <span className="studio-skeleton" style={{ width: '70%', height: 12 }} />
               </span>
             </div>
           ))}
         </div>
       ) : visible.length ? (
-        <div className="studio-drop-list">
-          {visible.map((r) => (
-            <DropRow
-              key={r.id}
-              r={r}
-              onChange={onChange}
-              onOpen={onOpen ? () => onOpen(r.id) : undefined}
-              workerDown={workerDown}
-            />
-          ))}
-        </div>
+        <>
+          {needs.length > 0 && (
+            <section className="studio-drop-section" aria-labelledby="needs-heading">
+              <h2 id="needs-heading">
+                Needs you <span className="studio-nav-count is-attention">{needs.length}</span>
+              </h2>
+              <div className="studio-drop-list">{needs.map(card)}</div>
+            </section>
+          )}
+          {going.length > 0 && (
+            <section className="studio-drop-section" aria-labelledby="going-heading">
+              <h2 id="going-heading">In progress</h2>
+              <div className="studio-drop-list">{going.map(card)}</div>
+            </section>
+          )}
+          {live.length > 0 && (
+            <section className="studio-drop-section" aria-labelledby="live-heading">
+              <h2 id="live-heading">Live</h2>
+              <ul className="studio-live-grid">
+                {live.map((r) => (
+                  <LiveTile key={r.id} r={r} onOpen={onOpen ? () => onOpen(r.id) : undefined} />
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       ) : (
         <div className="studio-empty">
           <span className="studio-empty-icon" aria-hidden>
@@ -528,7 +736,7 @@ export function Queue({
           <h3>{requests.length ? 'No matching drops' : 'Your first drop starts here'}</h3>
           <p>
             {requests.length
-              ? 'Try a different search or filter.'
+              ? 'Try a different search.'
               : 'Add your work, check the preview, then choose when it goes live.'}
           </p>
           {!requests.length && onNewDrop && (
