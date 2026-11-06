@@ -7,6 +7,7 @@ const ORIGINAL = /^inbox\/\d{8}-[0-9a-f]{6}\/files\/(?:[\w.\- ]{1,80}\/)?[\w.\- 
 
 const clean = (key: unknown) => {
   const k = String(key ?? '');
+  // eslint-disable-next-line no-control-regex -- rejecting control characters is the point
   return k.length <= 300 && !/(^|\/)\.\.?(\/|$)|\\|%|[\x00-\x1f\x7f]/.test(k) ? k : '';
 };
 

@@ -437,13 +437,90 @@ test('library changes only touch unused videos, keep an audit trail, and fail cl
   }
 });
 
+test('edit requests are checked against the site and verified by reading the result', async () => {
+  const { validateOps, describeOps, verifyOps } = await server.ssrLoadModule('/api/_lib/edit.ts');
+  const m = { videos: [{ id: 'v1', title: 'Problema', file: 'PROBLEMA.mp4' }, { id: 'v2', title: 'Viking', file: 'VIKING.mp4' }], photos: [{ id: 'photo-1', client: 'NATION' }], alsoUsedVideoFiles: [] };
+  assert.match(validateOps([], m), /at least one/);
+  assert.match(validateOps([{ op: 'remove', target: { kind: 'photo', id: 'nope' } }], m), /no longer on your site/);
+  assert.match(validateOps([{ op: 'remove', target: { kind: 'video', id: 'v1' } }, { op: 'move', target: { kind: 'video', id: 'v1' }, to: { position: 'top' } }], m), /conflict/);
+  assert.match(validateOps([{ op: 'update', target: { kind: 'photo', id: 'photo-1' }, set: { title: 'x' } }], m), /Photos can change/);
+  assert.match(validateOps([{ op: 'replace', target: { kind: 'video', id: 'v1' }, file: 'new.mp4' }], m, []), /replacement file first/);
+  assert.match(validateOps([{ op: 'update', target: { kind: 'video', id: 'v1' }, set: { year: 1900 } }], m), /2000 and 2100/);
+  const ops = validateOps(
+    [
+      { op: 'update', target: { kind: 'video', id: 'v1' }, set: { title: '  New title  ', evil: 'x' } },
+      { op: 'move', target: { kind: 'video', id: 'v1' }, to: { before: 'v2' } },
+      { op: 'remove', target: { kind: 'photo', id: 'photo-1' } },
+    ],
+    m
+  );
+  assert.deepEqual(ops[0].set, { title: 'New title' });
+  assert.deepEqual(describeOps(ops, m), ['Change video “Problema”: title → New title', 'Move video “Problema” before v2', 'Remove photo “NATION” from the site']);
+  assert.deepEqual(verifyOps(ops, `{"id": "photo-2"}`, `+ title: 'New title',`), []);
+  assert.deepEqual(verifyOps(ops, `{"id": "photo-1"}`, ''), ['v1: New title not applied', 'photo-1 is still on the site']);
+});
+
+test('edit drops and resends go into the normal queue; resend copies files inside storage', async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) =>
+    String(url).endsWith('/site-manifest.json')
+      ? new Response(JSON.stringify({ videos: [{ id: 'v1', title: 'Problema', file: 'PROBLEMA.mp4' }], photos: [], alsoUsedVideoFiles: [] }))
+      : realFetch(url, init);
+  try {
+    const edit = await call('edit-submit', { ops: [{ op: 'update', target: { kind: 'video', id: 'v1' }, set: { title: 'Problema (live)' } }] }, auth.token);
+    assert.equal(edit.status, 200);
+    assert.equal(edit.data.request.kind, 'edit');
+    assert.equal(edit.data.request.status, 'pending');
+    assert.match(edit.data.request.title, /Problema/);
+    assert.equal((await call('edit-submit', { ops: [{ op: 'remove', target: { kind: 'video', id: 'gone' } }] }, auth.token)).status, 400);
+    const forged = await call('edit-submit', { id: '20261104-abcdef', ops: [{ op: 'replace', target: { kind: 'video', id: 'v1' }, file: 'x.mp4' }], files: [{ name: 'x.mp4', key: 'inbox/20261104-abcdef/files/x.mp4' }] }, auth.token);
+    assert.equal(forged.status, 200);
+    assert.equal(forged.data.request.ops[0].previousFile, 'PROBLEMA.mp4');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  seed('live');
+  objects.set(`inbox/${id}/files/test.jpg`, 'jpg-bytes');
+  const again = await call('resend', { id, names: ['test.jpg', 'missing.jpg'], note: 'second round' }, auth.token);
+  assert.equal(again.status, 200);
+  const r = again.data.request;
+  assert.notEqual(r.id, id);
+  assert.equal(r.files.length, 1);
+  assert.equal(objects.get(r.files[0].key), 'jpg-bytes');
+  assert.equal(r.note, 'second round');
+  assert.equal((await call('resend', { id, names: [] }, auth.token)).status, 400);
+});
+
+test('Cloudflare video loads group by file and ignore non-video paths; ranges add up', async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ data: { viewer: { zones: [{ httpRequestsAdaptiveGroups: [
+      { count: 5, sum: { edgeResponseBytes: 500 }, dimensions: { clientRequestPath: '/videos/PROBLEMA.mp4' } },
+      { count: 2, sum: { edgeResponseBytes: 50 }, dimensions: { clientRequestPath: '/videos/PROBLEMA.mp4' } },
+      { count: 9, sum: { edgeResponseBytes: 9 }, dimensions: { clientRequestPath: '/favicon.ico' } },
+      { count: 1, sum: { edgeResponseBytes: 10 }, dimensions: { clientRequestPath: '/videos/VIKING.mp4' } },
+    ] }] } } }));
+  try {
+    const { videoLoads } = await server.ssrLoadModule('/api/_lib/cloudflare.ts');
+    assert.deepEqual(await videoLoads('2026-11-05'), [{ file: 'PROBLEMA.mp4', loads: 7, bytes: 550 }, { file: 'VIKING.mp4', loads: 1, bytes: 10 }]);
+    globalThis.fetch = async () => new Response(JSON.stringify({ errors: [{ message: 'unknown field clientRequestPath' }] }));
+    await assert.rejects(videoLoads('2026-11-05'), /unknown field/);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  const { aggregateVideos } = await server.ssrLoadModule('/src/components/art/insights/model.ts');
+  const v = aggregateVideos({ days: [{ date: '2026-11-02', videos: [{ file: 'A.mp4', loads: 3 }] }, { date: '2026-11-03', videos: [{ file: 'A.mp4', loads: 2 }, { file: 'B.mp4', loads: 9 }] }] }, '7d', '2026-11-03');
+  assert.deepEqual(v, [{ file: 'B.mp4', loads: 9 }, { file: 'A.mp4', loads: 5 }]);
+  assert.equal(aggregateVideos({ days: [] }, '7d', '2026-11-03'), null);
+});
+
 test('deployed API imports resolve under native Node ESM without Vite', async () => {
   const root = mkdtempSync(join(tmpdir(), 'nol-esm-'));
   const repo = fileURLToPath(new URL('../../', import.meta.url));
   try {
     writeFileSync(join(root, 'package.json'), '{"type":"module"}');
     symlinkSync(join(repo, 'node_modules'), join(root, 'node_modules'));
-    for (const file of ['api/art.ts', 'api/_lib/storage.ts', 'api/_lib/insights.ts', 'api/_lib/keys.ts', 'api/_lib/library.ts', 'api/_lib/gsc.ts', 'src/components/art/studioModel.ts']) {
+    for (const file of ['api/art.ts', 'api/_lib/storage.ts', 'api/_lib/insights.ts', 'api/_lib/keys.ts', 'api/_lib/library.ts', 'api/_lib/gsc.ts', 'api/_lib/edit.ts', 'api/_lib/cloudflare.ts', 'src/components/art/studioModel.ts']) {
       const destination = join(root, file.replace(/\.ts$/, '.js'));
       mkdirSync(dirname(destination), { recursive: true });
       writeFileSync(destination, ts.transpileModule(readFileSync(join(repo, file), 'utf8'), {

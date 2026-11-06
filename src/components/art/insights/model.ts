@@ -39,6 +39,8 @@ export interface DaySnapshot {
     devices: Count[];
   };
   search?: SearchDay;
+  /** loads per video file on videos.imanolvillagomez.com */
+  videos?: { file: string; loads: number; bytes: number }[];
 }
 
 export interface SourceState {
@@ -54,6 +56,7 @@ export interface InsightsSummary {
   sources: Record<string, SourceState>;
   days: DaySnapshot[];
   index?: IndexState;
+  storage?: { bytes: number; objects: number };
 }
 
 export const RANGES = { '7d': 7, '30d': 30, '90d': 90 } as const;
@@ -137,6 +140,20 @@ export function aggregateSearch(summary: InsightsSummary, range: Range, today = 
     pages: mergeSearch(days.map((d) => d.search!.pages), 8),
     through: days[days.length - 1].date,
   };
+}
+
+/** Video loads per file over the range, most watched first. */
+export function aggregateVideos(summary: InsightsSummary, range: Range, today = isoDay(Date.now())) {
+  const end = Date.parse(`${today}T00:00:00Z`);
+  const start = isoDay(end - (RANGES[range] - 1) * 86400e3);
+  const m = new Map<string, number>();
+  let any = false;
+  for (const d of summary.days)
+    if (d.date >= start && d.date <= today && d.videos) {
+      any = true;
+      for (const v of d.videos) m.set(v.file, (m.get(v.file) ?? 0) + v.loads);
+    }
+  return any ? [...m.entries()].map(([file, loads]) => ({ file, loads })).sort((a, b) => b.loads - a.loads) : null;
 }
 
 const COVERAGE: [RegExp, string][] = [

@@ -70,3 +70,16 @@ export interface LibraryActivity {
   bytes?: number;
   count?: number;
 }
+
+export type EditTarget = { kind: 'photo' | 'video'; id: string };
+/** A change to the live site, applied by the studio and shown as a preview first. */
+export type EditOp =
+  | { op: 'remove'; target: EditTarget }
+  | {
+      op: 'update';
+      target: EditTarget;
+      set: Partial<Record<'title' | 'artist' | 'song' | 'location' | 'tour', string> & { year: number; featured: boolean }>;
+    }
+  | { op: 'move'; target: EditTarget; to: { before?: string; after?: string; position?: 'top' | 'bottom' } }
+  /** previousFile: the video file being replaced, moved to trash once the change is live */
+  | { op: 'replace'; target: EditTarget; file: string; previousFile?: string };

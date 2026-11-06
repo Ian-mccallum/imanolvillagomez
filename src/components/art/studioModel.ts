@@ -84,6 +84,11 @@ export interface ArtRequest {
   /** file name → R2 key of its small WebP thumbnail */
   thumbs?: Record<string, string>;
   liveAt?: string;
+  /** 'edit': changes to work already on the site, requested from the Library */
+  kind?: 'drop' | 'edit';
+  ops?: import('./library/model').EditOp[];
+  /** video files this drop uploaded (set by the runner) */
+  uploaded?: string[];
 }
 
 const HISTORY_MAX = 200;

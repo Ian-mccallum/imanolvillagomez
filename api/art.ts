@@ -31,6 +31,8 @@ import {
 } from './_lib/storage.js';
 import { collect, readSummary, refreshAllowed } from './_lib/insights.js';
 import * as library from './_lib/library.js';
+import { describeOps, validateOps } from './_lib/edit.js';
+import { CopyObjectCommand } from '@aws-sdk/client-s3';
 
 /**
  * /api/art — Imanol's drop box.
@@ -89,6 +91,7 @@ function unsign<T extends { exp: number }>(tok: string): T | null {
 }
 
 const session = () => sign({ t: 's' }, SESSION_MS);
+const newId = () => `${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${randomBytes(3).toString('hex')}`;
 
 function hasSession(req: VercelRequest) {
   const tok = String(req.headers.authorization ?? '').replace(/^Bearer /, '');
@@ -196,6 +199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         connected: {
           vercel: !!process.env.VERCEL_ANALYTICS_TOKEN,
           gsc: !!process.env.GSC_SERVICE_ACCOUNT_JSON && !!process.env.GSC_SITE,
+          cloudflare: !!process.env.CF_ANALYTICS_TOKEN && !!process.env.CF_ZONE_ID,
         },
       });
     }
@@ -314,8 +318,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         files.map((f) => ({ name: String(f?.name ?? 'File'), size: Number(f?.size) }))
       );
       if (problem) return res.status(400).json({ error: problem });
-      const d = new Date();
-      const id = `${d.toISOString().slice(0, 10).replace(/-/g, '')}-${randomBytes(3).toString('hex')}`;
+      const id = newId();
       const seen = new Set<string>();
       const uploads = await Promise.all(
         files.map(async (f: { name?: string; folder?: string; size?: number; type?: string }, n: number) => {
@@ -393,6 +396,88 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (thumbKey.test(key)) (r.thumbs ??= {})[f.name] = key;
       }
       appendEvent(r, { type: 'sent', by: 'imanol' });
+      await writeReq(r);
+      return res.json({ request: r });
+    }
+
+    // Changes to work already on the site. Same queue, preview and Publish as any drop.
+    if (action === 'edit-submit' && post) {
+      const m = await library.manifest();
+      const id = clean(body.id, 40) || newId();
+      if (!ID.test(id)) return res.status(400).json({ error: 'bad id' });
+      const files = (Array.isArray(body.files) ? body.files : [])
+        .map((f: { name?: string; key?: string; size?: number; type?: string }) => ({
+          name: clean(f.name, 400),
+          key: clean(f.key, 600),
+          size: Number(f.size) || 0,
+          type: clean(f.type, 100),
+        }))
+        .filter((f) => f.key === `${INBOX}${id}/files/${f.name}`);
+      const ops = validateOps(body.ops, m, files.map((f) => f.name));
+      if (typeof ops === 'string') return res.status(400).json({ error: ops });
+      for (const o of ops)
+        if (o.op === 'replace' && o.target.kind === 'video')
+          o.previousFile = m.videos.find((v) => v.id === o.target.id)?.file;
+      const lines = describeOps(ops, m);
+      const now = new Date().toISOString();
+      const r: ArtRequest = {
+        id,
+        kind: 'edit',
+        createdAt: now,
+        updatedAt: now,
+        status: 'pending',
+        title: clean(body.title, 200) || (lines.length === 1 ? lines[0] : `${lines.length} changes to your site`),
+        city: '',
+        placement: 'anywhere',
+        note: clean(body.note, 4000),
+        files,
+        ops,
+      };
+      appendEvent(r, { type: 'sent', by: 'imanol', text: lines.join('\n') });
+      await writeReq(r);
+      return res.json({ request: r });
+    }
+
+    // A new drop from files already uploaded: copied inside R2, nothing re-uploaded.
+    if (action === 'resend' && post) {
+      const from = await readReq(clean(body.id, 40));
+      if (!from || from.status === 'removed') return res.status(404).json({ error: 'Drop not found.' });
+      const pick = new Set((Array.isArray(body.names) ? body.names : []).map((n) => clean(n, 400)));
+      const chosen = from.files.filter((f) => pick.has(f.name));
+      if (!chosen.length) return res.status(400).json({ error: 'Choose at least one file.' });
+      const id = newId();
+      const files = await Promise.all(
+        chosen.map(async (f) => {
+          const key = `${INBOX}${id}/files/${f.name}`;
+          await s3.send(new CopyObjectCommand({ Bucket, Key: key, CopySource: encodeURI(`${Bucket}/${f.key}`) }));
+          return { ...f, key };
+        })
+      );
+      const thumbs: Record<string, string> = {};
+      await Promise.all(
+        chosen.map(async (f, n) => {
+          const t = from.thumbs?.[f.name];
+          if (!t) return;
+          const key = `${INBOX}${id}/thumbs/${n}.webp`;
+          await s3.send(new CopyObjectCommand({ Bucket, Key: key, CopySource: encodeURI(`${Bucket}/${t}`) }));
+          thumbs[f.name] = key;
+        })
+      );
+      const now = new Date().toISOString();
+      const r: ArtRequest = {
+        id,
+        createdAt: now,
+        updatedAt: now,
+        status: 'pending',
+        title: clean(body.title, 200) || from.title,
+        city: clean(body.city, 100) || from.city,
+        placement: body.placement === 'top' ? 'top' : 'anywhere',
+        note: clean(body.note, 4000),
+        files,
+        groups: (from.groups ?? []).filter((g) => files.some((f) => f.folder === g.folder)),
+        ...(Object.keys(thumbs).length ? { thumbs } : {}),
+      };
+      appendEvent(r, { type: 'sent', by: 'imanol', text: `Sent again from “${from.title || from.id}”` });
       await writeReq(r);
       return res.json({ request: r });
     }
