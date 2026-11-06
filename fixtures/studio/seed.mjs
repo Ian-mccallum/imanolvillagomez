@@ -96,11 +96,42 @@ function sampleInsights() {
         countries: split([['US', 0.78], ['CA', 0.08], ['GB', 0.06], ['MX', 0.05]], views),
         devices: split([['mobile', 0.72], ['desktop', 0.25], ['tablet', 0.03]], views),
       },
+      // Google reports two days late
+      ...(i < 38
+        ? {
+            search: {
+              clicks: Math.round(2 + rand() * 4),
+              impressions: Math.round(30 + rand() * 40),
+              position: Math.round((6 + rand() * 4) * 10) / 10,
+              queries: [
+                ['imanol villagomez', 3, 12, 1.2],
+                ['chicago concert photographer', 1, 18, 9.4],
+                ['osamason live photos', 0, 9, 14.1],
+                ['nol videography', 1, 4, 2.5],
+              ].map(([key, clicks, impressions, position]) => ({ key, clicks, impressions, position })),
+              pages: [],
+            },
+          }
+        : {}),
     };
   });
   return {
     updatedAt: new Date().toISOString(),
-    sources: { vercel: { ok: true, dataThrough: days[39].date } },
+    sources: { vercel: { ok: true, dataThrough: days[39].date }, gsc: { ok: true, dataThrough: days[37].date } },
     days,
+    index: {
+      cursor: 0,
+      updatedAt: new Date().toISOString(),
+      pages: Object.fromEntries(
+        ['/', '/work', '/work/photos', '/work/videos', '/about', '/contact', '/other', '/privacy'].map((p, i) => [
+          `https://www.imanolvillagomez.com${p}`,
+          i === 6
+            ? { verdict: 'NEUTRAL', coverage: 'Crawled - currently not indexed', checkedAt: '' }
+            : i === 7
+              ? { verdict: 'NEUTRAL', coverage: 'Discovered - currently not indexed', checkedAt: '' }
+              : { verdict: 'PASS', coverage: 'Submitted and indexed', checkedAt: '' },
+        ])
+      ),
+    },
   };
 }

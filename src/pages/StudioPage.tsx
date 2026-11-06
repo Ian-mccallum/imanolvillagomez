@@ -36,6 +36,7 @@ import {
 } from '@/components/art/studioModel';
 
 const Insights = lazy(() => import('@/components/art/insights/Insights'));
+const Library = lazy(() => import('@/components/art/library/Library'));
 import '@/components/art/studio.css';
 
 /**
@@ -1591,6 +1592,11 @@ const Room = ({
             if (r.status === 'removed') go({ view: 'drops' }, true);
           }}
         />
+      )}
+      {view === 'library' && (
+        <Suspense fallback={<p className="studio-muted">Loading library…</p>}>
+          <Library tab={route.arg} onTab={(tab) => go({ view: 'library', arg: tab }, true)} />
+        </Suspense>
       )}
       {view === 'insights' && (
         <Suspense

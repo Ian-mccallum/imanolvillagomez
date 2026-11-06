@@ -3,6 +3,8 @@ import * as api from '../artApi';
 import {
   RANGES,
   aggregate,
+  aggregateSearch,
+  indexHealth,
   change,
   countryName,
   pageName,
@@ -79,6 +81,128 @@ function Bars({
         </li>
       ))}
     </ol>
+  );
+}
+
+/** Rows ranked by a number, with a track; works for any list of labelled counts. */
+function RankList({
+  rows,
+}: {
+  rows: { key: string; label: string; value: number; note?: string }[];
+}) {
+  if (!rows.length) return <p className="studio-muted">Nothing yet for this period.</p>;
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <ol className="studio-bars">
+      {rows.map((r) => (
+        <li key={r.key}>
+          <span className="studio-bar-label">
+            {r.label}
+            {r.note && <span className="studio-muted"> · {r.note}</span>}
+          </span>
+          <span className="studio-bar-value">{fmt.format(r.value)}</span>
+          <span className="studio-bar-track" aria-hidden>
+            <span className="studio-bar" style={{ width: `${(r.value / max) * 100}%` }} />
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** How the site shows up on Google, and whether Google lists every page. */
+function GoogleCards({
+  summary,
+  range,
+  connected,
+}: {
+  summary: InsightsSummary | null;
+  range: Range;
+  connected: boolean;
+}) {
+  const search = summary ? aggregateSearch(summary, range) : null;
+  const health = indexHealth(summary?.index);
+  const state = summary?.sources.gsc;
+  if (!connected && !search)
+    return (
+      <div className="studio-cards">
+        <article className="studio-card studio-card-wide">
+          <h2>On Google</h2>
+          <p className="studio-muted">
+            Ian is connecting Google Search, so you'll see how people find you there. Nothing for
+            you to do.
+          </p>
+        </article>
+      </div>
+    );
+  return (
+    <div className="studio-cards">
+      <article className="studio-card studio-card-wide">
+        <h2>On Google</h2>
+        {state && !state.ok && state.connected !== false && (
+          <p className="studio-notice">
+            Google's latest numbers didn't come through; these are older.
+          </p>
+        )}
+        {search ? (
+          <>
+            <div className="studio-stats">
+              <p className="studio-stat">
+                <strong>{fmt.format(search.clicks)}</strong>
+                <span>visits from Google</span>
+              </p>
+              <p className="studio-stat">
+                <strong>{fmt.format(search.impressions)}</strong>
+                <span>times you showed up</span>
+              </p>
+              {search.position !== null && (
+                <p className="studio-stat">
+                  <strong>#{Math.max(1, Math.round(search.position))}</strong>
+                  <span>usual spot in results</span>
+                </p>
+              )}
+              <p className="studio-stat-caption">
+                Google reports a couple of days late; numbers run through {dayLabel(search.through)}
+                .
+              </p>
+            </div>
+            <h3 className="studio-card-sub">What people searched</h3>
+            <RankList
+              rows={[...search.queries]
+                .sort((x, y) => y.impressions - x.impressions)
+                .map((q) => ({
+                  key: q.key,
+                  label: q.key,
+                  value: q.impressions,
+                  note: q.clicks ? `${fmt.format(q.clicks)} clicked` : undefined,
+                }))}
+            />
+          </>
+        ) : (
+          <p className="studio-muted">The first Google numbers arrive within a few days.</p>
+        )}
+      </article>
+      {health && (
+        <article className="studio-card studio-card-wide">
+          <h2>Is Google seeing every page?</h2>
+          <p className="studio-lead">
+            <strong>{health.indexed}</strong> of {health.checked} pages checked are on Google.
+          </p>
+          {health.issues.length > 0 ? (
+            <ul className="studio-issue-list">
+              {health.issues.slice(0, 8).map((i) => (
+                <li key={i.url}>
+                  <span>{pageName(new URL(i.url).pathname)}</span>
+                  <span className="studio-muted">{i.why}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="studio-muted">Every page checked so far is listed. Nothing to fix.</p>
+          )}
+        </article>
+      )}
+    </div>
   );
 }
 
@@ -275,6 +399,7 @@ export default function Insights({
           </p>
         </>
       )}
+      {data && <GoogleCards summary={summary} range={range} connected={!!data.connected.gsc} />}
     </section>
   );
 }

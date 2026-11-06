@@ -22,8 +22,12 @@ function codeVideoFiles(dir = join(root, 'src')) {
 }
 
 export async function buildManifest() {
+  // configFile: false — the project config's dev plugins (fixture mode) call back into this
   const server = await createServer({
     root,
+    configFile: false,
+    resolve: { alias: { '@': join(root, 'src') } },
+    optimizeDeps: { noDiscovery: true, include: [] },
     logLevel: 'error',
     server: { middlewareMode: true, hmr: false, ws: false },
     appType: 'custom',
