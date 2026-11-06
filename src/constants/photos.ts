@@ -1,4 +1,5 @@
 import { Photo } from '@/types';
+import shootOsamason2026 from '@/constants/data/photos-shoot-20261101.json';
 import shootBassvictim2026 from '@/constants/data/photos-shoot-20261022.json';
 import shootNation2026 from '@/constants/data/photos-shoot-20261106.json';
 import shootNov2026 from '@/constants/data/photos-shoot-20261105.json';
@@ -225,6 +226,10 @@ const photosArchive: Photo[] = [
  * shoots listed most-recent-first.
  */
 const photosChronological: Photo[] = [
+  // OSAMASON (shot Nov 1) — array order is 1st through 12th as requested.
+  // Data file uses the shoot date because photos-shoot-20261106.json is already the NATION drop.
+  // No tour given, so untagged.
+  ...(shootOsamason2026 as Photo[]),
   // BASSVICTIM (shot Oct 22, delivered Nov 6) — array order is 1st through 6th as requested.
   // Data file uses the shoot date because photos-shoot-20261106.json is already the NATION drop.
   // No tour given, so untagged.
