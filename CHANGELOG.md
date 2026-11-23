@@ -13,6 +13,9 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **SUZY SHEER** — 6 photos from the Nov 8 shoot (Chicago), first when the photo
+  grid opens, in the order Imanol asked for (1st through 6th), above PATCH+. No
+  tour tag given, so they sit under artist and year.
 - **PATCH+** — 5 photos from the Nov 8 shoot (Chicago), in the order Imanol asked
   for (1st through 5th), above ROSACEA BOY. No tour tag given, so they sit under
   artist and year.
