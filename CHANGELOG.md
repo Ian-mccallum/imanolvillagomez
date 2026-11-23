@@ -9,6 +9,14 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## 2026-11-23
+
+### Added
+
+- **ROSACEA BOY** — 7 photos from the Nov 8 shoot (Chicago), first when the photo
+  grid opens, in the order Imanol asked for (1st through 7th), above OSAMASON. No
+  tour tag given, so they sit under artist and year.
+
 ## 2026-11-06
 
 ### Added
